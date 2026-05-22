@@ -7,7 +7,7 @@ import { useNProgress } from "@/hooks/useNProgress";
 import { usePermissionStoreWithOut } from "@/stores/modules/permission";
 import { NO_REDIRECT_WHITE_LIST } from "@/constants";
 import { useUserStoreWithOut } from "@/stores/modules/user";
-import { getMenu, getInfo, getMenuOPUI, getWorksMenuOPUI } from "@/api/permiss";
+import { getMenu, getInfo, getMenuOPUI, getWorksMenuOPUI } from "@/api/permiss/index";
 // import { asyncRouterMap, constantRouterMap } from '@/router'
 import { updateParentMenus } from "@/utils/routerAata";
 import { setMenu } from "@/utils/dataMenu";
@@ -32,9 +32,9 @@ router.beforeEach(async (to, from, next) => {
         return;
       }
       await getInfo().then(async (data: any) => {
-        userStore.setUserInfo(data.content);
+        userStore.setUserInfo(data.Data);
 
-        if (data.code == 100200 || data.code == 100300) {
+        if (data.Code == 100200 || data.Code == 100300) {
           if (roleRouters.length == 0) {
             if (appStore.getSystemType) {
               await getWorksMenuOPUI().then(async (data: any) => {
@@ -52,15 +52,14 @@ router.beforeEach(async (to, from, next) => {
               });
             } else {
               await getMenu().then(async (data: any) => {
-                if (data.code == 100200) {
-                  const routerArr = data.content || [];
+                if (data.Code == 100200) {
+                  const routerArr = data.Data || [];
                   const systemRouter = routerArr.filter(
                     (v: any) => v.MenuName == "Portal"
                   );
                   if (systemRouter.length == 0) {
                     await permissionStore.generateRoutes("static");
                   } else {
-                    // console.log(systemRouter[0].childMenu);
                     userStore.setRoleRouters(systemRouter[0].childMenu);
                     await permissionStore.generateRoutes(
                       "server",

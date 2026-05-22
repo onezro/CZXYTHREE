@@ -6,10 +6,18 @@
 
       <div class="w-[4.8rem]" v-for="item in tabRouters">
         <div class="text-center text-xs cursor-pointer pt-3 pb-3 hover:bg-[#005A79]"
-          :class="{ isActive: isActive(item.path) }" @click="tabClick(isOnlyChildren(item))" >
+          :class="{ isActive: isActive(item.path) }" @click="tabClick(isOnlyChildren(item))">
           <el-icon :size="24" color="#ffffff">
             <component :is="isOnlyChildren(item).meta?.icon" />
           </el-icon>
+          <!-- <a-icon :type="'DesktopOutlined'" :style="{ fontSize: '27px', color: '#fff'}" /> -->
+          <!-- <a-space :style="{ fontSize: '27px', color: '#fff'}">
+    <home-outlined  :style="{ fontSize: '27px', color: '#fff'}"/>
+ 
+  </a-space> -->
+          <!-- <el-icon :size="24" color="#ffffff">
+            <Monitor />
+          </el-icon> -->
           <p class="text-[#ffffff] mt-5px px-2px">
             {{ isOnlyChildren(item).meta?.title || "" }}
           </p>
@@ -33,14 +41,9 @@
 
     <div class="h-[120px] flex flex-col justify-between items-center">
       <div>
-         <el-icon 
-      :size="30" 
-      color="#ffffff" 
-      @click="toggleScroll"
-      :class="{ 'rotate-icon': !isScroll }"
-    >
-      <ArrowDown /> 
-    </el-icon>
+        <el-icon :size="30" color="#ffffff" @click="toggleScroll" :class="{ 'rotate-icon': !isScroll }">
+          <ArrowDown />
+        </el-icon>
         <!-- <transition name="rotate">
         <el-icon v-if="isScroll" :size="30" key="down" color="#ffffff" @click="downBottom">
           <ArrowDown />
@@ -72,10 +75,10 @@
                 <Warning />
               </el-icon>系统版本</el-dropdown-item>
 
-            <!-- <el-dropdown-item @click.native="openUpdatePwd"><el-icon>
+            <el-dropdown-item @click.native="openUpdatePwd"><el-icon>
                 <Key />
               </el-icon>修改密码</el-dropdown-item>
-            <el-dropdown-item @click.native="switchSystem"><el-icon>
+            <!-- <el-dropdown-item @click.native="switchSystem"><el-icon>
                 <Connection />
               </el-icon>切换系统</el-dropdown-item> -->
             <el-dropdown-item @click.native="logoutsys"><el-icon>
@@ -87,8 +90,7 @@
     </div>
     <Menu class="absolute top-0 z-[99] h-[100%] left-[4.8rem] bg-[#003750]"
       :class="{ 'w-[200px]': showMenu, 'w-0': !showMenu }" style="transition:  width 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
-    transform 0.6s cubic-bezier(0.2, 0, 0.2, 1)" :base-path="'/'"
-      @refresh="clickOut"></Menu>
+    transform 0.6s cubic-bezier(0.2, 0, 0.2, 1)" :base-path="'/'" @refresh="clickOut"></Menu>
 
     <el-dialog :append-to-body="true" :close-on-click-modal="false" title="修改密码" v-model="upPwVisible" width="400px"
       @close="upDateCancel()">
@@ -356,7 +358,7 @@ const fullScreen = () => {
   // 是否全屏，否为null
   let full = document.fullscreenElement
   // console.log(full)
-  let fullDiv:any = "";
+  let fullDiv: any = "";
 
   if (!full) {
     // document自带的全屏方法
@@ -368,25 +370,25 @@ const fullScreen = () => {
     isFull.value = false
   }
   // console.log(route.path);
-  fullDiv=document.getElementById("fullDiv5");
-    if (fullDiv) { 
-        //找到后调用自带的toggle事件进行放大操作
-        screenfull.toggle(fullDiv);
-        isFull.value = false
-      } else {
+  fullDiv = document.getElementById("fullDiv5");
+  if (fullDiv) {
+    //找到后调用自带的toggle事件进行放大操作
+    screenfull.toggle(fullDiv);
+    isFull.value = false
+  } else {
 
-        //判断浏览器是否支持该组件
-        if (!screenfull.enabled) {
-          // this.$message({
-          //   message: "you browser can not work",
-          //   type: "warning",
-          // });
-          // return false;
-          // this.isFullscreen = false;
-        }
-        //放大页面 左侧菜单栏不会隐藏
-        screenfull.toggle();
-      }
+    //判断浏览器是否支持该组件
+    if (!screenfull.enabled) {
+      // this.$message({
+      //   message: "you browser can not work",
+      //   type: "warning",
+      // });
+      // return false;
+      // this.isFullscreen = false;
+    }
+    //放大页面 左侧菜单栏不会隐藏
+    screenfull.toggle();
+  }
 }
 const scrollValue = (val: any) => {
   scrollHeight.value = val.scrollTop + 1
@@ -401,18 +403,18 @@ const downBottom = () => {
   let wrap = scrollMenuRes.value.wrapRef
   // scrollMenuRes.value.wrapRef.scrollTop = wrap.scrollHeight - wrap.clientHeight
   smoothScrollTo(wrap, wrap.scrollHeight - wrap.clientHeight, 500);
-  
+
 }
 const upTop = () => {
   // scrollMenuRes.value.wrapRef.scrollTop = 0
   let wrap = scrollMenuRes.value.wrapRef
   smoothScrollTo(wrap, 0, 500);
 }
-const toggleScroll=()=>{
+const toggleScroll = () => {
   let wrap = scrollMenuRes.value.wrapRef
-  if(isScroll.value){
-     smoothScrollTo(wrap, wrap.scrollHeight - wrap.clientHeight, 500);
-  }else{
+  if (isScroll.value) {
+    smoothScrollTo(wrap, wrap.scrollHeight - wrap.clientHeight, 500);
+  } else {
     smoothScrollTo(wrap, 0, 500);
   }
 }

@@ -4,8 +4,8 @@ import {
   empolyeeLogin,
   getEmpoyeeInfo,
   findEmployeeRoles,
-  GetVersion,
-} from "@/api/permiss";
+  // GetVersion,
+} from "@/api/permiss/index";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { getToken, setToken, removeToken } from "@/utils/auth";
 import type { RouteLocationNormalizedLoaded, RouteRecordRaw } from "vue-router";
@@ -44,9 +44,9 @@ onBeforeMount(() => {
   //   let res = data.data;
   //   version.value = res.content.CurrentVer;
   // });
-  GetVersion().then((res: any) => {
-    version.value = res.content.CurrentVer;
-  });
+  // GetVersion().then((res: any) => {
+  //   version.value = res.content.CurrentVer;
+  // });
 });
 onMounted(() => {
   if (localStorage.getItem('LOGINNAME')) {
@@ -77,8 +77,8 @@ const loginClick = () => {
   //   }
   // });
   empolyeeLogin(form.value).then((data: any) => {
-    const dataText = data.content;
-    if (data.code == 100200) {
+    const dataText = data.Data;
+    if (data.Code == 100200) {
       localStorage.setItem('LOGINNAME', form.value.EmployeeName)
       localStorage.setItem("OPCENTER_ROLE", form.value.EmployeeName);
       setToken(dataText.Token);
@@ -110,6 +110,7 @@ const switchSystems = () => {
 
 <template>
   <div class="w-[100vw] h-[100vh] bg-no-repeat bg-cover bg-[url('../assets/bg.jpg')]">
+
     <div class="w-[100%] absolute h-[100%] flex bg-[#00000036]">
       <!-- <div class="m-auto"> -->
       <div class="m-auto bg-white p-4 rounded-2xl shadow-2xl">

@@ -3,16 +3,6 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
-// import axios from "axios";
-
-// const api = window.ipConfing.baseUrl
-
-// let api=''
-// axios.get('../../public/config.json').then(res=>
-//   api=res.data.apiUrl
-// )
-
-// https://vitejs.dev/config/
 export default defineConfig({
   css: {
     preprocessorOptions: {
@@ -34,9 +24,14 @@ export default defineConfig({
   server: {
     proxy: {
       '/controlApi': { 
-        target: 'http://192.168.1.237:12024',
+        target: 'http://172.20.99.47:8055',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/controlApi/, '') 
+      },
+      '/smtApplyApi': {
+        target: 'http://172.16.28.85:12022',//http://172.16.28.106:12022
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/smtApplyApi/, '') 
       },
       '/smtApi': {
         target: 'http://192.168.1.237:12026',

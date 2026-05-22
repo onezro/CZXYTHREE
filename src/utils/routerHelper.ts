@@ -9,10 +9,6 @@ import type {
 import { omit, cloneDeep } from "lodash-es";
 
 const modules = import.meta.glob("../views/**/*.{vue,tsx}");
-const multiInstanceMenus = [
-  "inspectSheet", // 审核页面
-  // 添加更多需要支持多标签页的页面
-];
 /* Layout */
 export const Layout = () => import("@/layout/index.vue");
 
@@ -113,115 +109,33 @@ export const generateRoutesByServer1 = (routes: any) => {
       meta: {
         title: route.title,
         icon: route.icon,
-        // multiTab: true,
-        // multiInstance: isMultiInstance(route),
-        // dynamicTitle: isMultiInstance(route)
-         // 标记为多标签页支持
-        multiTab: isMultiInstance(route),
-        // 动态标题支持
-        dynamicTitle: isMultiInstance(route)|| false,
-        // 支持参数传递
-        paramTitle: isMultiInstance(route)|| false,
       },
       component: route.component,
     };
+    
     if (route.component) {
       const component = route.component as string;
       // if (!comModule && !component.includes('#')) {
       //   console.error(`未找到${route.component}.vue文件或${route.component}.tsx文件，请创建`)
       // } else {
       // 动态加载路由文件，可根据实际情况进行自定义逻辑
-      // console.log(component);
-      // if (multiInstanceMenus.includes(route.MenuName)) {
-      //   data.path = addRouteParam(data.path)
-      //   data.props = (route: any) => ({
-      //     ...route.params,
-      //     ...route.query,
-      //     id: route.params.id || route.query.id
-      //   })
-      //   // console.log(data);
-
-      // }
-
       data.component =
         component === "Layout"
           ? Layout
-          : modules[`../views/${route.component}.vue`];
+          : modules[`../views${route.component}.vue`];
       // }
     }
-    //  if (multiInstanceMenus.includes(route.MenuName)) {
-    //   // 确保路径以 / 结尾
-    //   if (!data.path.endsWith('/')) {
-    //     data.path = data.path + '/';
-    //   }
-    //   // 添加动态ID参数
-    //   data.path = data.path + ':id?';
-      
-    //   // 配置props传递
-    //   data.props = (routeProps: any) => {
-    //     return {
-    //       id: routeProps.params.id,
-    //       query: routeProps.query,
-    //       params: routeProps.params
-    //     };
-    //   };
-    //   console.log(data);
-      
-    // }
 
     if (route.childMenu != null) {
       data.children = generateRoutesByServer1(route.childMenu);
     }
     res.push(data as AppRouteRecordRaw);
   }
+  // console.log(res);
+  
   return res;
 };
-const isMultiInstance = (route: any) => {
-  if (multiInstanceMenus.includes(route.MenuName)) {
-    return true
-  }
-}
-const addRouteParam = (path: string) => {
-  // 如果路径已经包含参数，直接返回
-  if (path.includes(':')) {
-    return path
-  }
 
-  // 为路径添加参数
-  if (path.endsWith('/')) {
-    return path + ':id?'
-  } else {
-    return path + '/:id?'
-  }
-}
-
-export const enhanceDynamicRoutes = (routes: AppRouteRecordRaw[]): AppRouteRecordRaw[] => {
-  const enhanceRoute = (route: AppRouteRecordRaw): AppRouteRecordRaw => {
-    const enhanced = { ...route }
-
-    // 为特定页面添加动态参数支持
-    if (enhanced.meta?.multiInstance && !enhanced.path.includes(':')) {
-      enhanced.path = addRouteParam(enhanced.path)
-
-      // 配置props
-      if (!enhanced.props) {
-        enhanced.props = (to: any) => ({
-          id: to.params.id,
-          ...to.query
-        })
-      }
-    }
-
-    // 递归处理子路由
-    if (enhanced.children && enhanced.children.length > 0) {
-      enhanced.children = enhanced.children.map(child => enhanceRoute(child))
-    }
-
-    return enhanced
-  }
-
-  return routes.map(route => enhanceRoute(route))
-}
 
 // 后端控制路由生成
 export const generateRoutesByServer = (

@@ -38,3 +38,5 @@ declare module '@/api/asyApi'
 declare module 'file-saver'
 declare module "@/utils/useDraw"
 declare module "screenfull"
+declare module "@/request/permissRequest"
+declare module 'vue-qr'

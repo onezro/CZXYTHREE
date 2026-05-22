@@ -48,7 +48,7 @@ onBeforeMount(() => {
       <img src="../../assets/logo-white.svg" width="140px" alt="">
     </div> -->
     <div class="pl-2" >
-          <img src="../../assets/logo-on.png" width="175px"  alt="">
+          <img src="../../assets/logo-on.png" width="140px"  alt="">
     </div>
     <el-breadcrumb :separator-icon="ArrowRight" class="flex items-center h-full  " v-if="!appStore.getSystemType">
       <el-icon size="20" color="#fff" class="mr-2 ml-2">
