@@ -37,9 +37,9 @@
                         }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="SelectType" fixed :label="$t('Scheduling.planCategoryOne.SelectType')"
+                <el-table-column prop="CalendarSelectType_FatherName" fixed :label="$t('Scheduling.planCategoryOne.SelectType')"
                     :min-width="getColumnWidth1('SelectType')" />
-                 <el-table-column prop="SelectType2" fixed :label="$t('Scheduling.planCategoryOne.SelectType2')"
+                 <el-table-column prop="CalendarSelectType_Name" fixed :label="$t('Scheduling.planCategoryOne.SelectType2')"
                     :min-width="getColumnWidth1('SelectType2')" />
                 <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="120">
                     <template #default="{ row }">
@@ -73,8 +73,8 @@
                 <el-form-item :label="t('Scheduling.planCategoryOne.SelectType')" prop="SelectType">
                    <el-select v-model="addForm.SelectType" clearable filterable :placeholder="t('message.pleaseInput') +
                         t('Scheduling.planCategoryOne.SelectType')">
-                        <el-option v-for="item in SelectTypeList" :key="item.Guid" :label="item.SelectType"
-                            :value="item.SelectType" />
+                        <el-option v-for="item in SelectTypeList" :key="item.CalendarSelectType_Guid" :label="item.CalendarSelectType_Name"
+                            :value="item.CalendarSelectType_Name" />
                     </el-select>
                 </el-form-item>
                   <el-form-item :label="t('Scheduling.planCategoryOne.SelectType2')" prop="SelectType2">
@@ -250,9 +250,9 @@ const handleDelete = (row: any) => {
     )
         .then(() => {
             DeleteWorkLineCalendarSelectTypeLevelTwo({
-                Guid: row.Guid,
-                SelectType: row.SelectType,
-                SelectType2: row.SelectType2,
+                Guid: row.CalendarSelectType_Guid,
+                SelectType: row.CalendarSelectType_FatherName,
+                SelectType2: row.CalendarSelectType_Name,
                 UserNo: userStore.getUserInfo,
             }).then((res: any) => {
                 if (res.Success) {

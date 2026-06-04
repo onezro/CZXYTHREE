@@ -144,6 +144,7 @@ const handleGenerate = () => {
             title: "提示信息",
             message: res.Message,
             type: res.Success ? "success" : "error",
+            duration: 4000
         });
     })
 }

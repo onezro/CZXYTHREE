@@ -16,7 +16,14 @@ export function AddInspectionItem(data:any) {
         data
     });
 }
-
+//
+export function UpdateInspectionItem(data:any) {
+    return request({
+        url: "/api/iqc/UpdateInspectionItem",
+        method: "post",
+        data
+    });
+}
 //删除
 export function DeleteInspectionItem(data:any) {
     return request({
@@ -40,6 +47,14 @@ export function QueryInspectionProjectDetail(data:any) {
         url: "/api/iqc/QueryInspectionProjectDetail",
         method: "get",
         params:data
+    });
+}
+//
+export function UpdateInspectionProject(data:any) {
+    return request({
+        url: "/api/iqc/UpdateInspectionProject",
+        method: "post",
+        data
     });
 }
 //添加
@@ -83,12 +98,27 @@ export function AddInspectionRule(data:any) {
         data
     });
 }
+export function QueryInspectionRuleProject(data:any) {
+    return request({
+        url: "/api/iqc/QueryInspectionRuleProject",
+        method: "get",
+        params:data
+    });
+}
+export function   UpdateInspectionRule(data:any) {
+    return request({
+        url: "/api/iqc/UpdateInspectionRule",
+        method: "post",
+        data
+    });
+}
+
 //删除
 export function DeleteInspectionRule(data:any) {
     return request({
         url: "/api/iqc/DeleteInspectionRule",
-        method: "delete",
-        params:data
+        method: "post",
+        data
     });
 }
 //模糊搜索
@@ -120,7 +150,7 @@ export function QueryPartNumbersIqc(data:any) {
 export function SaveInspectionResult(data:any) {
     return request({
         url: "/api/iqc/SaveInspectionResult",
-        method: "put",
+        method: "post",
         data
     });
 }
@@ -129,7 +159,15 @@ export function SaveInspectionResult(data:any) {
 export function SubmitInspectionResult(data:any) {
     return request({
         url: "/api/iqc/SubmitInspectionResult",
-        method: "put",
+        method: "post",
+        data
+    });
+}
+//删除
+export function DeleteArrivalInspection(data:any) {
+    return request({
+        url: "/api/iqc/DeleteArrivalInspection",
+        method: "post",
         data
     });
 }
@@ -137,7 +175,7 @@ export function SubmitInspectionResult(data:any) {
 export function UpdateInspectionResult(data:any) {
     return request({
         url: "/api/iqc/UpdateInspectionResult",
-        method: "put",
+        method: "post",
         data
     });
 }
@@ -145,7 +183,7 @@ export function UpdateInspectionResult(data:any) {
 export function UpdateReviewResult(data:any) {
     return request({
         url: "/api/iqc/UpdateReviewResult",
-        method: "put",
+        method: "post",
         data
     });
 }
@@ -177,7 +215,14 @@ export function QueryPartNumbers(data:any) {
 export function SaveInspectionReview(data:any) {
     return request({
         url: "/api/iqc/SaveInspectionReview",
-        method: "put",
+        method: "post",
+        data
+    });
+}
+export function DeleteInspectionReview(data:any) {
+    return request({
+        url: "/api/iqc/DeleteInspectionReview",
+        method: "post",
         data
     });
 }

@@ -350,7 +350,6 @@ import { useUserStoreWithOut } from "@/stores/modules/user";
 const userStore = useUserStoreWithOut();
 import vueQr from "vue-qr/src/packages/vue-qr.vue";
 import { ElMessage, ElNotification } from "element-plus";
-import { de } from "element-plus/es/locale/index.mjs";
 
 // 表单引用
 const formRef = ref(null);

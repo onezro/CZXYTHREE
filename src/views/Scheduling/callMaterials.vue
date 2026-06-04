@@ -9,16 +9,19 @@
                 <el-form-item class="mb-2">
                     <el-button :type="'primary'" @click="getData">查询</el-button>
                     <!-- <el-button :type="'warning'">叫料</el-button> -->
+                        <el-button :type="'warning'" :disabled="selectList.length !== 1" @click="handleCallMaterial">
+                        {{ t('Scheduling.CallMaterials.call') }}
+                    </el-button>
                 </el-form-item>
             </el-form>
             <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit ref="eltableRef">
-                <!-- <el-table-column type="selection" width="55" align="center" /> -->
+                :tooltip-effect="'dark'" border fit ref="eltableRef"  @selection-change="handleSelectionChange">
+                <el-table-column type="selection" width="55" align="center" />
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{
                             scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1
-                        }}</span>
+                            }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.CallMaterials.CallOrder')" fixed prop="MaterialRequest_No"
@@ -30,24 +33,28 @@
                     :min-width="getColumnWidth1('MaterialRequest_WoGroup')" />
 
                 <el-table-column :label="t('Scheduling.ERPDocument.Status')" prop="MaterialRequest_Status"
-                    :min-width="getColumnWidth1('MaterialRequest_Status')" >
-        
-                   <template #default="{ row }">
-                    <el-tag type="info" v-if="row.MaterialRequest_Status === 0">{{ t('Scheduling.CallMaterials.StatusPending') }}</el-tag>
-                    <el-tag type="warning" v-else-if="row.MaterialRequest_Status === 1">{{ t('Scheduling.CallMaterials.StatusIssuing') }}</el-tag>
-                    <el-tag type="success" v-else-if="row.MaterialRequest_Status === 2">{{ t('Scheduling.CallMaterials.StatusCompleted') }}</el-tag>
-                    <el-tag type="danger" v-else-if="row.MaterialRequest_Status === 3">{{ t('Scheduling.CallMaterials.StatusCancelled') }}</el-tag>
-                   </template>
+                    :min-width="getColumnWidth1('MaterialRequest_Status')">
+
+                    <template #default="{ row }">
+                        <el-tag type="info" v-if="row.MaterialRequest_Status === 0">{{
+                            t('Scheduling.CallMaterials.StatusPending') }}</el-tag>
+                        <el-tag type="warning" v-else-if="row.MaterialRequest_Status === 1">{{
+                            t('Scheduling.CallMaterials.StatusIssuing') }}</el-tag>
+                        <el-tag type="success" v-else-if="row.MaterialRequest_Status === 2">{{
+                            t('Scheduling.CallMaterials.StatusCompleted') }}</el-tag>
+                        <el-tag type="danger" v-else-if="row.MaterialRequest_Status === 3">{{
+                            t('Scheduling.CallMaterials.StatusCancelled') }}</el-tag>
+                    </template>
                 </el-table-column>
 
                 <el-table-column :label="t('Scheduling.ERPDocument.Creator')" prop="MaterialRequest_InsertUser"
                     :min-width="getColumnWidth1('MaterialRequest_InsertUser')" />
-                <el-table-column :label="t('publicText.operation')" prop="operation" width="200" align="center">
+                <el-table-column :label="t('publicText.operation')" prop="operation" width="130" align="center">
                     <template #default="{ row }">
                         <el-button type="primary" size="small" @click="fetchDetail(row)">{{
                             $t('Scheduling.CallMaterials.Detail') }}</el-button>
-                        <el-button type="warning" size="small" @click="handleChangeStatus(row)">{{
-                            $t('Scheduling.CallMaterials.changeStatus') }}</el-button>
+                        <!-- <el-button type="warning" size="small" @click="handleChangeStatus(row)">{{
+                            $t('Scheduling.CallMaterials.changeStatus') }}</el-button> -->
                         <el-button type="danger" size="small" @click="handleCancel(row)">{{
                             $t('Scheduling.CallMaterials.Cancel') }}</el-button>
                     </template>
@@ -146,7 +153,13 @@
 </template>
 
 <script setup lang="ts">
-import { QueryMaterialRequestList, QueryMaterialRequestDetail, CancelMaterialRequest, UpdateMaterialRequestStatus } from "@/api/Scheduling/index"
+import {
+    QueryMaterialRequestList,
+    QueryMaterialRequestDetail,
+    CancelMaterialRequest,
+    UpdateMaterialRequestStatus,
+    ManualSubmitSaiYiMaterialRequest
+} from "@/api/Scheduling/index"
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
 import {
     ref,
@@ -200,7 +213,7 @@ const addVisible = ref(false)
 const editVisible = ref(false)
 const addForm = ref({})
 const editForm = ref({})
-const eltableRef=ref()
+const eltableRef = ref()
 onBeforeMount(() => {
     getScreenHeight();
 });
@@ -330,6 +343,27 @@ const addSubmit = () => { }
 const editCancel = () => { editVisible.value = false }
 const editSubmit = () => { }
 
+const handleCallMaterial=()=>{
+     const selected = selectList.value[0];
+    if (!selected) return;
+    // 弹出原因输入框（可选）
+    const params = {
+        MaterialRequestNo: selected.MaterialRequest_No,
+        CreateUser: userStore.getUserInfo
+    };
+
+    ManualSubmitSaiYiMaterialRequest(params).then((res: any) => {
+        ElNotification({
+            title: t('publicText.tipTitle'),
+            message: res.Message,
+            type: res.Success ? "success" : "error",
+        });
+        if (res.Success) getData();
+    });
+}
+const handleSelectionChange = (val: any[]) => {
+    selectList.value = val;
+};
 const handleSizeChange = (val: any) => {
     getForm.value.PageSize = val
     getData()
@@ -359,7 +393,7 @@ const columnWidths1 = computed(() => {
             (item: any) =>
                 item.label !== t("publicText.index") &&
                 item.label !== t("publicText.operation"),
-        );   
+        );
     return calculateColumnsWidth(columns, tableData.value, {
         padding: 25,
         fontSize: 13,

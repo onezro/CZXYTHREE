@@ -79,13 +79,16 @@
                     :min-width="getColumnWidth1('CreateUser')" />
                 <el-table-column :label="t('incomingManage.testItems.creatime')" prop="CreateTime"
                     :min-width="getColumnWidth1('CreateTime')" />
-                <el-table-column :label="$t('publicText.operation')" fixed="right" width="160" align="center">
+                <el-table-column :label="$t('publicText.operation')" fixed="right" width="220" align="center">
                     <template #default="{ row }">
                         <el-button type="primary" size="small" @click="openInspectDialog(row)">
                             {{ t('incomingManage.deliveryNote.inspect') }}
                         </el-button>
                         <el-button type="warning" size="small" @click="openReviewDialog(row)">
                             {{ t('incomingManage.deliveryNote.review') }}
+                        </el-button>
+                        <el-button type="danger" size="small" @click="handleDelete(row)">
+                            {{ t('publicText.delete') }}
                         </el-button>
                     </template>
                 </el-table-column>
@@ -120,17 +123,12 @@
                 <el-form-item :label="t('incomingManage.deliveryNote.materialName')" style="width: 100%;">
                     <el-input v-model="inspectForm.MaterialName" type="textarea" disabled rows="1"  style="width: 825px;"/>
                 </el-form-item>
-                <!-- <el-form-item :label="t('incomingManage.deliveryNote.result')">
-                    <el-tag :type="getResultType(inspectForm.MainResult)" size="small">
-                        {{ getResultText(inspectForm.MainResult) }}
-                    </el-tag>
-                </el-form-item> -->
-                 <el-form-item :label="t('incomingManage.deliveryNote.result')">
-            <el-select v-model="inspectForm.MainResult" size="small" style="width: 200px">
-                <el-option :label="t('incomingManage.deliveryNote.qualified')" :value="1" />
-                <el-option :label="t('incomingManage.deliveryNote.unqualified')" :value="2" />
-            </el-select>
-        </el-form-item>
+                <el-form-item :label="t('incomingManage.deliveryNote.result')">
+                    <el-select v-model="inspectForm.MainResult" size="small" style="width: 200px">
+                        <el-option :label="t('incomingManage.deliveryNote.qualified')" :value="1" />
+                        <el-option :label="t('incomingManage.deliveryNote.unqualified')" :value="2" />
+                    </el-select>
+                </el-form-item>
                 <el-table :data="inspectForm.Details" border size="small" style="width: 100%" height="400">
                     <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode"
                         width="150" />
@@ -225,10 +223,10 @@
 </template>
 
 <script setup lang="ts">
-import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspectionResult, SubmitInspectionResult, UpdateReviewResult } from "@/api/incomingManage/index";
+import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspectionResult, SubmitInspectionResult, UpdateReviewResult, DeleteArrivalInspection } from "@/api/incomingManage/index";
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useI18n } from "vue-i18n";
 
@@ -329,6 +327,38 @@ const getResultType = (result: number) => {
     if (result === 0) return "info";
     if (result === 1) return "success";
     return "danger";
+};
+
+// ==================== 删除 ====================
+const handleDelete = (row: any) => {
+    ElMessageBox.confirm(
+        `${t('publicText.confirm')}${t("publicText.delete")}【${row.IQCNo}】?`,
+        t("publicText.confirm"),
+        {
+            confirmButtonText: t("publicText.confirm"),
+            cancelButtonText: t("publicText.cancel"),
+            type: "warning",
+        }
+    )
+        .then(() => {
+            DeleteArrivalInspection({
+                Id: row.ArrivalId,
+                DeleteUser: userStore.getUserInfo || "admin",
+                DeleteReason: "",
+            }).then((res: any) => {
+                if (res.Success) {
+                    ElMessage.success(res.Message || "删除成功");
+                    getData(); // 刷新列表
+                } else {
+                    ElMessage.error(res.Message || "删除失败");
+                }
+            }).catch(() => {
+                ElMessage.error("删除失败");
+            });
+        })
+        .catch(() => {
+            ElMessage.info(t("publicText.cancel"));
+        });
 };
 
 // ==================== 检验弹窗逻辑 ====================
@@ -497,8 +527,6 @@ const closeReviewDialog = () => {
     reviewFormRef.value?.resetFields();
     viewDetails.value = [];
 };
-
-
 
 // ==================== 列宽自适应 ====================
 const columnWidths1 = computed(() => {

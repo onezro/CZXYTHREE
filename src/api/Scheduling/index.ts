@@ -86,10 +86,16 @@ export function GenerateMaterialRequest(data:any) {
     });
 }
 //取消叫料单
-
 export function CancelMaterialRequest(data:any) {
     return request({
         url: "/api/MaterialPreparation/CancelMaterialRequest",
+        method: "post",
+        data
+    });
+}
+export function ManualSubmitSaiYiMaterialRequest(data:any) {
+    return request({
+        url: "/api/MaterialPreparation/ManualSubmitSaiYiMaterialRequest",
         method: "post",
         data
     });

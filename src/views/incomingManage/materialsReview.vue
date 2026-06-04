@@ -77,10 +77,13 @@
                     width="160" />
                 <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser" width="100" />
                 <el-table-column :label="t('incomingManage.testItems.creatime')" prop="CreateTime" width="160" />
-                <el-table-column :label="$t('publicText.operation')" fixed="right" width="80" align="center">
+                <el-table-column :label="$t('publicText.operation')" fixed="right" width="160" align="center">
                     <template #default="{ row }">
                         <el-button type="primary" size="small" @click="openReviewDialog(row)">
                             {{ t('incomingManage.materialReview.review') }}
+                        </el-button>
+                        <el-button type="danger" size="small" @click="handleDelete(row)">
+                            {{ t('publicText.delete') }}
                         </el-button>
                     </template>
                 </el-table-column>
@@ -184,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { QueryInspectionReviewList, QueryInspectionReviewDetailList, SaveInspectionReview } from "@/api/incomingManage/index";
+import { QueryInspectionReviewList, QueryInspectionReviewDetailList, SaveInspectionReview, DeleteInspectionReview } from "@/api/incomingManage/index";
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -272,6 +275,38 @@ const getReviewResultType = (result: number) => {
     if (result === 0) return "warning";
     if (result === 1) return "success";
     return "danger";
+};
+
+// ==================== 删除 ====================
+const handleDelete = (row: any) => {
+    ElMessageBox.confirm(
+        `${t('publicText.confirm')}${t("publicText.delete")}【${row.ReviewNo}】?`,
+        t("publicText.confirm"),
+        {
+            confirmButtonText: t("publicText.confirm"),
+            cancelButtonText: t("publicText.cancel"),
+            type: "warning",
+        }
+    )
+        .then(() => {
+            DeleteInspectionReview({
+                Id: row.ReviewId,
+                DeleteUser: userStore.getUserInfo || "admin",
+                DeleteReason: "",
+            }).then((res: any) => {
+                if (res.Success) {
+                    ElMessage.success(res.Message || "删除成功");
+                    getData(); // 刷新列表
+                } else {
+                    ElMessage.error(res.Message || "删除失败");
+                }
+            }).catch(() => {
+                ElMessage.error("删除失败");
+            });
+        })
+        .catch(() => {
+            ElMessage.info(t("publicText.cancel"));
+        });
 };
 
 // ==================== 评审弹窗逻辑 ====================

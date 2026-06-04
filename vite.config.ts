@@ -33,6 +33,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/smtApplyApi/, '') 
       },
+      '/deviceApi': {
+        target: 'http://172.16.28.85:12022',//http://172.20.99.21:5998
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/deviceApi/, '') 
+      },
       '/smtApi': {
         target: 'http://192.168.1.237:12026',
         changeOrigin: true,

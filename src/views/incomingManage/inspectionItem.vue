@@ -30,14 +30,6 @@
                     :min-width="getColumnWidth1('InspectionCode')" />
                 <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName"
                     :min-width="getColumnWidth1('InspectionName')" />
-                <el-table-column :label="t('incomingManage.inspectionItem.isGauge')" prop="IsInspectionTool"
-                    :min-width="getColumnWidth1('IsInspectionTool')">
-                    <template #default="{ row }">
-                        <span>
-                            {{ row.IsInspectionTool === 1 ? t('publicText.yes') : t('publicText.no') }}
-                        </span>
-                    </template>
-                </el-table-column>
                 <el-table-column :label="t('incomingManage.inspectionItem.creator')" prop="CreateUser"
                     :min-width="getColumnWidth1('CreateUser')" />
                 <el-table-column :label="t('incomingManage.inspectionItem.creatime')" prop="CreateTime"
@@ -46,9 +38,12 @@
                     :min-width="getColumnWidth1('UpdateUser')" />
                 <el-table-column :label="t('incomingManage.inspectionItem.updatetime')" prop="UpdateTime"
                     :min-width="getColumnWidth1('UpdateTime')" />
-                <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="120" :align="'center'">
+                <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="160" :align="'center'">
                     <template #default="{ row }">
-                        <el-tooltip :content="'详情'" placement="top">
+                        <el-tooltip :content="t('publicText.edit')" placement="top">
+                            <el-button size="small" type="primary" icon="Edit" @click="handleEdit(row)"></el-button>
+                        </el-tooltip>
+                        <el-tooltip :content="t('publicText.delete')" placement="top">
                             <el-button size="small" type="danger" icon="Delete" @click="handleDelete(row)"></el-button>
                         </el-tooltip>
                     </template>
@@ -90,8 +85,9 @@
                     }}</el-button>
             </template>
         </el-dialog>
-        <el-dialog :title="$t('publicText.edit')" v-model="editVisible" width="80%" @close="editCancel">
-            <el-form :model="editForm" ref="editFormRef" label-width="auto" :inline="false">
+        <el-dialog :title="$t('publicText.edit')" v-model="editVisible" width="500px" @close="editCancel" :append-to-body="true" :close-on-click-modal="false"
+            :close-on-press-escape="false">
+            <el-form :model="editForm" ref="editFormRef" label-width="auto" :inline="false" :rules="rules">
                 <el-form-item :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode">
                     <el-input v-model="editForm.InspectionCode" placeholder="" clearable style="width: 100%" />
                 </el-form-item>
@@ -116,19 +112,18 @@
 </template>
 
 <script setup lang="ts">
-import { RefreshInspectionItem, AddInspectionItem, DeleteInspectionItem } from "@/api/incomingManage/index";
+import { RefreshInspectionItem, AddInspectionItem, DeleteInspectionItem, UpdateInspectionItem } from "@/api/incomingManage/index";
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
 import {
     ref,
     reactive,
-    watch,
     computed,
     nextTick,
     onMounted,
     onBeforeMount,
     onBeforeUnmount,
 } from "vue";
-import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 const userStore = useUserStoreWithOut();
 import { useI18n } from "vue-i18n";
@@ -137,10 +132,6 @@ const tableHeight = ref(0);
 const tableData = ref([]);
 const total = ref(0);
 
-const pageObj = reactive({
-    currentPage: 1,
-    pageSize: 50,
-});
 const getForm = ref({
     PageIndex: 1,
     PageSize: 50,
@@ -161,8 +152,10 @@ const editForm = ref({
     CreateUser: userStore.getUserInfo
 });
 const addFormRef = ref();
+const editFormRef = ref();
 const rules = reactive({
-    InspectionCode: [{ required: true, message: "请输入检验项编码", trigger: "blur" }]
+    InspectionCode: [{ required: true, message: "请输入检验项编码", trigger: "blur" }],
+    InspectionName: [{ required: true, message: "请输入检验项名称", trigger: "blur" }]
 });
 onBeforeMount(() => {
     getScreenHeight();
@@ -172,10 +165,10 @@ onMounted(() => {
     getData();
 });
 onBeforeUnmount(() => {
-    window.addEventListener("resize", getScreenHeight);
+    window.removeEventListener("resize", getScreenHeight);
 });
 const searchData = () => {
-    pageObj.currentPage = 1;
+    getForm.value.PageIndex = 1;
     getData();
 };
 const getData = () => {
@@ -190,15 +183,17 @@ const openAdd = () => {
 const handleEdit = (row: any) => {
     editForm.value = { ...row };
     editVisible.value = true;
+    nextTick(() => {
+        editFormRef.value?.clearValidate();
+    });
 };
 const handleDelete = (row: any) => {
-    ElMessageBox.confirm(t('publicText.confirm')+t("publicText.delete")+'?', t("publicText.confirm"), {
+    ElMessageBox.confirm(t('publicText.confirm') + t("publicText.delete") + '?', t("publicText.confirm"), {
         confirmButtonText: t("publicText.confirm"),
         cancelButtonText: t("publicText.cancel"),
         type: "warning",
     })
         .then(() => {
-            // 确认删除
             DeleteInspectionItem({ InspectionCode: row.InspectionCode }).then((res: any) => {
                 if (res.Success) {
                     ElMessage({
@@ -215,7 +210,6 @@ const handleDelete = (row: any) => {
             });
         })
         .catch(() => {
-            // 取消删除
             ElMessage({
                 type: "info",
                 message: t("publicText.cancel"),
@@ -224,6 +218,7 @@ const handleDelete = (row: any) => {
 };
 const addCancel = () => {
     addVisible.value = false;
+    addFormRef.value?.resetFields();
 };
 const addSubmit = () => {
     addFormRef.value.validate((valid: any) => {
@@ -241,7 +236,6 @@ const addSubmit = () => {
                         CreateUser: userStore.getUserInfo
                     };
                     addVisible.value = false;
-
                     getData();
                 } else {
                     ElMessage({
@@ -255,15 +249,40 @@ const addSubmit = () => {
 };
 const editCancel = () => {
     editVisible.value = false;
+    editFormRef.value?.resetFields();
 };
-const editSubmit = () => { };
+const editSubmit = () => {
+    editFormRef.value.validate((valid: any) => {
+        if (valid) {
+            const updateParams = {
+                InspectionCode: editForm.value.InspectionCode,
+                InspectionName: editForm.value.InspectionName,
+                IsInspectionTool: editForm.value.IsInspectionTool,
+                UpdateUser: userStore.getUserInfo
+            };
+            UpdateInspectionItem(updateParams).then((res: any) => {
+                if (res.Success) {
+                    ElMessage({
+                        type: "success",
+                        message: res.Message,
+                    });
+                    editVisible.value = false;
+                    getData();
+                } else {
+                    ElMessage({
+                        type: "error",
+                        message: res.Message,
+                    });
+                }
+            });
+        }
+    });
+};
 const handleSizeChange = (val: any) => {
-    // pageObj.pageSize = val;
     getForm.value.PageSize = val;
     getData();
 };
 const handleCurrentChange = (val: any) => {
-    // pageObj.currentPage = val;
     getForm.value.PageIndex = val;
     getData();
 };

@@ -29,7 +29,7 @@
           </div>
         </div>
         <div class="w-[100%] h-[calc(100vh-130px)]">
-          <FullCalendar ref="fullcalendar" :options="calendarOptions" ></FullCalendar>
+          <FullCalendar ref="fullcalendar" :options="calendarOptions"></FullCalendar>
         </div>
       </div>
     </el-card>
@@ -121,13 +121,13 @@
           </el-select>
         </el-form-item>
         <el-form-item label="计划类型" prop="SelectType">
-          <el-select v-model="planForm.SelectType" placeholder="计划类型" :clearble="false" style="width: 100px" :disabled="planForm.WorkStatus!='其他'"
-            @change="changeLevel">
+          <el-select v-model="planForm.SelectType" placeholder="计划类型" :clearble="false" style="width: 100px"
+            :disabled="planForm.WorkStatus != '其他'" @change="changeLevel">
             <el-option v-for="l in levelOneList" :label="l.CalendarSelectType_Name"
               :value="l.CalendarSelectType_Name" />
           </el-select>
-          <el-select v-model="planForm.SelectType2" placeholder="" :clearble="false" style="width: 100px" :disabled="planForm.WorkStatus!='其他'"
-            class="ml-[20px]">
+          <el-select v-model="planForm.SelectType2" placeholder="" :clearble="false" style="width: 100px"
+            :disabled="planForm.WorkStatus != '其他'" class="ml-[20px]">
             <el-option v-for="l in levelTwoList" :label="l.CalendarSelectType_Name"
               :value="l.CalendarSelectType_Name" />
           </el-select>
@@ -179,13 +179,13 @@
           </el-select>
         </el-form-item>
         <el-form-item label="计划类型" prop="SelectType">
-          <el-select v-model="editForm.SelectType" placeholder="计划类型" :clearble="false" style="width: 100px" :disabled="editForm.WorkStatus!='其他'"
-            @change="changeLevel">
+          <el-select v-model="editForm.SelectType" placeholder="计划类型" :clearble="false" style="width: 100px"
+            :disabled="editForm.WorkStatus != '其他'" @change="changeLevel">
             <el-option v-for="l in levelOneList" :label="l.CalendarSelectType_Name"
               :value="l.CalendarSelectType_Name" />
           </el-select>
-          <el-select v-model="editForm.SelectType2" placeholder="" :clearble="false" style="width: 100px" :disabled="editForm.WorkStatus!='其他'"
-            class="ml-[20px]">
+          <el-select v-model="editForm.SelectType2" placeholder="" :clearble="false" style="width: 100px"
+            :disabled="editForm.WorkStatus != '其他'" class="ml-[20px]">
             <el-option v-for="l in levelTwoList" :label="l.CalendarSelectType_Name"
               :value="l.CalendarSelectType_Name" />
           </el-select>
@@ -281,7 +281,7 @@ const dataSelet = ref<InstanceType<typeof CalendarDataType>[]>([
     backgroundColor: "#409EFF", // 背景颜色（可选）
     borderColor: "#337ecc", // 边框颜色（可选）
   },
-   {
+  {
     title: "停机",
     start: "2026-05-21 11:30:00",
     end: "2026-05-21 12:30:00",
@@ -308,6 +308,7 @@ interface FormData {
   UserNo: string;
   classtime: Array<Classtime>;
 }
+
 const formData = ref<FormData>({
   WorkLineName: "",
   StartDate: "",
@@ -318,7 +319,7 @@ const formData = ref<FormData>({
   classtime: [
     {
       ClassType: "白班",
-      ClassStartTime: "",
+      ClassStartTime: "08:00:00",
       ClassEndTime: "",
     },
     {
@@ -375,15 +376,15 @@ const eventClickData = (val: any) => {
       console.log(res);
       editForm.value = {
         PlanId: data.Calendar_PlanId,
-        WorkLine: res.content[0].CalendarHead_ProductLine,
+        WorkLine: res.Data[0].CalendarHead_ProductLine,
         PlanName: data.Calendar_Name,
-        PlanDate: res.content[0].CalendarPlan_SelectDate,
-        StartTime: res.content[0].CalendarPlan_SelectTime,
-        TimeLong: res.content[0].CalendarPlan_TimeLong,
-        WorkStatus: res.content[0].CalendarPlan_StatusType,
-        SelectType: res.content[0].CalendarPlan_SelectType,
-        SelectType2: res.content[0].CalendarPlan_SelectType2,
-        PlanDescription: res.content[0].CalendarPlan_Description,
+        PlanDate: res.Data[0].CalendarPlan_SelectDate,
+        StartTime: res.Data[0].CalendarPlan_SelectTime,
+        TimeLong: res.Data[0].CalendarPlan_TimeLong,
+        WorkStatus: res.Data[0].CalendarPlan_StatusType,
+        SelectType: res.Data[0].CalendarPlan_SelectType,
+        SelectType2: res.Data[0].CalendarPlan_SelectType2,
+        PlanDescription: res.Data[0].CalendarPlan_Description,
         UserNo: userStore.getUserInfo,
       }
 
@@ -392,7 +393,7 @@ const eventClickData = (val: any) => {
       SelectType: "",
       UserNo: "",
     }).then((res: any) => {
-      levelOneList.value = res.content;
+      levelOneList.value = res.Data;
     });
     planVisible.value = true
   }
@@ -406,10 +407,10 @@ const deletePlan = () => {
   })
     .then(() => {
       DeleteCalendarPlan({ PlanId: editForm.value.PlanId }).then((res: any) => {
-        if (res.success) {
+        if (res.Success) {
           ElNotification({
             title: "提示信息",
-            message: res.msg,
+            message: res.Message,
             type: "success",
           });
           editForm.value = {
@@ -444,10 +445,10 @@ const deletePlan = () => {
 }
 const editPlan = () => {
   UpdateCalendarPlan(editForm.value).then((res: any) => {
-    if (res.success) {
+    if (res.Success) {
       ElNotification({
         title: "提示信息",
-        message: res.msg,
+        message: res.Message,
         type: "success",
       });
       editForm.value = {
@@ -487,14 +488,14 @@ const calendarOptions = reactive({
   // slotMinutes:0,
   slotDuration: '01:00',
   displayEventTime: false,
-  
+
   // headerToolbar: {
   //   left: 'prev next',
   //   center: 'title',
   //   right: 'today'
   // },
   buttonText: { today: "今天", month: "月", week: "周", day: "日" },
-  eventOverlap: false, // 允许事件叠堆
+  eventOverlap: true, // 允许事件叠堆
   events: computed(() => dataSelet.value),
   // datesSet: (arg:any) => {
   //   const start = dayjs(arg.start).format("YYYY-MM-DD");
@@ -534,16 +535,16 @@ const getData = () => {
     //   },
     // ];
     dataSelet.value = [];
-    dataSelet.value = res.content.map((item: any) => {
+    dataSelet.value = res.Data.map((item: any) => {
       if (item.Calendar_Name == "白班") {
         return {
           ...item,
           title: item.Calendar_Name,
           start: item.Calendar_Start,
           end: item.Calendary_End,
-          // color: "#000000", // 可以设置事件颜色（可选）
-          // backgroundColor: "#006487", // 背景颜色（可选）
-          // borderColor: "#000000", // 边框颜色（可选）
+          color: "#000000", // 可以设置事件颜色（可选）
+          backgroundColor: "#67C23A", // 背景颜色（可选）
+          borderColor: "#529b2e", // 边框颜色（可选）
         };
       } else if (item.Calendar_Name == "夜班") {
         return {
@@ -553,10 +554,11 @@ const getData = () => {
           end: item.Calendary_End,
           shift: "night", // 自定义属性，表示夜班
           color: "#000000", // 可以设置事件颜色（可选）
-          backgroundColor: "#094b8e", // 背景颜色（可选）
-          borderColor: "#000000", // 边框颜色（可选）
+          backgroundColor: "#409EFF", // 背景颜色（可选）
+          borderColor: "#337ecc", // 边框颜色（可选）
         };
       } else {
+
         return {
           ...item,
           title: item.Calendar_Name,
@@ -569,7 +571,6 @@ const getData = () => {
         };
       }
     });
-
     updateCalendar();
   });
 };
@@ -614,7 +615,7 @@ const getLineData = () => {
     calendarLine.value = res.Data[0].MfgLineName;
     // console.log(res.Data[0].MfgLineName);
     getForm.value.WorkLineName[0] = res.Data[0].MfgLineName;
-    // getData();
+    getData();
   });
 };
 const changeLine = (val: any) => {
@@ -625,22 +626,22 @@ const openAdd = () => {
   formData.value.WorkLineName = calendarLine.value;
   formData.value.StartDate = dayjs(new Date()).format("YYYY-MM-DD");
   const today = new Date(formData.value.StartDate);
-  formData.value.LongDate = dayjs(`${today.getFullYear()}-12-31`).diff(
-    formData.value.StartDate,
-    "day"
-  );
+  // formData.value.LongDate = dayjs(`${today.getFullYear()}-12-31`).diff(
+  //   formData.value.StartDate,
+  //   "day"
+  // );
+  formData.value.LongDate = 365
+  console.log(formData.value);
   drawer.value = true;
 };
 //添加主日程
 const onSubmit = () => {
   // console.log(formData.value);
-
   AddUpdateHostCalendar(formData.value).then((res: any) => {
-
-    if (res.success) {
+    if (res.Success) {
       ElNotification({
         title: "提示信息",
-        message: res.msg,
+        message: res.Message,
         type: "success",
       });
       formRef.value.resetFields();
@@ -666,11 +667,11 @@ const openShith = () => {
   planForm.value.WorkLine = calendarLine.value;
   planForm.value.WorkStatus = "其他"
   planForm.value.PlanDate = dayjs(new Date()).format("YYYY-MM-DD");
-   GetWorkLineCalendarSelectTypeLevelOne({
+  GetWorkLineCalendarSelectTypeLevelOne({
     SelectType: "",
     UserNo: "",
   }).then((res: any) => {
-    levelOneList.value = res.content;
+    levelOneList.value = res.Data;
   });
   secondDrawer.value = true;
 };
@@ -687,7 +688,7 @@ const changeLevel = (val: any) => {
     UserNo: "",
   }).then((res: any) => {
     // console.log(res);
-    levelTwoList.value = res.content;
+    levelTwoList.value = res.Data;
   });
 };
 //次日程
@@ -701,11 +702,11 @@ const secondClose = () => {
 const onSubmitSecond = () => {
   console.log(planForm.value);
   AddCalendarPlan(planForm.value).then((res: any) => {
-    if (res.success) {
+    if (res.Success) {
       getData();
       ElNotification({
         title: "提示信息",
-        message: res.msg,
+        message: res.Message,
         type: "success",
       });
       planForm.value.SelectType2 = "";
@@ -748,4 +749,8 @@ const changeDate = () => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+  :deep(.fc .fc-toolbar.fc-header-toolbar) {
+        margin-bottom:0.5em !important;
+  }
+</style>
