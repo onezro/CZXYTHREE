@@ -1,6 +1,41 @@
-const en={
-    message:{
-        hello:'hello world',
-    }
-}
-export default en
+const en = {
+  message: {
+    hello: "hello world",
+  },
+
+  deviceManage: {
+    sparePart: {
+      partId: "Part ID",
+      partCode: "Part Code",
+      partCodePlaceholder: "Enter part code",
+      partName: "Part Name",
+      partNamePlaceholder: "Enter part name",
+      partSpec: "Specification",
+      partSpecPlaceholder: "Enter specification",
+      unit: "Unit",
+      unitPlaceholder: "Enter unit",
+      partType: "Type",
+      partTypePlaceholder: "Enter type",
+      minStock: "Min Stock",
+      minStockPlaceholder: "Enter min stock",
+      maxStock: "Max Stock",
+      maxStockPlaceholder: "Enter max stock",
+      currentStock: "Current Stock",
+      location: "Location",
+      locationPlaceholder: "Enter location",
+      supplier: "Supplier",
+      supplierPlaceholder: "Enter supplier",
+      remark: "Remark",
+      remarkPlaceholder: "Enter remark",
+      status: "Status",
+      statusPlaceholder: "Select status",
+      statusEnable: "Enable",
+      statusDisable: "Disable",
+      createTime: "Create Time",
+      updateTime: "Update Time",
+      addTitle: "Add Part",
+      editTitle: "Edit Part",
+    },
+  },
+};
+export default en;

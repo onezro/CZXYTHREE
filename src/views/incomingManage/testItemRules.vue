@@ -78,6 +78,34 @@
                 <!-- 右侧：标签页展示明细或已选项目组 -->
                 <el-col :span="15">
                     <el-tabs v-model="activeName" class="demo-tabs">
+                         <el-tab-pane :label="t('incomingManage.inspectionRule.projectGroups')" name="projects">
+                            <el-table :data="projectGroupData" size="small" :style="{ width: '100%' }"
+                                :height="tableHeight2" :tooltip-effect="'dark'" border fit>
+                                <el-table-column type="index" align="center" :label="$t('publicText.index')"
+                                    width="50" />
+                                <el-table-column :label="t('incomingManage.inspectionRule.projectCode')"
+                                    prop="ProjectCode" :min-width="150" />
+                                <el-table-column :label="t('incomingManage.inspectionRule.projectName')"
+                                    prop="ProjectName" :min-width="150" />
+                                <el-table-column :label="t('incomingManage.inspectionRule.versionNo')" prop="VersionNo"
+                                    width="100" />
+                                <el-table-column :label="t('incomingManage.inspectionRule.isDefault')" width="100">
+                                    <template #default="{ row }">
+                                        <span>{{ row.IsDefault === 1 ? t('publicText.yes') : t('publicText.no')
+                                        }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser"
+                                    :min-width="120" />
+                                <el-table-column :label="t('incomingManage.testItems.creatime')" prop="CreateTime"
+                                    :min-width="150" />
+                                <template #empty>
+                                    <div class="flex items-center justify-center h-100%">
+                                        <el-empty :description="t('incomingManage.inspectionRule.noProject')" />
+                                    </div>
+                                </template>
+                            </el-table>
+                        </el-tab-pane>
                         <el-tab-pane :label="t('incomingManage.inspectionRule.details')" name="detail">
                             <el-table :data="detailData" size="small" :style="{ width: '100%' }" :height="tableHeight2"
                                 :tooltip-effect="'dark'" border fit>
@@ -119,34 +147,7 @@
                                 </template>
                             </el-table>
                         </el-tab-pane>
-                        <el-tab-pane :label="t('incomingManage.inspectionRule.projectGroups')" name="projects">
-                            <el-table :data="projectGroupData" size="small" :style="{ width: '100%' }"
-                                :height="tableHeight2" :tooltip-effect="'dark'" border fit>
-                                <el-table-column type="index" align="center" :label="$t('publicText.index')"
-                                    width="50" />
-                                <el-table-column :label="t('incomingManage.inspectionRule.projectCode')"
-                                    prop="ProjectCode" :min-width="150" />
-                                <el-table-column :label="t('incomingManage.inspectionRule.projectName')"
-                                    prop="ProjectName" :min-width="150" />
-                                <el-table-column :label="t('incomingManage.inspectionRule.versionNo')" prop="VersionNo"
-                                    width="100" />
-                                <el-table-column :label="t('incomingManage.inspectionRule.isDefault')" width="100">
-                                    <template #default="{ row }">
-                                        <span>{{ row.IsDefault === 1 ? t('publicText.yes') : t('publicText.no')
-                                        }}</span>
-                                    </template>
-                                </el-table-column>
-                                <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser"
-                                    :min-width="120" />
-                                <el-table-column :label="t('incomingManage.testItems.creatime')" prop="CreateTime"
-                                    :min-width="150" />
-                                <template #empty>
-                                    <div class="flex items-center justify-center h-100%">
-                                        <el-empty :description="t('incomingManage.inspectionRule.noProject')" />
-                                    </div>
-                                </template>
-                            </el-table>
-                        </el-tab-pane>
+                       
                     </el-tabs>
                 </el-col>
             </el-row>
@@ -269,11 +270,13 @@
                                 </el-table-column>
                                 <el-table-column :label="t('incomingManage.testItems.inspectionType')" width="140">
                                     <template #default="{ row }">
-                                        <el-select v-model="row.InspectionType" size="small" style="width: 100%"
+                                        <span>{{ row.InspectionType === 1 ? t('incomingManage.testItems.qualitative') :
+                                            t('incomingManage.testItems.quantitative') }}</span>
+                                        <!-- <el-select v-model="row.InspectionType" size="small" style="width: 100%"
                                             @change="handleInspectionTypeChange(row)">
                                             <el-option :label="t('incomingManage.testItems.qualitative')" :value="1" />
                                             <el-option :label="t('incomingManage.testItems.quantitative')" :value="2" />
-                                        </el-select>
+                                        </el-select> -->
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" width="120">
@@ -360,7 +363,7 @@ const getForm = reactive({
 });
 
 // 右侧标签页
-const activeName = ref("detail"); // 'detail' 或 'projects'
+const activeName = ref("projects"); // 'detail' 或 'projects'
 // 子表数据（明细）
 const detailData = ref<any[]>([]);
 // 项目组数据
@@ -729,6 +732,7 @@ const handleInspectionSelect = (row: any, selectedCode: string) => {
     if (selectedItem) {
         row.InspectionName = selectedItem.InspectionName;
         row.IsInspectionTool = selectedItem.IsInspectionTool;
+        row.InspectionType = selectedItem.InspectionType;
     }
 };
 // 检验类型变更处理
@@ -799,7 +803,7 @@ const addSubmit = () => {
                         ElMessage.warning(`第${i + 1}行定量检验必须填写单位`);
                         return;
                     }
-                    if (Number(item.UpperLimit) <= Number(item.LowerLimit)) {
+                    if (Number(item.UpperLimit) < Number(item.LowerLimit)) {
                         ElMessage.warning(`第${i + 1}行上限必须大于下限`);
                         return;
                     }

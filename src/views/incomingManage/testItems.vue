@@ -31,23 +31,19 @@
                             <template #default="scope">
                                 <span>{{
                                     scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1
-                                    }}</span>
+                                }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column :label="t('incomingManage.testItems.projectCode')" prop="ProjectCode"
-                            :min-width="getColumnWidth1('ProjectCode')"  fixed/>
+                            :min-width="getColumnWidth1('ProjectCode')" fixed />
                         <el-table-column :label="t('incomingManage.testItems.projectName')" prop="ProjectName"
-                            :min-width="getColumnWidth1('ProjectName')"  />
+                            :min-width="getColumnWidth1('ProjectName')" />
                         <el-table-column :label="t('incomingManage.testItems.VersionNo')" prop="VersionNo"
                             :min-width="getColumnWidth1('VersionNo')" />
                         <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser"
                             :min-width="getColumnWidth1('CreateUser')" />
                         <el-table-column :label="t('incomingManage.testItems.creatime')" prop="CreateTime"
                             :min-width="getColumnWidth1('CreateTime')" />
-                        <!-- <el-table-column :label="t('incomingManage.testItems.updator')" prop="UpdateUser"
-                            :min-width="getColumnWidth1('UpdateUser')" />
-                        <el-table-column :label="t('incomingManage.testItems.updatetime')" prop="UpdateTime"
-                            :min-width="getColumnWidth1('UpdateTime')" /> -->
                         <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="120"
                             :align="'center'">
                             <template #default="{ row }">
@@ -88,6 +84,29 @@
                             :min-width="getColumnWidth2('InspectionCode')" />
                         <el-table-column :label="t('incomingManage.testItems.gaugeName')" prop="InspectionName"
                             :min-width="getColumnWidth2('InspectionName')" />
+                        <el-table-column label="检验项类型" prop="InspectionItemType"
+                            :min-width="getColumnWidth2('InspectionItemType')">
+                            <template #default="{ row }">
+                                <span>{{ row.InspectionItemType || '-' }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="检验工具" prop="InspectionTool"
+                            :min-width="getColumnWidth2('InspectionTool')">
+                            <template #default="{ row }">
+                                <span>{{ row.InspectionTool || '-' }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="检测方法" prop="DetectionMethod"
+                            :min-width="getColumnWidth2('DetectionMethod')">
+                            <template #default="{ row }">
+                                <span>{{ row.DetectionMethod || '-' }}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="排序" prop="SortNo" :min-width="getColumnWidth2('SortNo')" width="80">
+                            <template #default="{ row }">
+                                <span>{{ row.SortNo ?? '-' }}</span>
+                            </template>
+                        </el-table-column>
                         <el-table-column :label="t('incomingManage.testItems.IsInspectionTool')" prop="IsInspectionTool"
                             width="100">
                             <template #default="{ row }">
@@ -105,7 +124,6 @@
                             :min-width="getColumnWidth2('LowerLimit')" />
                         <el-table-column :label="t('incomingManage.testItems.upperLimit')" prop="UpperLimit"
                             :min-width="getColumnWidth2('UpperLimit')" />
-
                         <el-table-column :label="t('incomingManage.testItems.unit')" prop="Unit"
                             :min-width="getColumnWidth2('Unit')" />
                         <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser"
@@ -123,7 +141,7 @@
         </el-card>
 
         <!-- 新增/编辑检验项目对话框（复用） -->
-        <el-dialog :title="isEditMode ? $t('publicText.edit') : $t('publicText.add')" v-model="addVisible" width="80%"
+        <el-dialog :title="isEditMode ? $t('publicText.edit') : $t('publicText.add')" v-model="addVisible" width="90%"
             @close="addCancel" align-center :append-to-body="true" :close-on-click-modal="false"
             :close-on-press-escape="false">
             <el-form :model="addForm" ref="addFormRef" label-width="auto" :inline="false" :rules="addRules">
@@ -145,8 +163,9 @@
                     <div class="detail-table-wrapper">
                         <el-button type="primary" size="small" @click="addDetailRow" class="mb-2">{{
                             t('publicText.add') }}检验项</el-button>
-                        <el-table :data="addForm.Details" border size="small" style="width: 100%" height="400">
-                            <el-table-column :label="t('incomingManage.testItems.gaugeName')" >
+                        <el-table :data="addForm.Details" border size="small" style="width: 100%" height="400"
+                            class="editable-detail-table">
+                            <el-table-column :label="t('incomingManage.testItems.gaugeName')" min-width="160">
                                 <template #default="{ row, $index }">
                                     <el-select v-model="row.InspectionCode" size="small" style="width: 100%" filterable
                                         clearable placeholder="请选择检验项" @change="handleInspectionSelect(row, $event)">
@@ -158,19 +177,44 @@
                             </el-table-column>
                             <el-table-column :label="t('incomingManage.testItems.gaugeCode')" prop="InspectionCode"
                                 width="150" />
-                            <!-- <el-table-column :label="t('incomingManage.testItems.IsInspectionTool')" width="100"
-                                prop="IsInspectionTool">
-                                <template #default="{ row, $index }">
-                                    {{ row.IsInspectionTool === 1 ? t('publicText.yes') : t('publicText.no') }}
+                            <!-- 新增字段列 -->
+                            <el-table-column label="检验项类型" width="140">
+                                <template #default="{ row }">
+                                    <el-select v-model="row.InspectionItemType" size="small" style="width: 100%"
+                                        clearable placeholder="请选择">
+                                        <el-option label="外观" value="外观" />
+                                        <el-option label="尺寸" value="尺寸" />
+                                        <el-option label="性能" value="性能" />
+                                        <el-option label="重量" value="重量" />
+                                        <el-option label="成分" value="成分" />
+                                    </el-select>
                                 </template>
-                            </el-table-column> -->
+                            </el-table-column>
+                            <el-table-column label="检验工具" width="140">
+                                <template #default="{ row }">
+                                    <el-input v-model="row.InspectionTool" size="small" placeholder="检验工具" />
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="检测方法" width="140">
+                                <template #default="{ row }">
+                                    <el-input v-model="row.DetectionMethod" size="small" placeholder="检测方法（非必填）" />
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="排序" width="100">
+                                <template #default="{ row }">
+                                    <el-input-number v-model="row.SortNo" size="small" :min="0" :controls="false"
+                                        style="width: 100%" placeholder="数字" />
+                                </template>
+                            </el-table-column>
                             <el-table-column :label="t('incomingManage.testItems.inspectionType')" width="140">
                                 <template #default="{ row }">
-                                    <el-select v-model="row.InspectionType" size="small" style="width: 100%"
+                                    <span>{{ row.InspectionType === 1 ? t('incomingManage.testItems.qualitative') :
+                                        t('incomingManage.testItems.quantitative') }}</span>
+                                    <!-- <el-select v-model="row.InspectionType" size="small" style="width: 100%"
                                         @change="handleInspectionTypeChange(row)">
                                         <el-option :label="t('incomingManage.testItems.qualitative')" :value="1" />
                                         <el-option :label="t('incomingManage.testItems.quantitative')" :value="2" />
-                                    </el-select>
+                                    </el-select> -->
                                 </template>
                             </el-table-column>
                             <el-table-column :label="t('incomingManage.testItems.lowerLimit')" width="120">
@@ -259,11 +303,11 @@ const currentProjectCode = ref<string>("");
 // 新增/编辑对话框
 const addVisible = ref(false);
 const addFormRef = ref();
-const isEditMode = ref(false); // 是否为编辑模式
+const isEditMode = ref(false);
 const addForm = reactive({
     ProjectCode: "",
     ProjectName: "",
-    VersionNo: 0,           // 版本号，编辑时使用
+    VersionNo: 0,
     Details: [] as any[],
 });
 const addRules = {
@@ -304,13 +348,11 @@ const getData = () => {
     });
 };
 
-// 查询（重置页码）
 const searchData = () => {
     getForm.PageIndex = 1;
     getData();
 };
 
-// 分页处理
 const handleSizeChange = (val: number) => {
     getForm.PageSize = val;
     getData();
@@ -325,7 +367,15 @@ const handleRowClick = (row: any) => {
     currentProjectCode.value = row.ProjectCode;
     QueryInspectionProjectDetail({ ProjectCode: row.ProjectCode }).then((res: any) => {
         if (res.Success) {
-            detailData.value = res.Data || [];
+            // 确保明细中包含新增字段，若后端未返回则填充默认值
+            const details = (res.Data || []).map((item: any) => ({
+                ...item,
+                InspectionItemType: item.InspectionItemType || '',
+                InspectionTool: item.InspectionTool || '',
+                DetectionMethod: item.DetectionMethod || '',
+                SortNo: item.SortNo ?? 0,
+            }));
+            detailData.value = details;
         } else {
             ElMessage.error(res.Message || "查询明细失败");
             detailData.value = [];
@@ -336,7 +386,7 @@ const handleRowClick = (row: any) => {
     });
 };
 
-// 删除主表（同时删除子表）
+// 删除主表
 const handleDelete = (row: any) => {
     ElMessageBox.confirm(`${t('publicText.confirm')}${t("publicText.delete")}【${row.ProjectCode}】?`, t("publicText.confirm"), {
         confirmButtonText: t("publicText.confirm"),
@@ -347,7 +397,6 @@ const handleDelete = (row: any) => {
             DeleteInspectionProject({ projectCode: row.ProjectCode }).then((res: any) => {
                 if (res.Success) {
                     ElMessage.success(res.Message || "删除成功");
-                    // 如果删除的是当前选中的项目，清空子表
                     if (currentProjectCode.value === row.ProjectCode) {
                         currentProjectCode.value = "";
                         detailData.value = [];
@@ -371,22 +420,27 @@ const openAdd = () => {
     addForm.ProjectCode = "";
     addForm.ProjectName = "";
     addForm.VersionNo = 0;
-    addForm.Details = [
-        {
-            InspectionCode: "",
-            InspectionName: "",
-            IsInspectionTool: 1,
-            InspectionType: 1,
-            UpperLimit: null,
-            LowerLimit: null,
-            Unit: ""
-        }
-    ];
-    if (inspectionItemList.value.length === 0) {
-        getInspectionItems();
-    }
+    addForm.Details = [getNewDetailRow(1)];
+    // if (inspectionItemList.value.length === 0) {
+    getInspectionItems();
+    // }
     addVisible.value = true;
 };
+
+// 生成新明细行（附带新增字段默认值，SortNo 可传入建议值）
+const getNewDetailRow = (suggestSortNo: number = 1) => ({
+    InspectionCode: "",
+    InspectionName: "",
+    IsInspectionTool: 1,
+    InspectionType: 1,
+    UpperLimit: null,
+    LowerLimit: null,
+    Unit: "",
+    InspectionItemType: "",
+    InspectionTool: "",
+    DetectionMethod: "",
+    SortNo: suggestSortNo,
+});
 
 // 打开编辑对话框
 const openEdit = async (row: any) => {
@@ -394,72 +448,45 @@ const openEdit = async (row: any) => {
     addForm.ProjectCode = row.ProjectCode;
     addForm.ProjectName = row.ProjectName;
     addForm.VersionNo = row.VersionNo || 0;
-
-    // 加载明细数据
+    getInspectionItems();
     try {
         const res: any = await QueryInspectionProjectDetail({ ProjectCode: row.ProjectCode });
         if (res.Success) {
             const details = res.Data || [];
-            // 转换后端字段格式到前端表单格式（字段名一致，直接使用）
-            addForm.Details = details.map((item: any) => ({
-                InspectionCode: item.InspectionCode,
-                InspectionName: item.InspectionName,
-                IsInspectionTool: item.IsInspectionTool,
-                InspectionType: item.InspectionType,
-                UpperLimit: item.UpperLimit,
-                LowerLimit: item.LowerLimit,
-                Unit: item.Unit || ""
-            }));
-            // 如果明细为空，至少保留一行空行
-            if (addForm.Details.length === 0) {
-                addForm.Details = [{
-                    InspectionCode: "",
-                    InspectionName: "",
-                    IsInspectionTool: 1,
-                    InspectionType: 1,
-                    UpperLimit: null,
-                    LowerLimit: null,
-                    Unit: ""
-                }];
+            if (details.length === 0) {
+                addForm.Details = [getNewDetailRow(1)];
+            } else {
+                addForm.Details = details.map((item: any, idx: number) => ({
+                    InspectionCode: item.InspectionCode,
+                    InspectionName: item.InspectionName,
+                    IsInspectionTool: item.IsInspectionTool,
+                    InspectionType: item.InspectionType,
+                    UpperLimit: item.UpperLimit,
+                    LowerLimit: item.LowerLimit,
+                    Unit: item.Unit || "",
+                    InspectionItemType: item.InspectionItemType || "",
+                    InspectionTool: item.InspectionTool || "",
+                    DetectionMethod: item.DetectionMethod || "",
+                    SortNo: item.SortNo !== undefined && item.SortNo !== null ? item.SortNo : idx + 1,
+                }));
             }
         } else {
             ElMessage.error(res.Message || "加载明细失败");
-            addForm.Details = [{
-                InspectionCode: "",
-                InspectionName: "",
-                IsInspectionTool: 1,
-                InspectionType: 1,
-                UpperLimit: null,
-                LowerLimit: null,
-                Unit: ""
-            }];
+            addForm.Details = [getNewDetailRow(1)];
         }
     } catch {
         ElMessage.error("加载明细失败");
-        addForm.Details = [{
-            InspectionCode: "",
-            InspectionName: "",
-            IsInspectionTool: 1,
-            InspectionType: 1,
-            UpperLimit: null,
-            LowerLimit: null,
-            Unit: ""
-        }];
+        addForm.Details = [getNewDetailRow(1)];
     }
     addVisible.value = true;
 };
 
 const addDetailRow = () => {
-    addForm.Details.push({
-        InspectionCode: "",
-        InspectionName: "",
-        IsInspectionTool: 1,
-        InspectionType: 1,
-        UpperLimit: null,
-        LowerLimit: null,
-        Unit: ""
-    });
+    // 计算当前最大的 SortNo 并 +1
+    const maxSortNo = addForm.Details.reduce((max, item) => Math.max(max, item.SortNo || 0), 0);
+    addForm.Details.push(getNewDetailRow(maxSortNo + 1));
 };
+
 const removeDetailRow = (index: number) => {
     if (addForm.Details.length <= 1) {
         ElMessage.warning("至少保留一个检验项");
@@ -467,28 +494,34 @@ const removeDetailRow = (index: number) => {
     }
     addForm.Details.splice(index, 1);
 };
+
 const addCancel = () => {
     addVisible.value = false;
     addFormRef.value?.resetFields();
-    // 重置编辑模式标志
     isEditMode.value = false;
 };
 
-// 下拉框选中后自动填充检验项名称和是否量具标记
+// 下拉选择检验项后自动填充检验项名称、是否量具、检验项类型、检验工具
 const handleInspectionSelect = (row: any, selectedCode: string) => {
     if (!selectedCode) {
         row.InspectionName = "";
         row.IsInspectionTool = 1;
+        row.InspectionItemType = "";
+        row.InspectionTool = "";
         return;
     }
     const selectedItem = inspectionItemList.value.find(item => item.InspectionCode === selectedCode);
     if (selectedItem) {
         row.InspectionName = selectedItem.InspectionName;
         row.IsInspectionTool = selectedItem.IsInspectionTool;
+        // 自动填充新增字段（若主数据中存在）
+        row.InspectionItemType = selectedItem.InspectionItemType || "";
+        row.InspectionTool = selectedItem.InspectionTool || "";
+        row.InspectionType = selectedItem.InspectionType || 1;
     }
 };
 
-// 检验类型变更处理：定性时清空上下限和单位
+// 检验类型变更处理：定性时清空上下限和单位（不影响新增字段）
 const handleInspectionTypeChange = (row: any) => {
     if (row.InspectionType === 1) {
         row.UpperLimit = null;
@@ -501,14 +534,13 @@ const addSubmit = () => {
     addFormRef.value.validate(async (valid: boolean) => {
         if (!valid) return;
 
-        // 校验明细至少有一行且编码名称不能为空
+        // 校验明细
         for (let i = 0; i < addForm.Details.length; i++) {
             const item = addForm.Details[i];
             if (!item.InspectionCode || !item.InspectionName) {
                 ElMessage.warning(`第${i + 1}行检验项编码和名称不能为空`);
                 return;
             }
-            // 定量检验校验
             if (item.InspectionType === 2) {
                 if (item.UpperLimit === null || item.UpperLimit === undefined || item.UpperLimit === "") {
                     ElMessage.warning(`第${i + 1}行定量检验必须填写上限`);
@@ -522,20 +554,24 @@ const addSubmit = () => {
                     ElMessage.warning(`第${i + 1}行定量检验必须填写单位`);
                     return;
                 }
-                if (Number(item.UpperLimit) <= Number(item.LowerLimit)) {
+                if (Number(item.UpperLimit) < Number(item.LowerLimit)) {
                     ElMessage.warning(`第${i + 1}行上限必须大于下限`);
                     return;
                 }
             }
         }
 
-        // 构建明细参数，定性检验清空上下限单位
+        // 构建明细参数，包含新增字段
         const detailsParams = addForm.Details.map((item: any) => {
             const detail: any = {
                 InspectionCode: item.InspectionCode,
                 InspectionName: item.InspectionName,
                 IsInspectionTool: item.IsInspectionTool,
                 InspectionType: item.InspectionType,
+                InspectionItemType: item.InspectionItemType || "",
+                InspectionTool: item.InspectionTool || "",
+                DetectionMethod: item.DetectionMethod || "",
+                SortNo: item.SortNo !== undefined && item.SortNo !== null ? Number(item.SortNo) : 0,
             };
             if (item.InspectionType === 2) {
                 detail.UpperLimit = Number(item.UpperLimit);
@@ -550,7 +586,6 @@ const addSubmit = () => {
         });
 
         if (isEditMode.value) {
-            // 编辑模式：调用更新接口
             const params = {
                 ProjectCode: addForm.ProjectCode,
                 VersionNo: addForm.VersionNo,
@@ -563,8 +598,7 @@ const addSubmit = () => {
                 if (res.Success) {
                     ElMessage.success(res.Message || "更新成功");
                     addVisible.value = false;
-                    getData(); // 刷新主表
-                    // 如果编辑的是当前选中的项目，重新加载明细
+                    getData();
                     if (currentProjectCode.value === addForm.ProjectCode) {
                         handleRowClick({ ProjectCode: addForm.ProjectCode });
                     }
@@ -575,7 +609,6 @@ const addSubmit = () => {
                 ElMessage.error("更新失败");
             }
         } else {
-            // 新增模式
             const params = {
                 Project: {
                     ProjectCode: addForm.ProjectCode,
@@ -590,7 +623,6 @@ const addSubmit = () => {
                     ElMessage.success(res.Message || "新增成功");
                     addVisible.value = false;
                     getData();
-                    // 如果新增的项目编码与当前选中的相同，重新加载明细
                     if (currentProjectCode.value === addForm.ProjectCode) {
                         handleRowClick({ ProjectCode: addForm.ProjectCode });
                     }
@@ -619,11 +651,15 @@ const columnWidths1 = computed(() => {
 });
 const getColumnWidth1 = (prop: string) => columnWidths1.value[prop] || "auto";
 
-// 列宽自适应（子表）
+// 列宽自适应（子表，包含新增字段）
 const columnWidths2 = computed(() => {
     const columns = [
         { label: t("incomingManage.testItems.gaugeCode"), prop: "InspectionCode" },
         { label: t("incomingManage.testItems.gaugeName"), prop: "InspectionName" },
+        { label: "检验项类型", prop: "InspectionItemType" },
+        { label: "检验工具", prop: "InspectionTool" },
+        { label: "检测方法", prop: "DetectionMethod" },
+        { label: "排序", prop: "SortNo" },
         { label: t("incomingManage.testItems.isGauge"), prop: "IsInspectionTool" },
         { label: t("incomingManage.testItems.inspectionType"), prop: "InspectionType" },
         { label: t("incomingManage.testItems.upperLimit"), prop: "UpperLimit" },
@@ -636,7 +672,6 @@ const columnWidths2 = computed(() => {
 });
 const getColumnWidth2 = (prop: string) => columnWidths2.value[prop] || "auto";
 
-// 高度自适应
 const getScreenHeight = () => {
     nextTick(() => {
         tableHeight.value = window.innerHeight - 180;
@@ -650,7 +685,7 @@ onBeforeMount(() => {
 onMounted(() => {
     window.addEventListener("resize", getScreenHeight);
     getData();
-    getInspectionItems();
+    // getInspectionItems();
 });
 onBeforeUnmount(() => {
     window.removeEventListener("resize", getScreenHeight);
@@ -692,5 +727,10 @@ onBeforeUnmount(() => {
 
 .mb-2 {
     margin-bottom: 8px;
+}
+
+/* 明细编辑表格横向滚动适应更多列 */
+.editable-detail-table {
+    overflow-x: auto;
 }
 </style>

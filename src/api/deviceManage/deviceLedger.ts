@@ -12,7 +12,7 @@ export function AddMachinery(data:any) {
 //查询
 export function GetPagedMachineries(data:any) {
     return request({
-        url: " /api/DeviceManager/GetPagedMachineries",
+        url: "/api/DeviceManager/GetPagedMachineries",
         method: "post",
        data
     });

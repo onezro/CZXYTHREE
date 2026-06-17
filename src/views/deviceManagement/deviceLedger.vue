@@ -5,16 +5,19 @@
         <!-- 查询表单 -->
         <el-form ref="formRef" :inline="true" :model="getForm" label-width="auto" @submit.prevent>
           <el-form-item :label="t('deviceManage.deviceLedger.machineryCode')" class="mb-2">
-            <el-input v-model="getForm.MachineryCode" :placeholder="t('deviceManage.deviceLedger.machineryCodePlaceholder')"
-              clearable style="width: 150px" size="small" />
+            <el-input v-model="getForm.MachineryCode"
+              :placeholder="t('deviceManage.deviceLedger.machineryCodePlaceholder')" clearable style="width: 150px"
+              size="small" />
           </el-form-item>
           <el-form-item :label="t('deviceManage.deviceLedger.machineryName')" class="mb-2">
-            <el-input v-model="getForm.MachineryName" :placeholder="t('deviceManage.deviceLedger.machineryNamePlaceholder')"
-              clearable style="width: 150px" size="small" />
+            <el-input v-model="getForm.MachineryName"
+              :placeholder="t('deviceManage.deviceLedger.machineryNamePlaceholder')" clearable style="width: 150px"
+              size="small" />
           </el-form-item>
           <el-form-item :label="t('deviceManage.deviceLedger.productionLine')" class="mb-2">
-            <el-input v-model="getForm.ProductionLine" :placeholder="t('deviceManage.deviceLedger.productionLinePlaceholder')"
-              clearable style="width: 150px" size="small" />
+            <el-input v-model="getForm.ProductionLine"
+              :placeholder="t('deviceManage.deviceLedger.productionLinePlaceholder')" clearable style="width: 150px"
+              size="small" />
           </el-form-item>
           <el-form-item class="mb-2">
             <el-button type="primary" @click="handleSearch" :size="'small'">{{
@@ -65,13 +68,13 @@
           :min-width="getColumnWidth('create_by')" />
         <el-table-column prop="create_time" :label="t('deviceManage.deviceLedger.createTime')"
           :min-width="getColumnWidth('create_time')" />
-        <el-table-column :label="$t('publicText.operation')" fixed="right" width="150" align="center">
+        <el-table-column :label="$t('publicText.operation')" fixed="right" width="120" align="center">
           <template #default="{ row }">
-            <el-button size="small" type="primary" @click="openEdit(row)">
-              {{ $t("publicText.edit") }}
+            <el-button size="small" type="primary" @click="openEdit(row)" icon="Edit">
+
             </el-button>
-            <el-button size="small" type="danger" @click="handleDelete(row)">
-              {{ $t("publicText.delete") }}
+            <el-button size="small" type="danger" @click="handleDelete(row)" icon="Delete">
+
             </el-button>
           </template>
         </el-table-column>
@@ -103,36 +106,47 @@
     </el-dialog>
 
     <!-- 新增/编辑设备对话框 -->
-    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="600px" :close-on-click-modal="false"
+    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="600px" align-center :close-on-click-modal="false"
       @closed="handleDialogClosed">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="120px" size="small">
         <el-form-item :label="t('deviceManage.deviceLedger.machineryCode')" prop="MachineryCode">
-          <el-input v-model="formData.MachineryCode" :placeholder="t('deviceManage.deviceLedger.machineryCodePlaceholder')"
-            :disabled="isEdit" />
+          <el-input v-model="formData.MachineryCode"
+            :placeholder="t('deviceManage.deviceLedger.machineryCodePlaceholder')" :disabled="isEdit" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.deviceLedger.machineryName')" prop="MachineryName">
-          <el-input v-model="formData.MachineryName" :placeholder="t('deviceManage.deviceLedger.machineryNamePlaceholder')" />
+          <el-input v-model="formData.MachineryName"
+            :placeholder="t('deviceManage.deviceLedger.machineryNamePlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.deviceLedger.machineryBrand')" prop="MachineryBrand">
-          <el-input v-model="formData.MachineryBrand" :placeholder="t('deviceManage.deviceLedger.machineryBrandPlaceholder')" />
+          <el-input v-model="formData.MachineryBrand"
+            :placeholder="t('deviceManage.deviceLedger.machineryBrandPlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.deviceLedger.specification')" prop="MachinerySpec">
-          <el-input v-model="formData.MachinerySpec" :placeholder="t('deviceManage.deviceLedger.specificationPlaceholder')" />
+          <el-input v-model="formData.MachinerySpec"
+            :placeholder="t('deviceManage.deviceLedger.specificationPlaceholder')" />
+        </el-form-item>
+        <el-form-item :label="t('deviceManage.deviceLedger.MachineryTypeId')" prop="MachineryTypeId">
+          <el-input v-model="formData.MachineryTypeId" :placeholder="t('deviceManage.deviceLedger.MachineryTypeId')" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.deviceLedger.machineryTypeCode')" prop="MachineryTypeCode">
-          <el-input v-model="formData.MachineryTypeCode" :placeholder="t('deviceManage.deviceLedger.machineryTypeCodePlaceholder')" />
+          <el-input v-model="formData.MachineryTypeCode"
+            :placeholder="t('deviceManage.deviceLedger.machineryTypeCodePlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.deviceLedger.machineryType')" prop="MachineryTypeName">
-          <el-input v-model="formData.MachineryTypeName" :placeholder="t('deviceManage.deviceLedger.machineryTypePlaceholder')" />
+          <el-input v-model="formData.MachineryTypeName"
+            :placeholder="t('deviceManage.deviceLedger.machineryTypePlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.deviceLedger.workshopName')" prop="WorkShopName">
-          <el-input v-model="formData.WorkShopName" :placeholder="t('deviceManage.deviceLedger.workshopNamePlaceholder')" />
+          <el-input v-model="formData.WorkShopName"
+            :placeholder="t('deviceManage.deviceLedger.workshopNamePlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.deviceLedger.productionLine')" prop="ProductionLine">
-          <el-input v-model="formData.ProductionLine" :placeholder="t('deviceManage.deviceLedger.productionLinePlaceholder')" />
+          <el-input v-model="formData.ProductionLine"
+            :placeholder="t('deviceManage.deviceLedger.productionLinePlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.deviceLedger.machineryStatus')" prop="MachineryStatus">
-          <el-select v-model="formData.MachineryStatus" :placeholder="t('deviceManage.deviceLedger.machineryStatusPlaceholder')" clearable>
+          <el-select v-model="formData.MachineryStatus"
+            :placeholder="t('deviceManage.deviceLedger.machineryStatusPlaceholder')" clearable>
             <el-option label="运行中" value="running" />
             <el-option label="停机" value="stopped" />
             <el-option label="维修" value="maintenance" />
@@ -149,7 +163,8 @@
           <el-switch v-model="formData.EnableFlag" active-value="1" inactive-value="0" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.deviceLedger.remark')" prop="Remark">
-          <el-input v-model="formData.Remark" type="textarea" :rows="2" :placeholder="t('deviceManage.deviceLedger.remarkPlaceholder')" />
+          <el-input v-model="formData.Remark" type="textarea" :rows="2"
+            :placeholder="t('deviceManage.deviceLedger.remarkPlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -208,7 +223,7 @@ const getForm = reactive({
   AdminName: "",
   EnableFlag: "",
   PageIndex: 1,
-  PageSize: 10,
+  PageSize: 50,
 });
 
 // 导出相关
@@ -268,14 +283,8 @@ const getData = async () => {
   loading.value = true;
   try {
     const res: any = await GetPagedMachineries(getForm);
-    if (res.Success && res.Data) {
-      tableData.value = res.Data.Items || [];
-      total.value = res.Data.TotalCount || 0;
-    } else {
-      tableData.value = [];
-      total.value = 0;
-      ElMessage.warning(res.Message || t("message.queryFailure"));
-    }
+    tableData.value = res.Data.Items || [];
+    total.value = res.Data.TotalCount || 0;
   } catch (error) {
     console.error("查询失败:", error);
     tableData.value = [];

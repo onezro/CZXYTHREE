@@ -37,14 +37,63 @@ export const OrganData = (organizations: any) => {
   return Array.from(organizationMap.values()).filter((org) => org.FID === null);
 };
 
+// export const shortcuts = [
+//   {
+//     text: "近三个月",
+//     value: () => {
+//       const end = new Date();
+//       let start = new Date(end);
+//       let targetMonth = end.getMonth() - 3;
+//       let targetYear = end.getFullYear();
+//       // 处理跨年情况
+//       if (targetMonth < 0) {
+//         targetMonth += 12;
+//         targetYear -= 1;
+//       }
+//       start.setFullYear(targetYear);
+//       start.setMonth(targetMonth);
+//       // start.setDate(1); // 确保是月份的第一天
+//       return [start, end];
+//     },
+//   },
+//   {
+//     text: "本月",
+//     value: () => {
+//       const end = new Date();
+//       const start = new Date();
+//       const date = new Date().getDate() - 1;
+//       start.setTime(start.getTime() - 3600 * 1000 * 24 * date);
+//       return [start, end];
+//     },
+//   },
+//   {
+//     text: "近七天",
+//     value: () => {
+//       const end = new Date();
+//       const start = new Date();
+//       start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+//       return [start, end];
+//     },
+//   },
+//   {
+//     text: "当天",
+//     value: () => {
+//       const end = new Date();
+//       const start = new Date();
+//       return [start, end];
+//     },
+//   },
+// ];
 export const shortcuts = [
   {
     text: "近三个月",
     value: () => {
       const end = new Date();
-      let start = new Date(end);
-      let targetMonth = end.getMonth() - 3;
-      let targetYear = end.getFullYear();
+      end.setHours(23, 59, 59, 999); // 结束时间为当天结束
+
+      const start = new Date();
+      let targetMonth = start.getMonth() - 3;
+      let targetYear = start.getFullYear();
       // 处理跨年情况
       if (targetMonth < 0) {
         targetMonth += 12;
@@ -52,7 +101,10 @@ export const shortcuts = [
       }
       start.setFullYear(targetYear);
       start.setMonth(targetMonth);
-      // start.setDate(1); // 确保是月份的第一天
+      // 注意：如果当前日期（如31日）在目标月份中不存在，JS会自动调整到下个月
+      // 设置起始时间为当天开始
+      start.setHours(0, 0, 0, 0);
+
       return [start, end];
     },
   },
@@ -60,9 +112,12 @@ export const shortcuts = [
     text: "本月",
     value: () => {
       const end = new Date();
+      end.setHours(23, 59, 59, 999); // 结束时间为当天结束
+
       const start = new Date();
-      const date = new Date().getDate() - 1;
-      start.setTime(start.getTime() - 3600 * 1000 * 24 * date);
+      start.setDate(1); // 设置为本月第一天
+      start.setHours(0, 0, 0, 0); // 起始时间为当天开始
+
       return [start, end];
     },
   },
@@ -70,21 +125,28 @@ export const shortcuts = [
     text: "近七天",
     value: () => {
       const end = new Date();
+      end.setHours(23, 59, 59, 999); // 结束时间为当天结束
+
       const start = new Date();
-      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+      start.setDate(start.getDate() - 6); // 设置为7天前
+      start.setHours(0, 0, 0, 0); // 起始时间为当天开始
+
       return [start, end];
     },
   },
   {
     text: "当天",
     value: () => {
-      const end = new Date();
       const start = new Date();
+      start.setHours(0, 0, 0, 0); // 起始时间为当天开始
+
+      const end = new Date();
+      end.setHours(23, 59, 59, 999); // 结束时间为当天结束
+
       return [start, end];
     },
   },
 ];
-
 export const setTodayDate = (isSecond?: boolean) => {
   const now = new Date();
   const year = now.getFullYear();

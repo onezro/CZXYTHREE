@@ -10,3 +10,9 @@ import {  RouterView } from 'vue-router'
 <style scoped>
 
 </style>
+<style>
+/* 全局样式，覆盖 body */
+body.el-popup-parent--hidden {
+  width: 100% !important;
+}
+</style>

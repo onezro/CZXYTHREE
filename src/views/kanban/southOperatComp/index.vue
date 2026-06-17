@@ -137,7 +137,7 @@ const updateTime = () => {
   currentTime.value = `${y}-${m}-${d} ${w} ${hh}:${mm}:${ss}`
   safeDays.value = Math.floor((new Date().getTime() - new Date('2026-01-28').getTime()) / (1000 * 60 * 60 * 24)) + 1
 }
-const monthlyActual = ref(339416)
+const monthlyActual = ref(302828)
 const mtbfValue = ref(720)
 const mttrValue = ref(25)
 // ---------- 安全生产天数 ----------
@@ -160,7 +160,7 @@ const handleMtbfHourlyUpdate = () => {
     // 早上7点重置为720
     if (currentHour === 7) {
       mtbfValue.value = 720
-      monthlyActual.value=339416
+      monthlyActual.value=302828
     } else {
       // 其他整点递增1小时
       mtbfValue.value += 1

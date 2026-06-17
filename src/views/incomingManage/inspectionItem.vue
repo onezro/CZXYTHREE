@@ -2,7 +2,6 @@
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <div class="flex justify-between">
-
                 <el-form ref="formRef" :model="getForm" label-width="auto" :inline="true" :size="'small'"
                     @submit.native.prevent>
                     <el-form-item :label="t('incomingManage.inspectionItem.gaugeCode')" prop="gaugeCode" class="mb-2">
@@ -30,6 +29,24 @@
                     :min-width="getColumnWidth1('InspectionCode')" />
                 <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName"
                     :min-width="getColumnWidth1('InspectionName')" />
+                <!-- 新增字段列 -->
+                <el-table-column label="检验项类型" prop="InspectionItemType" :min-width="getColumnWidth1('InspectionItemType')">
+                    <template #default="{ row }">
+                        <span>{{ row.InspectionItemType || '-' }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="检验工具" prop="InspectionTool" :min-width="getColumnWidth1('InspectionTool')">
+                    <template #default="{ row }">
+                        <span>{{ row.InspectionTool || '-' }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="检验类型" prop="InspectionType" :min-width="getColumnWidth1('InspectionType')">
+                    <template #default="{ row }">
+                        <span v-if="row.InspectionType === 1">定性</span>
+                        <span v-else-if="row.InspectionType === 2">定量</span>
+                        <span v-else>-</span>
+                    </template>
+                </el-table-column>
                 <el-table-column :label="t('incomingManage.inspectionItem.creator')" prop="CreateUser"
                     :min-width="getColumnWidth1('CreateUser')" />
                 <el-table-column :label="t('incomingManage.inspectionItem.creatime')" prop="CreateTime"
@@ -62,7 +79,7 @@
                 </el-pagination>
             </div>
         </el-card>
-        <el-dialog :title="$t('publicText.add')" v-model="addVisible" width="400px" @close="addCancel" :append-to-body="true" :close-on-click-modal="false"
+        <el-dialog :title="$t('publicText.add')" v-model="addVisible" width="500px" @close="addCancel" :append-to-body="true" :close-on-click-modal="false"
             :close-on-press-escape="false">
             <el-form :model="addForm" ref="addFormRef" label-width="auto" :inline="false" :rules="rules">
                 <el-form-item :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode">
@@ -71,10 +88,23 @@
                 <el-form-item :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName">
                     <el-input v-model="addForm.InspectionName" placeholder="" clearable style="width: 100%" />
                 </el-form-item>
-                <el-form-item :label="t('incomingManage.inspectionItem.isGauge')" prop="IsInspectionTool">
-                    <el-select v-model="addForm.IsInspectionTool" placeholder="" style="width: 100%">
-                        <el-option :label="t('publicText.yes')" :value="1"></el-option>
-                        <el-option :label="t('publicText.no')" :value="0"></el-option>
+                <!-- 新增字段 -->
+                <el-form-item label="检验项类型" prop="InspectionItemType">
+                    <el-select v-model="addForm.InspectionItemType" placeholder="请选择检验项类型" clearable style="width: 100%">
+                        <el-option label="外观" value="外观"></el-option>
+                        <el-option label="尺寸" value="尺寸"></el-option>
+                        <el-option label="性能" value="性能"></el-option>
+                        <el-option label="重量" value="重量"></el-option>
+                        <el-option label="成分" value="成分"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="检验工具" prop="InspectionTool">
+                    <el-input v-model="addForm.InspectionTool" placeholder="请输入检验工具" clearable style="width: 100%" />
+                </el-form-item>
+                <el-form-item label="检验类型" prop="InspectionType">
+                    <el-select v-model="addForm.InspectionType" placeholder="请选择检验类型" style="width: 100%">
+                        <el-option label="定性" :value="1"></el-option>
+                        <el-option label="定量" :value="2"></el-option>
                     </el-select>
                 </el-form-item>
             </el-form>
@@ -94,10 +124,23 @@
                 <el-form-item :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName">
                     <el-input v-model="editForm.InspectionName" placeholder="" clearable style="width: 100%" />
                 </el-form-item>
-                <el-form-item :label="t('incomingManage.inspectionItem.isGauge')" prop="IsInspectionTool">
-                    <el-select v-model="editForm.IsInspectionTool" placeholder="" style="width: 100%">
-                        <el-option :label="t('publicText.yes')" :value="1"></el-option>
-                        <el-option :label="t('publicText.no')" :value="0"></el-option>
+                <!-- 新增字段 -->
+                <el-form-item label="检验项类型" prop="InspectionItemType">
+                    <el-select v-model="editForm.InspectionItemType" placeholder="请选择检验项类型" clearable style="width: 100%">
+                        <el-option label="外观" value="外观"></el-option>
+                        <el-option label="尺寸" value="尺寸"></el-option>
+                        <el-option label="性能" value="性能"></el-option>
+                        <el-option label="重量" value="重量"></el-option>
+                        <el-option label="成分" value="成分"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="检验工具" prop="InspectionTool">
+                    <el-input v-model="editForm.InspectionTool" placeholder="请输入检验工具" clearable style="width: 100%" />
+                </el-form-item>
+                <el-form-item label="检验类型" prop="InspectionType">
+                    <el-select v-model="editForm.InspectionType" placeholder="请选择检验类型" style="width: 100%">
+                        <el-option label="定性" :value="1"></el-option>
+                        <el-option label="定量" :value="2"></el-option>
                     </el-select>
                 </el-form-item>
             </el-form>
@@ -139,16 +182,23 @@ const getForm = ref({
 });
 const addVisible = ref(false);
 const editVisible = ref(false);
+// 新增字段初始值
 const addForm = ref({
     InspectionCode: "",
     InspectionName: "",
     IsInspectionTool: 1,
+    InspectionItemType: "",   // 检验项类型
+    InspectionTool: "",       // 检验工具
+    InspectionType: 1,        // 检验类型，默认定性
     CreateUser: userStore.getUserInfo
 });
 const editForm = ref({
     InspectionCode: "",
     InspectionName: "",
     IsInspectionTool: 1,
+    InspectionItemType: "",
+    InspectionTool: "",
+    InspectionType: 1,
     CreateUser: userStore.getUserInfo
 });
 const addFormRef = ref();
@@ -178,10 +228,29 @@ const getData = () => {
     });
 };
 const openAdd = () => {
+    // 重置新增表单数据
+    addForm.value = {
+        InspectionCode: "",
+        InspectionName: "",
+        IsInspectionTool: 1,
+        InspectionItemType: "",
+        InspectionTool: "",
+        InspectionType: 1,
+        CreateUser: userStore.getUserInfo
+    };
     addVisible.value = true;
+    nextTick(() => {
+        addFormRef.value?.clearValidate();
+    });
 };
 const handleEdit = (row: any) => {
-    editForm.value = { ...row };
+    // 确保编辑表单包含新字段，若后端未返回则给默认值
+    editForm.value = {
+        ...row,
+        InspectionItemType: row.InspectionItemType || "",
+        InspectionTool: row.InspectionTool || "",
+        InspectionType: row.InspectionType !== undefined ? row.InspectionType : 1,
+    };
     editVisible.value = true;
     nextTick(() => {
         editFormRef.value?.clearValidate();
@@ -233,6 +302,9 @@ const addSubmit = () => {
                         InspectionCode: "",
                         InspectionName: "",
                         IsInspectionTool: 1,
+                        InspectionItemType: "",
+                        InspectionTool: "",
+                        InspectionType: 1,
                         CreateUser: userStore.getUserInfo
                     };
                     addVisible.value = false;
@@ -258,6 +330,9 @@ const editSubmit = () => {
                 InspectionCode: editForm.value.InspectionCode,
                 InspectionName: editForm.value.InspectionName,
                 IsInspectionTool: editForm.value.IsInspectionTool,
+                InspectionItemType: editForm.value.InspectionItemType,
+                InspectionTool: editForm.value.InspectionTool,
+                InspectionType: editForm.value.InspectionType,
                 UpdateUser: userStore.getUserInfo
             };
             UpdateInspectionItem(updateParams).then((res: any) => {
@@ -286,11 +361,14 @@ const handleCurrentChange = (val: any) => {
     getForm.value.PageIndex = val;
     getData();
 };
-// ---------- 列宽自动计算 ----------
+// ---------- 列宽自动计算（包含新增字段） ----------
 const columnWidths1 = computed(() => {
     const columns = [
         { label: t("incomingManage.inspectionItem.gaugeCode"), prop: "InspectionCode" },
         { label: t("incomingManage.inspectionItem.gaugeName"), prop: "InspectionName" },
+        { label: "检验项类型", prop: "InspectionItemType" },
+        { label: "检验工具", prop: "InspectionTool" },
+        { label: "检验类型", prop: "InspectionType" },
         { label: t("incomingManage.inspectionItem.isGauge"), prop: "IsInspectionTool" },
         { label: t("incomingManage.inspectionItem.creator"), prop: "CreateUser" },
         { label: t("incomingManage.inspectionItem.creatime"), prop: "CreateTime" },

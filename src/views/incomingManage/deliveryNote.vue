@@ -81,7 +81,7 @@
                     :min-width="getColumnWidth1('CreateTime')" />
                 <el-table-column :label="$t('publicText.operation')" fixed="right" width="220" align="center">
                     <template #default="{ row }">
-                        <el-button type="primary" size="small" @click="openInspectDialog(row)">
+                        <el-button type="primary" size="small" :disabled="row.Result!==0" @click="openInspectDialog(row)">
                             {{ t('incomingManage.deliveryNote.inspect') }}
                         </el-button>
                         <el-button type="warning" size="small" @click="openReviewDialog(row)">
@@ -106,8 +106,8 @@
             </div>
         </el-card>
 
-        <!-- 检验弹窗（录入实测值） -->
-        <el-dialog :title="t('incomingManage.deliveryNote.inspectTitle')" v-model="inspectDialogVisible" width="1000px"
+        <!-- 检验弹窗（录入实测值/选择结果） -->
+        <el-dialog :title="t('incomingManage.deliveryNote.inspectTitle')" v-model="inspectDialogVisible" width="1200px"
             @close="closeInspectDialog" align-center :append-to-body="true" :close-on-click-modal="false"
             :close-on-press-escape="false">
             <el-form :model="inspectForm" size="small" :inline="true" label-width="auto">
@@ -121,7 +121,7 @@
                     <el-input v-model="inspectForm.MaterialCode" disabled style="width: 200px;" />
                 </el-form-item>
                 <el-form-item :label="t('incomingManage.deliveryNote.materialName')" style="width: 100%;">
-                    <el-input v-model="inspectForm.MaterialName" type="textarea" disabled rows="1"  style="width: 825px;"/>
+                    <el-input v-model="inspectForm.MaterialName" type="textarea" disabled rows="1" style="width: 100%;" />
                 </el-form-item>
                 <el-form-item :label="t('incomingManage.deliveryNote.result')">
                     <el-select v-model="inspectForm.MainResult" size="small" style="width: 200px">
@@ -130,49 +130,52 @@
                     </el-select>
                 </el-form-item>
                 <el-table :data="inspectForm.Details" border size="small" style="width: 100%" height="400">
-                    <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode"
-                        width="150" />
-                    <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName"
-                        min-width="150" />
-                    <el-table-column :label="t('incomingManage.inspectionItem.isGauge')" prop="IsInspectionTool"
-                        width="80" align="center">
-                        <template #default="{ row }">{{ row.IsInspectionTool === 1 ? t('publicText.yes') :
-                            t('publicText.no') }}</template>
-                    </el-table-column>
-                    <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" prop="UpperLimit" width="90"
-                        align="right" />
-                    <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" prop="LowerLimit" width="90"
-                        align="right" />
+                    <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode" width="120" />
+                    <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName" min-width="180" />
+                    <el-table-column label="检验项类型" prop="InspectionItemType" width="100" />
+                    <el-table-column label="检验工具" prop="InspectionTool" width="100" />
+                    <el-table-column label="检测方法" prop="DetectionMethod" width="120" />
+                       <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" prop="LowerLimit" width="90" align="right" />
+                    <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" prop="UpperLimit" width="90" align="right" />
+                 
                     <el-table-column :label="t('incomingManage.inspectionRule.unit')" prop="Unit" width="70" />
-                    <el-table-column :label="t('incomingManage.deliveryNote.measuredValue')" width="140">
+                    <!-- 定量检验：显示实测值输入框 -->
+                    <el-table-column :label="t('incomingManage.deliveryNote.measuredValue')" width="140" >
                         <template #default="{ row }">
-                            <el-input-number v-model="row.MeasuredValue" size="small" :controls="false"
-                                style="width: 100%" :disabled="row.IsInspectionTool === 0" :precision="4"
-                                @change="() => calculateDetailResult(row)" />
+                            <el-input-number v-model="row.MeasuredValue" :disabled="row.InspectionType!==2" size="small" :controls="false" style="width: 100%"
+                                :precision="4" @change="() => calculateDetailResult(row)" />
                         </template>
                     </el-table-column>
+                    <!-- 检验结果列 -->
                     <el-table-column :label="t('incomingManage.deliveryNote.detailResult')" width="100" align="center">
                         <template #default="{ row }">
-                            <el-select v-model="row.Result" size="small" style="width: 100%" @change="updateMainResult">
+                            <!-- 定性检验：手动选择结果 -->
+                            <el-select v-if="row.InspectionType === 1" v-model="row.Result" size="small" style="width: 100%"
+                                @change="updateMainResult">
                                 <el-option :label="t('incomingManage.deliveryNote.qualified')" :value="1" />
                                 <el-option :label="t('incomingManage.deliveryNote.unqualified')" :value="0" />
                             </el-select>
+                            <!-- 定量检验：显示自动判定的结果 -->
+                            <span v-else>
+                                <el-tag :type="row.Result === 1 ? 'success' : 'danger'" size="small">
+                                    {{ row.Result === 1 ? t('incomingManage.deliveryNote.qualified') : t('incomingManage.deliveryNote.unqualified') }}
+                                </el-tag>
+                            </span>
                         </template>
                     </el-table-column>
                 </el-table>
             </el-form>
             <template #footer>
                 <el-button @click="inspectDialogVisible = false">{{ t("publicText.cancel") }}</el-button>
-                <el-button type="primary" @click="submitInspect" :loading="inspectSubmitting">{{ t("publicText.confirm")
-                    }}</el-button>
+                <el-button type="primary" @click="submitInspect" :loading="inspectSubmitting">{{ t("publicText.confirm") }}</el-button>
             </template>
         </el-dialog>
 
-        <!-- 二次确认（评审）弹窗 -->
+        <!-- 二次确认（评审）弹窗（保持不变） -->
         <el-dialog :title="t('incomingManage.deliveryNote.reviewTitle')" v-model="reviewDialogVisible" width="1000px"
             @close="closeReviewDialog" align-center :append-to-body="true" :close-on-click-modal="false"
             :close-on-press-escape="false">
-            <el-form :model="reviewForm" ref="reviewFormRef" label-width="auto"  size="small" :rules="reviewRules" :inline="true">
+            <el-form :model="reviewForm" ref="reviewFormRef" label-width="auto" size="small" :rules="reviewRules" :inline="true">
                 <el-form-item :label="t('incomingManage.deliveryNote.iqcNo')">
                     <el-input v-model="reviewForm.IQCNo" disabled style="width: 200px;" />
                 </el-form-item>
@@ -192,31 +195,23 @@
                 </el-form-item>
             </el-form>
             <el-table :data="viewDetails" border size="small" style="width: 100%" height="400">
-                <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode"
-                    width="150" />
-                <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName"
-                    min-width="150" />
-                <el-table-column :label="t('incomingManage.inspectionItem.isGauge')" prop="IsInspectionTool" width="80"
-                    align="center">
-                    <template #default="{ row }">{{ row.IsInspectionTool === 1 ? t('publicText.yes') :
-                        t('publicText.no') }}</template>
+                <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode" width="150" />
+                <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName" min-width="150" />
+                <el-table-column :label="t('incomingManage.inspectionItem.isGauge')" prop="IsInspectionTool" width="80" align="center">
+                    <template #default="{ row }">{{ row.IsInspectionTool === 1 ? t('publicText.yes') : t('publicText.no') }}</template>
                 </el-table-column>
-                <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" prop="UpperLimit" width="90"
-                    align="right" />
-                <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" prop="LowerLimit" width="90"
-                    align="right" />
+                   <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" prop="LowerLimit" width="90" align="right" />
+                <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" prop="UpperLimit" width="90" align="right" />
+             
                 <el-table-column :label="t('incomingManage.inspectionRule.unit')" prop="Unit" width="70" />
-                <el-table-column :label="t('incomingManage.deliveryNote.measuredValue')" prop="MeasuredValue"
-                    width="120" align="right" />
+                <el-table-column :label="t('incomingManage.deliveryNote.measuredValue')" prop="MeasuredValue" width="120" align="right" />
                 <el-table-column :label="t('incomingManage.deliveryNote.detailResult')" width="100" align="center">
-                    <template #default="{ row }">{{ row.Result === 1 ? t('incomingManage.deliveryNote.qualified') :
-                        t('incomingManage.deliveryNote.unqualified') }}</template>
+                    <template #default="{ row }">{{ row.Result === 1 ? t('incomingManage.deliveryNote.qualified') : t('incomingManage.deliveryNote.unqualified') }}</template>
                 </el-table-column>
             </el-table>
             <template #footer>
                 <el-button @click="reviewDialogVisible = false">{{ t("publicText.cancel") }}</el-button>
-                <el-button type="primary" @click="submitReview" :loading="reviewSubmitting">{{ t("publicText.confirm")
-                    }}</el-button>
+                <el-button type="primary" @click="submitReview" :loading="reviewSubmitting">{{ t("publicText.confirm") }}</el-button>
             </template>
         </el-dialog>
     </div>
@@ -233,7 +228,6 @@ import { useI18n } from "vue-i18n";
 const userStore = useUserStoreWithOut();
 const { t } = useI18n();
 
-// 表格高度自适应
 const tableHeight = ref(0);
 const tableData = ref<any[]>([]);
 const total = ref(0);
@@ -281,7 +275,6 @@ const reviewForm = reactive({
 const reviewRules = {
     ReviewResult: [{ required: true, message: "请选择评审结果", trigger: "change" }],
 };
-
 const viewDetails = ref<any[]>([]);
 
 // ==================== API 调用 ====================
@@ -317,7 +310,6 @@ const handleCurrentChange = (val: number) => {
     getData();
 };
 
-// 辅助函数
 const getResultText = (result: number) => {
     if (result === 0) return t("incomingManage.deliveryNote.notTested");
     if (result === 1) return t("incomingManage.deliveryNote.qualified");
@@ -348,7 +340,7 @@ const handleDelete = (row: any) => {
             }).then((res: any) => {
                 if (res.Success) {
                     ElMessage.success(res.Message || "删除成功");
-                    getData(); // 刷新列表
+                    getData();
                 } else {
                     ElMessage.error(res.Message || "删除失败");
                 }
@@ -364,7 +356,7 @@ const handleDelete = (row: any) => {
 // ==================== 检验弹窗逻辑 ====================
 const openInspectDialog = async (row: any) => {
     try {
-        const res:any = await QueryArrivalInspectionDetailList({ ArrivalId: row.ArrivalId });
+        const res: any = await QueryArrivalInspectionDetailList({ ArrivalId: row.ArrivalId });
         if (res.Success) {
             const details = (res.Data || []).map((item: any) => ({
                 DetailId: item.DetailId,
@@ -374,15 +366,20 @@ const openInspectDialog = async (row: any) => {
                 UpperLimit: item.UpperLimit,
                 LowerLimit: item.LowerLimit,
                 Unit: item.Unit,
+                InspectionType: item.InspectionType,       // 1=定性，2=定量
+                InspectionItemType: item.InspectionItemType || '',
+                InspectionTool: item.InspectionTool || '',
+                DetectionMethod: item.DetectionMethod || '',
+                SortNo: item.SortNo,
                 MeasuredValue: item.MeasuredValue ?? null,
-                Result: (item.Result === undefined || item.Result === null) ? 1 : item.Result,
+                Result: row.Result==0 ? "" : item.Result,
             }));
             inspectForm.ArrivalId = row.ArrivalId;
             inspectForm.IQCNo = row.IQCNo;
             inspectForm.ArrivalNo = row.ArrivalNo;
             inspectForm.MaterialCode = row.MaterialCode;
             inspectForm.MaterialName = row.MaterialName;
-            inspectForm.MainResult = row.Result ?? 0;
+            inspectForm.MainResult = row.Result ?? '';
             inspectForm.Details = details;
             inspectDialogVisible.value = true;
         } else {
@@ -393,8 +390,9 @@ const openInspectDialog = async (row: any) => {
     }
 };
 
+// 定量检验：根据实测值自动判定结果
 const calculateDetailResult = (detail: any) => {
-    if (detail.IsInspectionTool === 1 && (detail.UpperLimit !== null || detail.LowerLimit !== null)) {
+    if (detail.InspectionType === 2) {
         const value = detail.MeasuredValue;
         if (value !== null && value !== undefined && !isNaN(value)) {
             let ok = true;
@@ -402,12 +400,13 @@ const calculateDetailResult = (detail: any) => {
             if (detail.LowerLimit !== null && value < detail.LowerLimit) ok = false;
             detail.Result = ok ? 1 : 0;
         } else {
-            detail.Result = 1;
+            detail.Result = 1; // 未输入时默认合格（但提交时会校验）
         }
+        updateMainResult();
     }
-    updateMainResult();
 };
 
+// 更新主表整体结果
 const updateMainResult = () => {
     if (!inspectForm.Details.length) return;
     const allQualified = inspectForm.Details.every(d => d.Result === 1);
@@ -415,12 +414,13 @@ const updateMainResult = () => {
 };
 
 const submitInspect = async () => {
-    // 校验量具类实测值不能为空
-    const missing = inspectForm.Details.some(d => d.IsInspectionTool === 1 && (d.MeasuredValue === null || d.MeasuredValue === undefined || isNaN(d.MeasuredValue)));
+    // 定量检验必须填写实测值，定性检验不需要
+    const missing = inspectForm.Details.some(d => d.InspectionType === 2 && (d.MeasuredValue === null || d.MeasuredValue === undefined || isNaN(d.MeasuredValue)));
     if (missing) {
-        ElMessage.warning(t("incomingManage.deliveryNote.fillMeasuredValue"));
+        ElMessage.warning("请填写所有定量检验项的实测值");
         return;
     }
+    // 定性检验必须选择结果（但默认已有结果，无需额外校验）
 
     const params = {
         ArrivalId: inspectForm.ArrivalId,
@@ -428,22 +428,19 @@ const submitInspect = async () => {
         Result: inspectForm.MainResult,
         DetailList: inspectForm.Details.map(d => ({
             DetailId: d.DetailId,
-            MeasuredValue: d.MeasuredValue,
+            MeasuredValue: d.InspectionType === 2 ? d.MeasuredValue : null,
             Result: d.Result,
         })),
     };
 
     inspectSubmitting.value = true;
-    console.log(params);
-    
     try {
-        const saveRes:any = await SaveInspectionResult(params);
+        const saveRes: any = await SaveInspectionResult(params);
         if (!saveRes.Success) {
             ElMessage.error(saveRes.Message || "保存检验结果失败");
             return;
         }
-        // 提交给WMS
-        const submitRes:any = await SubmitInspectionResult({
+        const submitRes: any = await SubmitInspectionResult({
             ArrivalId: inspectForm.ArrivalId,
             Inspector: userStore.getUserInfo?.UserName || userStore.getUserInfo,
             Result: inspectForm.MainResult,
@@ -451,7 +448,7 @@ const submitInspect = async () => {
         if (submitRes.Success) {
             ElMessage.success(submitRes.Message || "检验完成");
             inspectDialogVisible.value = false;
-            getData(); // 刷新列表
+            getData();
         } else {
             ElMessage.error(submitRes.Message || "提交WMS失败，请稍后重试");
         }
@@ -464,7 +461,6 @@ const submitInspect = async () => {
 
 const closeInspectDialog = () => {
     inspectDialogVisible.value = false;
-    // 重置表单数据，避免下次打开残留
     inspectForm.ArrivalId = null;
     inspectForm.IQCNo = "";
     inspectForm.ArrivalNo = "";
@@ -474,9 +470,8 @@ const closeInspectDialog = () => {
     inspectForm.Details = [];
 };
 
-// ==================== 二次确认弹窗 ====================
+// ==================== 二次确认弹窗（保持不变） ====================
 const openReviewDialog = (row: any) => {
-    // 加载明细用于展示
     QueryArrivalInspectionDetailList({ ArrivalId: row.ArrivalId }).then((res: any) => {
         if (res.Success) {
             viewDetails.value = res.Data || [];
@@ -500,13 +495,11 @@ const submitReview = () => {
             ArrivalId: reviewForm.ArrivalId,
             ReviewResult: reviewForm.ReviewResult,
             Remarks: reviewForm.Remarks,
-            ReviewUser: userStore.getUserInfo ||'admin',
+            ReviewUser: userStore.getUserInfo || 'admin',
         };
         reviewSubmitting.value = true;
-        console.log(params);
-        
         try {
-            const res:any = await UpdateReviewResult(params);
+            const res: any = await UpdateReviewResult(params);
             if (res.Success) {
                 ElMessage.success(res.Message || "二次确认成功");
                 reviewDialogVisible.value = false;
@@ -544,7 +537,6 @@ const columnWidths1 = computed(() => {
 });
 const getColumnWidth1 = (prop: string) => columnWidths1.value[prop] || "auto";
 
-// 高度自适应
 const getScreenHeight = () => {
     nextTick(() => {
         tableHeight.value = window.innerHeight - 180;
