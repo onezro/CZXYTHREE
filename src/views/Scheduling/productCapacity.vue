@@ -19,13 +19,13 @@
                     <el-form-item class="mb-2">
                         <el-button :type="'primary'" @click="handleSearch">{{
                             t("publicText.query")
-                        }}</el-button>
+                            }}</el-button>
                     </el-form-item>
                 </el-form>
                 <div>
                     <el-button type="warning" size="small" @click="openAdd">{{
                         t("publicText.add")
-                    }}</el-button>
+                        }}</el-button>
                 </div>
             </div>
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
@@ -34,17 +34,20 @@
                     <template #default="scope">
                         <span>{{
                             scope.$index + pageObj.pageSize * (pageObj.currentPage - 1) + 1
-                        }}</span>
+                            }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="ProductName" fixed :label="t('Scheduling.productCapacity.productName')" min-width="150" />
+                <el-table-column prop="ProductName" fixed :label="t('Scheduling.productCapacity.productName')"
+                    min-width="150" />
                 <el-table-column prop="LineName" :label="t('Scheduling.productCapacity.lineName')" min-width="150" />
-                <el-table-column prop="TimeLong" :label="t('Scheduling.productCapacity.timeLong')" min-width="120" align="center">
+                <el-table-column prop="TimeLong" :label="t('Scheduling.productCapacity.timeLong')" min-width="120"
+                    align="center">
                     <template #default="{ row }">
                         {{ row.TimeLong }}
                     </template>
                 </el-table-column>
-                <el-table-column prop="Unit" :label="t('Scheduling.productCapacity.unit')" min-width="100" align="center">
+                <el-table-column prop="Unit" :label="t('Scheduling.productCapacity.unit')" min-width="100"
+                    align="center">
 
                 </el-table-column>
                 <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="130" align="center">
@@ -84,12 +87,16 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.productCapacity.productName')" prop="ProductName">
-                    <el-input v-model="addForm.ProductName" :placeholder="t('Scheduling.productCapacity.inputProductName')"
-                        clearable />
+                    <el-input v-model="addForm.ProductName"
+                        :placeholder="t('Scheduling.productCapacity.inputProductName')" clearable />
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.productCapacity.timeLong')" prop="TimeLong">
                     <el-input-number v-model="addForm.TimeLong" :min="0" :precision="0"
-                        :placeholder="t('Scheduling.productCapacity.inputTimeLong')" style="width: 100%" />
+                        :placeholder="t('Scheduling.productCapacity.inputTimeLong')" style="width: 100%">
+                        <template #suffix>
+                            <span class="text-sm text-[#006487]">S</span>
+                        </template>
+                    </el-input-number>
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -97,7 +104,7 @@
                     <el-button @click="addVisible = false">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{
                         t("publicText.confirm")
-                    }}</el-button>
+                        }}</el-button>
                 </div>
             </template>
         </el-dialog>
@@ -114,7 +121,11 @@
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.productCapacity.timeLong')" prop="TimeLong">
                     <el-input-number v-model="editForm.TimeLong" :min="0" :precision="0"
-                        :placeholder="t('Scheduling.productCapacity.inputTimeLong')" style="width: 100%" />
+                        :placeholder="t('Scheduling.productCapacity.inputTimeLong')" style="width: 100%" >
+                        <template #suffix>
+                            <span class="text-sm text-[#006487]">S</span>
+                        </template>
+                    </el-input-number>
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -122,7 +133,7 @@
                     <el-button @click="editVisible = false" size="small">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitEdit" size="small" :loading="submitLoading">{{
                         t("publicText.confirm")
-                    }}</el-button>
+                        }}</el-button>
                 </div>
             </template>
         </el-dialog>

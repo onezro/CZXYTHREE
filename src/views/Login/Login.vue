@@ -14,10 +14,13 @@ import { ElNotification } from "element-plus";
 import { useAppStore } from "@/stores/modules/app";
 import { ref, watch } from "vue";
 import axios from "axios";
+import { useI18n } from "vue-i18n";
+import { setLocale } from "@/locale/index";
 
 const userStore = useUserStoreWithOut();
 const { currentRoute, addRoute, push } = useRouter();
 const appStore = useAppStore();
+const { t } = useI18n();
 const version = ref("");
 const form = ref({
   EmployeeName: "",
@@ -27,8 +30,20 @@ const form = ref({
   FullName: "",
 });
 const redirect = ref<string>("");
-const userNameRef=ref()
-const passwordRef=ref()
+const userNameRef = ref();
+const passwordRef = ref();
+const currentLang = ref(localStorage.getItem('OPCENTER_LANG') || 'zh');
+
+const languageOptions = [
+  { value: 'zh', label: () => t('login.chinese') },
+  { value: 'en', label: () => t('login.english') },
+  { value: 'ja', label: () => t('login.japanese') },
+];
+
+const changeLang = (lang: string) => {
+  currentLang.value = lang;
+  setLocale(lang);
+};
 
 watch(
   () => currentRoute.value,
@@ -56,7 +71,7 @@ onMounted(() => {
       form.value.EmployeeName = data
       if (form.value.EmployeeName !== "") {
         passwordRef.value.focus()
-      }else{
+      } else {
         userNameRef.value.focus()
       }
     }
@@ -115,17 +130,37 @@ const switchSystems = () => {
       <!-- <div class="m-auto"> -->
       <div class="m-auto bg-white p-4 rounded-2xl shadow-2xl">
         <el-form ref="formRef" label-position="top" :model="form" label-width="auto">
-          <h2 class="text-center text-2xl font-bold p-2.5 mb-5">
-            {{ appStore.getSystemType ? "OPUI登录" : "Portal登录" }}
-          </h2>
-          <el-form-item label="用户名" prop="userName"><el-input ref="userNameRef" v-model="form.EmployeeName" size="large" class="w-[440px]"
-              placeholder="请输入用户名" /></el-form-item>
-          <el-form-item label="密码" prop="password"><el-input ref="passwordRef" v-model="form.DocManagerUser" size="large"
-              class="w-[440px]" type="password" placeholder="请输入密码" show-password
-              @keyup.enter.native="loginClick" /></el-form-item>
+          <div class="flex justify-between items-center">
+            <h2 class="text-center text-2xl font-bold p-2.5">
+              {{ appStore.getSystemType ? t('login.opuiLogin') : t('login.portalLogin') }}
+            </h2>
+            <el-dropdown trigger="click" @command="changeLang">
+              <div class="locale-trigger">
+                <img src="../../assets/svgs/locale.svg" alt="locale" class="locale-icon" />
+                <!-- <span class="locale-text">{{ languageOptions.find(o => o.value === currentLang)?.label() }}</span> -->
+              </div>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item v-for="item in languageOptions" :key="item.value" :command="item.value">
+                    {{ item.label() }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+          <el-form-item :label="t('login.user')" prop="userName">
+            <el-input ref="userNameRef" v-model="form.EmployeeName" size="large" class="w-[440px]"
+              :placeholder="t('login.usernamePlaceholder')" />
+          </el-form-item>
+          <el-form-item :label="t('login.password')" prop="password">
+            <el-input ref="passwordRef" v-model="form.DocManagerUser" size="large"
+              class="w-[440px]" type="password" :placeholder="t('login.passwordPlaceholder')" show-password
+              @keyup.enter.native="loginClick" />
+          </el-form-item>
           <el-form-item class="mt-5">
-            <el-button @click="loginClick" size="large" class="w-[440px]" type="primary"><span
-                class="font-bold">登录</span></el-button>
+            <el-button @click="loginClick" size="large" class="w-[440px]" type="primary">
+              <span class="font-bold">{{ t('login.loginButton') }}</span>
+            </el-button>
           </el-form-item>
           <!-- <el-form-item>
             <el-button @click="switchSystems" size="large" class="w-[440px]"><span
@@ -150,6 +185,31 @@ const switchSystems = () => {
 </template>
 
 <style lang="scss" scoped>
+.locale-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  color: #666;
+
+  &:hover {
+    background-color: #f5f5f5;
+    color: #333;
+  }
+}
+
+.locale-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.locale-text {
+  font-size: 13px;
+}
+
 .flipper {
   transition: 0.6s;
   transform-style: preserve-3d;

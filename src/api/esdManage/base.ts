@@ -122,3 +122,12 @@ export function DeleteCheckFrequency(data: any) {
     params: data,
   });
 }
+
+//查询MES工线
+export function GetMESWorkLineNews(data: any) {
+  return request({
+    url: `/api/aps/worklinecalendar/GetMESWorkLineNews`,
+    method: "post",
+   data
+  });
+}

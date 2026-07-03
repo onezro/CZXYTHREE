@@ -7,21 +7,22 @@
                     <el-form-item :label="t('Scheduling.lineChangeTime.lineName')" prop="LineName" class="mb-2">
                         <!-- <el-input v-model="searchForm.LineName" clearable @clear="handleSearch" @keyup.enter.native="handleSearch"
                             style="width: 200px" :placeholder="t('Scheduling.lineChangeTime.inputLineName')" /> -->
-                            <el-select v-model="searchForm.LineName" clearable filterable @change="handleSearch"  style="width: 200px" :placeholder="t('Scheduling.lineChangeTime.selectLine')">
-                        <el-option v-for="item in lineData" :key="item.MfgLineName" :label="item.MfgLineName"
-                            :value="item.MfgLineName" />
-                    </el-select>
+                        <el-select v-model="searchForm.LineName" clearable filterable @change="handleSearch"
+                            style="width: 200px" :placeholder="t('Scheduling.lineChangeTime.selectLine')">
+                            <el-option v-for="item in lineData" :key="item.MfgLineName" :label="item.MfgLineName"
+                                :value="item.MfgLineName" />
+                        </el-select>
                     </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button :type="'primary'" @click="handleSearch">{{
                             t("publicText.query")
-                        }}</el-button>
+                            }}</el-button>
                     </el-form-item>
                 </el-form>
                 <div>
                     <el-button type="warning" size="small" @click="openAdd">{{
                         t("publicText.add")
-                    }}</el-button>
+                        }}</el-button>
                 </div>
             </div>
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
@@ -30,16 +31,19 @@
                     <template #default="scope">
                         <span>{{
                             scope.$index + pageObj.pageSize * (pageObj.currentPage - 1) + 1
-                        }}</span>
+                            }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="LineName" fixed :label="t('Scheduling.lineChangeTime.lineName')" min-width="150" />
-                <el-table-column prop="TimeLong" :label="t('Scheduling.lineChangeTime.timeLong')" min-width="120" align="center">
+                <el-table-column prop="LineName" fixed :label="t('Scheduling.lineChangeTime.lineName')"
+                    min-width="150" />
+                <el-table-column prop="TimeLong" :label="t('Scheduling.lineChangeTime.timeLong')" min-width="120"
+                    align="center">
                     <template #default="{ row }">
                         {{ row.TimeLong }}
                     </template>
                 </el-table-column>
-                <el-table-column prop="Unit" :label="t('Scheduling.lineChangeTime.unit')" min-width="100" align="center">
+                <el-table-column prop="Unit" :label="t('Scheduling.lineChangeTime.unit')" min-width="100"
+                    align="center">
                 </el-table-column>
                 <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="130" align="center">
                     <template #default="{ row }">
@@ -65,30 +69,36 @@
                 </el-pagination>
             </div>
         </el-card>
-        
+
         <!-- 新增对话框 -->
         <el-dialog :title="t('publicText.add')" v-model="addVisible" width="500px" :close-on-click-modal="false"
             @closed="handleAddDialogClosed">
             <el-form ref="addFormRef" :model="addForm" :rules="formRules" label-width="auto">
                 <el-form-item :label="t('Scheduling.lineChangeTime.lineName')" prop="LineName">
-                    <el-select v-model="addForm.LineName" clearable filterable :placeholder="t('Scheduling.lineChangeTime.selectLine')">
+                    <el-select v-model="addForm.LineName" clearable filterable
+                        :placeholder="t('Scheduling.lineChangeTime.selectLine')">
                         <el-option v-for="item in lineData" :key="item.MfgLineName" :label="item.MfgLineName"
                             :value="item.MfgLineName" />
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.lineChangeTime.timeLong')" prop="TimeLong">
-                    <el-input-number v-model="addForm.TimeLong" :min="0" :precision="0" :placeholder="t('Scheduling.lineChangeTime.inputTimeLong')"
-                        style="width: 100%" />
+                    <el-input-number v-model="addForm.TimeLong" :min="0" :precision="0"
+                        :placeholder="t('Scheduling.lineChangeTime.inputTimeLong')" style="width: 100%">
+                        <template #suffix>
+                            <span class="text-sm text-[#006487]">S</span>
+                        </template>
+                    </el-input-number>
                 </el-form-item>
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
                     <el-button @click="addVisible = false">{{ t("publicText.cancel") }}</el-button>
-                    <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{ t("publicText.confirm") }}</el-button>
+                    <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{ t("publicText.confirm")
+                        }}</el-button>
                 </div>
             </template>
         </el-dialog>
-        
+
         <!-- 编辑对话框 -->
         <el-dialog :title="t('publicText.edit')" v-model="editVisible" width="500px" :close-on-click-modal="false"
             @closed="handleEditDialogClosed">
@@ -97,14 +107,19 @@
                     <el-input v-model="editForm.LineName" disabled />
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.lineChangeTime.timeLong')" prop="TimeLong">
-                    <el-input-number v-model="editForm.TimeLong" :min="0" :precision="0" :placeholder="t('Scheduling.lineChangeTime.inputTimeLong')"
-                        style="width: 100%" />
+                    <el-input-number v-model="editForm.TimeLong" :min="0" :precision="0"
+                        :placeholder="t('Scheduling.lineChangeTime.inputTimeLong')" style="width: 100%">
+                        <template #suffix>
+                            <span class="text-sm text-[#006487]">S</span>
+                        </template>
+                    </el-input-number>
                 </el-form-item>
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
                     <el-button @click="editVisible = false" size="small">{{ t("publicText.cancel") }}</el-button>
-                    <el-button type="primary" @click="submitEdit" size="small" :loading="submitLoading">{{ t("publicText.confirm") }}</el-button>
+                    <el-button type="primary" @click="submitEdit" size="small" :loading="submitLoading">{{
+                        t("publicText.confirm") }}</el-button>
                 </div>
             </template>
         </el-dialog>
@@ -300,7 +315,7 @@ const submitAdd = () => {
                     }
                 ).then(() => {
                     doSave();
-                }).catch(() => {});
+                }).catch(() => { });
             } else {
                 doSave();
             }

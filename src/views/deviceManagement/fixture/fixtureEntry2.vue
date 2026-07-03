@@ -16,8 +16,8 @@
         </div>
       </div>
 
-      <el-table ref="tableRef"  :data="paginatedData" border :height="tableHeight"
-        style="width: 100%" size="small" stripe highlight-current-row tooltip-effect="dark">
+      <el-table ref="tableRef" :data="paginatedData" border :height="tableHeight" style="width: 100%" size="small"
+        stripe highlight-current-row tooltip-effect="dark">
         <el-table-column type="index" :label="$t('publicText.index')" width="55" align="center" fixed="left">
           <template #default="{ $index }">
             {{ $index + 1 + (currentPage - 1) * pageSize }}
@@ -93,14 +93,15 @@
             :placeholder="$t('deviceManage.fixtureEntry.toolCodePlaceholder')" clearable />
         </el-form-item>
         <el-form-item :label="$t('deviceManage.fixtureEntry.toolType')" prop="compname">
-          <el-select v-model="addForm.compname" filterable style="width: 350px"
+          <el-select-v2 v-model="addForm.compname" filterable style="width: 350px" :options="typeList" :props="props"
             :placeholder="$t('deviceManage.fixtureEntry.toolTypePlaceholder')" clearable @change="handleTypeChange">
-            <el-option v-for="item in typeList" :key="item.ToolsMold" :label="item.ToolsMold" :value="item.ToolsMold">
-              <el-tooltip :content="getCategoryText(item.Category)" placement="top">
-                <span>{{ item.ToolsMold }}</span>
+           
+            <template #default="{ item  }">
+              <el-tooltip :content="getCategoryText(item .Category)" placement="top">
+                <span>{{ item .ToolsMold }}</span>
               </el-tooltip>
-            </el-option>
-          </el-select>
+            </template>
+          </el-select-v2>
         </el-form-item>
         <el-form-item :label="$t('deviceManage.fixtureEntry.category')" prop="fixtureCategory">
           <el-input v-model="fixtureCategory" style="width: 350px" disabled />
@@ -127,14 +128,15 @@
           <el-input v-model="editForm.compid" disabled style="width: 350px" />
         </el-form-item>
         <el-form-item :label="$t('deviceManage.fixtureEntry.toolType')" prop="compname">
-          <el-select v-model="editForm.compname" filterable style="width: 350px"
+          <el-select-v2 v-model="editForm.compname" filterable style="width: 350px" :options="typeList"
+            label-field="ToolsMold" value-field="ToolsMold"
             :placeholder="$t('deviceManage.fixtureEntry.toolTypePlaceholder')" clearable @change="handleEditTypeChange">
-            <el-option v-for="item in typeList" :key="item.ToolsMold" :label="item.ToolsMold" :value="item.ToolsMold">
-              <el-tooltip :content="getCategoryText(item.Category)" placement="top">
-                <span>{{ item.ToolsMold }}</span>
+            <template #item-template="{ option }">
+              <el-tooltip :content="getCategoryText(option.Category)" placement="top">
+                <span>{{ option.ToolsMold }}</span>
               </el-tooltip>
-            </el-option>
-          </el-select>
+            </template>
+          </el-select-v2>
         </el-form-item>
         <el-form-item :label="$t('deviceManage.fixtureEntry.category')" prop="fixtureCategory">
           <el-input v-model="fixtureCategoryEdit" style="width: 350px" disabled />
@@ -151,7 +153,7 @@
       <template #footer>
         <el-button @click="editCancel">{{ $t("publicText.cancel") }}</el-button>
         <el-button type="primary" @click="editSubmit" :loading="submitLoading">{{ $t("publicText.confirm")
-          }}</el-button>
+        }}</el-button>
       </template>
     </el-dialog>
 
@@ -192,7 +194,7 @@ import { ref, reactive, computed, onBeforeMount, onMounted, onBeforeUnmount, nex
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Search, Edit, Delete, Document } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
-import { queryToolsMold, queryToolsID, insertToolsID ,updateToolsID,deleteToolsID,scrapToolsID,QueryAssetToolsID} from "@/api/deviceManage/fixture";
+import { queryToolsMold, queryToolsID, insertToolsID, updateToolsID, deleteToolsID, scrapToolsID, QueryAssetToolsID } from "@/api/deviceManage/fixture";
 import dayjs from "dayjs";
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -201,6 +203,10 @@ const { t } = useI18n();
 const userStore = useUserStoreWithOut();
 
 // ---------- 表格数据 ----------
+const props = {
+  label: 'ToolsMold',
+  value: 'ToolsMold',
+}
 const tableRef = ref();
 const tableData = ref<any[]>([]);
 const filteredData = ref<any[]>([]);
@@ -322,9 +328,9 @@ const detailForm = reactive({
 // 获取工治具类型列表（用于下拉选择）
 const getTypeList = async () => {
   try {
-    const res = await queryToolsMold({ });
-    if (res.data.Status === "OK") {
-      typeList.value = res.data.DataList || [];
+    const res: any = await queryToolsMold({});
+    if (res.Success) {
+      typeList.value = res.Data || [];
     }
   } catch (error) {
     console.error("获取类型列表失败:", error);
@@ -344,7 +350,7 @@ const getIDData = async () => {
     selectType: ["1", "2"],
   };
   try {
-    const res:any = await queryToolsID(params);
+    const res: any = await queryToolsID(params);
     if (res.Success) {
       const rawData = res.Data || [];
       tableData.value = rawData.map((item: any) => ({
@@ -415,7 +421,7 @@ const addSubmit = async () => {
   try {
     await addFormRef.value.validate();
     submitLoading.value = true;
-    const res:any = await insertToolsID(addForm);
+    const res: any = await insertToolsID(addForm);
     if (res.Success) {
       ElMessage.success(t("message.addSuccess"));
       addVisible.value = false;
@@ -459,7 +465,7 @@ const editSubmit = async () => {
     await editFormRef.value.validate();
     submitLoading.value = true;
     if (!editForm.expirationDate) editForm.expirationDate = "";
-    const res:any = await updateToolsID(editForm);
+    const res: any = await updateToolsID(editForm);
     if (res.Success) {
       ElMessage.success(t("message.editSuccess"));
       editVisible.value = false;
@@ -476,9 +482,9 @@ const editSubmit = async () => {
 
 // 详情
 const handleDetail = async (row: any) => {
- 
+
   try {
-    const res:any = await QueryAssetToolsID({ operationType: "QD", compid: row.Tool });
+    const res: any = await QueryAssetToolsID({ operationType: "QD", compid: row.Tool });
 
     if (res.Success) {
       const data = res.Data[0] || {};
@@ -519,7 +525,7 @@ const handleDelete = (row: any) => {
           user: userStore.getUserInfo,
           expirationDate: row.ExpireDate || "",
         };
-        const res:any = await deleteToolsID(data);
+        const res: any = await deleteToolsID(data);
         if (res.Success) {
           ElMessage.success(t("message.deleteSuccess"));
           if (filteredData.value.length === 1 && currentPage.value > 1) currentPage.value--;
@@ -556,7 +562,7 @@ const handleScrap = (row: any) => {
           user: userStore.getUserInfo,
           expirationDate: row.ExpireDate || "",
         };
-        const res:any = await scrapToolsID(data);
+        const res: any = await scrapToolsID(data);
         if (res.Success) {
           ElMessage.success(t("deviceManage.fixtureEntry.scrapSuccess"));
           if (filteredData.value.length === 1 && currentPage.value > 1) currentPage.value--;
@@ -650,8 +656,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-
-
 .el-pagination {
   justify-content: center;
 }

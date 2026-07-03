@@ -250,7 +250,7 @@ const handleGenerateCall = () => {
     if (!selected) return;
     // 弹出原因输入框（可选）
     const params = {
-        MaterialPreparationNo: selected.MaterialPreparation_No,
+        MaterialPreparationNo: selected.MaterialPreparationNo,
         CreateUser: userStore.getUserInfo,
         Reason: "",
     };

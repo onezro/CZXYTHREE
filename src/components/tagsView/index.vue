@@ -20,6 +20,20 @@ import { filterBreadcrumb } from "@/components/bread/helper";
 import { filter, treeToList } from "@/utils/tree";
 import { updatePassword, GetVersion } from "@/api/permiss"
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
+import screenfull from 'screenfull'
+import { useI18n } from "vue-i18n";
+import { setLocale } from "@/locale/index";
+const { t } = useI18n();
+const currentLang = ref(localStorage.getItem('OPCENTER_LANG') || 'zh');
+const languageOptions = [
+  { value: 'zh', label: () => t('login.chinese') },
+  { value: 'en', label: () => t('login.english') },
+  { value: 'ja', label: () => t('login.japanese') },
+];
+const changeLang = (lang: string) => {
+  currentLang.value = lang;
+  setLocale(lang);
+};
 
 
 const visitedViews = computed(() => tagsViewStore.getVisitedViews)
@@ -357,17 +371,29 @@ onBeforeMount(() => {
     // console.log(treeToList(unref(levelList)));
 });
 // 全屏方法
+const isFull = ref(false)
 const fullScreen = () => {
     // 是否全屏，否为null
-    let full = document.fullscreenElement
-    // console.log(full)
-    if (!full) {
-        // document自带的全屏方法
-        document.documentElement.requestFullscreen()
-    } else {
-        // document自带的推出全屏方法
-        document.exitFullscreen()
+  let full = document.fullscreenElement
+  // console.log(full)
+  let fullDiv: any = "";
+
+  if (!full) {
+    isFull.value = true
+  } else {
+    isFull.value = false
+  }
+  fullDiv = document.getElementById("fullDiv5");
+  if (fullDiv) {
+    screenfull.toggle(fullDiv);
+    isFull.value = false
+  } else {
+
+    if (!screenfull.enabled) {
     }
+  
+    screenfull.toggle();
+  }
 }
 //富
 const operator = ref('')
@@ -379,39 +405,27 @@ const changeOperator = (val: any) => {
 }
 </script>
 <template>
-    <div class="bood  h-[35px] flex w-full relative bg-[#fff]">
-        <div class="overflow-hidden flex-1">
+    <div class="bood h-[35px] flex w-full relative bg-[#fff]">
+        <div class="flex-1 overflow-hidden">
             <el-scrollbar class="h-full">
-                <div class="flex h-full  items-center" v-if="!appStore.getSystemType">
-                    <div class="flex flex-1  items-center px-2 h-full">
+                <div class="flex h-full items-center" v-if="!appStore.getSystemType">
+                    <div class="flex items-center px-2 h-full">
                         <div v-for="item in visitedViews" :key="item.fullPath" class="tag_item " :class="[item.meta.affix ? `affix` : '', {
                             'is-active': isActive(item)
                         }]">
                             <router-link :to="{ ...item }" custom v-slot="{ navigate }">
                                 <div @click="navigate"
-                                    class="flex  whitespace-nowrap  justify-center items-center  pl-[15px]">
-
-
+                                    class="flex whitespace-nowrap justify-center items-center pl-[15px]">
                                     {{ item?.meta?.title as string }}
                                     <div class="qx" v-if="item.fullPath !== '/dashboard/analysis'">
                                         <el-icon :size="12" :color="isActive(item) ? '#fff' : '#333'"
                                             @click.prevent.stop="closeSelectedTag(item)">
                                             <Close />
                                         </el-icon>
-
                                     </div>
-
                                 </div>
                             </router-link>
                         </div>
-                    </div>
-                    <div class="flex items-center gap-2 px-2 border-l border-gray-200 ml-2 h-full">
-                        <div @click="refreshSelectedTag(selectTag)" class="h-full flex items-center">
-                            <el-icon :size="23" color="#6e7079">
-                                <Refresh />
-                            </el-icon>
-                        </div>
-
                     </div>
                 </div>
 
@@ -430,21 +444,32 @@ const changeOperator = (val: any) => {
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
-
                             <div class="flex items-center">
-                                <el-tooltip content="全屏/正常" placement="top">
+                                <el-tooltip :content="isFull ? '退出全屏' : '全屏'" placement="top">
                                     <el-icon size="24" color="#777777" @click="fullScreen()">
-                                        <FullScreen />
+                                        <component :is="isFull ? 'Aim' : 'FullScreen'" />
                                     </el-icon>
                                 </el-tooltip>
                             </div>
-
+                            <el-dropdown trigger="click" @command="changeLang">
+                                <div class="locale-trigger tags-locale">
+                                    <img src="@/assets/svgs/locale.svg" alt="locale" class="locale-icon" />
+                                    <span class="locale-text">{{ languageOptions.find(o => o.value === currentLang)?.label() }}</span>
+                                </div>
+                                <template #dropdown>
+                                    <el-dropdown-menu>
+                                        <el-dropdown-item v-for="item in languageOptions" :key="item.value" :command="item.value">
+                                            {{ item.label() }}
+                                        </el-dropdown-item>
+                                    </el-dropdown-menu>
+                                </template>
+                            </el-dropdown>
                             <el-dropdown trigger="click" placement="bottom">
                                 <div class="flex items-center">
                                     <div class="block mr-2">
                                         <el-avatar :size="30" icon="Avatar" />
                                     </div>
-                                    <p class="font-bold text-base  text-center break-words text-pretty">
+                                    <p class="font-bold text-base text-center break-words text-pretty">
                                         {{ loginName }}
                                     </p>
                                 </div>
@@ -456,14 +481,12 @@ const changeOperator = (val: any) => {
                                         <el-dropdown-item @click.native="openUpdatePwd"><el-icon>
                                                 <Key />
                                             </el-icon>修改密码</el-dropdown-item>
-                                        <!-- <el-dropdown-item @click.native="openUpdatePwd">修改密码</el-dropdown-item> -->
                                         <el-dropdown-item @click.native="switchSystem"><el-icon>
                                                 <Connection />
                                             </el-icon>切换系统</el-dropdown-item>
                                         <el-dropdown-item @click.native="logoutsys"><el-icon>
                                                 <Promotion />
                                             </el-icon>退出登录</el-dropdown-item>
-
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -471,7 +494,42 @@ const changeOperator = (val: any) => {
                     </div>
                 </div>
             </el-scrollbar>
-
+        </div>
+        <div v-if="!appStore.getSystemType" class="tags-actions">
+            <div @click="fullScreen()" class="tags-action-btn">
+                <el-tooltip :content="isFull ? '退出全屏' : '全屏'" placement="bottom">
+                    <el-icon :size="23" color="#6e7079">
+                        <component :is="isFull ? 'Minus' : 'FullScreen'" />
+                    </el-icon>
+                </el-tooltip>
+            </div>
+            <!-- <div @click="closeAll()" class="tags-action-btn">
+                <el-tooltip content="关闭全部" placement="bottom">
+                    <el-icon :size="23" color="#6e7079">
+                        <Close />
+                    </el-icon>
+                </el-tooltip>
+            </div> -->
+            <div @click="refreshSelectedTag(selectTag)" class="tags-action-btn">
+                <el-tooltip content="刷新当前页面" placement="bottom">
+                    <el-icon :size="23" color="#6e7079">
+                        <Refresh />
+                    </el-icon>
+                </el-tooltip>
+            </div>
+            <el-dropdown trigger="click" @command="changeLang">
+                <div class="locale-trigger tags-locale">
+                    <img src="@/assets/svgs/locale.svg" alt="locale" class="locale-icon" />
+                    <!-- <span class="locale-text">{{ languageOptions.find(o => o.value === currentLang)?.label() }}</span> -->
+                </div>
+                <template #dropdown>
+                    <el-dropdown-menu>
+                        <el-dropdown-item v-for="item in languageOptions" :key="item.value" :command="item.value">
+                            {{ item.label() }}
+                        </el-dropdown-item>
+                    </el-dropdown-menu>
+                </template>
+            </el-dropdown>
         </div>
         <el-dialog :append-to-body="true" :close-on-click-modal="false" v-model="addVisible" title="设置" width="400px"
             @close="addCancel">
@@ -590,5 +648,56 @@ const changeOperator = (val: any) => {
     background-color: #006487;
     border: 1px solid #006487;
 
+}
+
+.tags-locale {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    color: #666;
+    height: 100%;
+
+    &:hover {
+        background-color: #f5f5f5;
+        color: #333;
+    }
+}
+
+.tags-locale .locale-icon {
+    width: 23px;
+    height: 23px;
+}
+
+.tags-locale .locale-text {
+    font-size: 12px;
+}
+
+.tags-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 0 8px;
+    border-left: 1px solid #cbd5e1;
+    height: 100%;
+    flex-shrink: 0;
+    background: #fff;
+}
+
+.tags-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    height: 100%;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #f5f5f5;
+    }
 }
 </style>

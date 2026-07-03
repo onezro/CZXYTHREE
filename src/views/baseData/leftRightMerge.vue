@@ -2,12 +2,12 @@
     <div class="p-2">
         <el-card :body-style="{ padding: '8px' }">
             <div class="mb-2 flex justify-between">
-                <el-button type="primary" @click="openAdd">{{ t('publicText.add') }}</el-button>
+                <el-button type="primary" size="small" @click="openAdd">{{ t('publicText.add') }}</el-button>
                 <div>
-                    <el-input v-model="searchText" :placeholder="t('baseData.leftRightMerge.searchPlaceholder')"
+                    <el-input v-model="searchText" size="small" :placeholder="t('baseData.leftRightMerge.searchPlaceholder')"
                         style="width: 350px" clearable @keyup.enter="getSearchData" @clear="clearData">
                         <template #append>
-                            <el-button :icon="Search" @click="getSearchData" />
+                            <el-button :icon="Search" size="small" @click="getSearchData" />
                         </template>
                     </el-input>
                 </div>
@@ -57,7 +57,7 @@
                 <el-table-column prop="panelmerge_updateuser" :label="t('baseData.puzzlesBase.operator')" />
                 <el-table-column prop="panelmerge_updatedate" :label="t('baseData.puzzlesBase.operateTime')" />
 
-                <el-table-column fixed="right" :label="t('publicText.operation')" width="140" align="center">
+                <el-table-column fixed="right" :label="t('publicText.operation')" width="110" align="center">
                     <template #default="{ row }">
                         <el-tooltip :content="t('publicText.detail')" placement="top">
                             <el-button type="primary" size="small" :icon="Document" @click="handleEdit(row)" />
@@ -348,14 +348,14 @@ import { Search, Document, Delete, Plus } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { getToken } from '@/utils/auth'
 // 请根据实际 API 路径调整
-// import {
-//   QueryPanelmergeAllList,
-//   QueryPanelmerge,
-//   addPanelmergeList,
-//   DeletePanelmerge,
-//   QueryFoundation,
-//   findPanelizationList
-// } from '@/api/puzzleApi'
+import {
+    QueryPanelmergeAllList,
+    QueryPanelmerge,
+    addPanelmergeList,
+    DeletePanelmerge,
+    QueryFoundation,
+    findPanelizationList
+} from '@/api/baseData'
 
 const { t } = useI18n()
 
@@ -461,36 +461,36 @@ watch(() => editForm.value.panelmerge_right_no, (val) => {
 // 获取数据
 const getData = () => {
     // 模拟或实际调用
-    // QueryPanelmergeAllList({ panelmerge_id: '' }).then((res) => {
-    //   if (res.Success) {
-    //     tableData.value = res.Data
-    //   }
-    // })
+    QueryPanelmergeAllList({ panelmerge_id: '' }).then((res: any) => {
+        if (res.Success) {
+            tableData.value = res.Data
+        }
+    })
 }
 
 const getPuzzles = () => {
-    // findPanelizationList({ PageIndex: 1, PageSize: 1000, SearchText: '', StartTime: '', EndTime: '' }).then((res) => {
-    //   if (res.Success) {
-    //     puzzlesOptions.value = res.Data.list
-    //   }
-    // })
+    findPanelizationList({ PageIndex: 1, PageSize: 1000, SearchText: '', StartTime: '', EndTime: '' }).then((res: any) => {
+        if (res.Success) {
+            puzzlesOptions.value = res.Data.list
+        }
+    })
 }
 
 const getSearchData = () => {
-    // QueryPanelmergeAllList({ panelmerge_id: '' }).then((res) => {
-    //   if (res.Success) {
-    //     if (res.Data.length === 0) {
-    //       ElNotification({ type: 'error', title: t('publicText.tip'), message: t('baseData.leftRightMerge.noData') })
-    //       return
-    //     }
-    //     const searchName = searchText.value.toLowerCase()
-    //     currentPage.value = 1
-    //     tableData.value = res.Data.filter((v: any) =>
-    //       String(v.panelmerge_id).toLowerCase().includes(searchName) ||
-    //       String(v.panelmerge_name).toLowerCase().includes(searchName)
-    //     )
-    //   }
-    // })
+    QueryPanelmergeAllList({ panelmerge_id: '' }).then((res:any) => {
+      if (res.Success) {
+        if (res.Data.length === 0) {
+          ElNotification({ type: 'error', title: t('publicText.tip'), message: t('baseData.leftRightMerge.noData') })
+          return
+        }
+        const searchName = searchText.value.toLowerCase()
+        currentPage.value = 1
+        tableData.value = res.Data.filter((v: any) =>
+          String(v.panelmerge_id).toLowerCase().includes(searchName) ||
+          String(v.panelmerge_name).toLowerCase().includes(searchName)
+        )
+      }
+    })
 }
 
 const clearData = () => {
@@ -686,7 +686,7 @@ const handleCurrentChange = (val: number) => {
 
 const getScreenHeight = () => {
     nextTick(() => {
-        tableHeight.value = window.innerHeight - 220
+        tableHeight.value = window.innerHeight - 190
     })
 }
 

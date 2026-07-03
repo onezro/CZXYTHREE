@@ -59,7 +59,7 @@
           :min-width="getColumnWidth('create_time')" />
         <el-table-column :label="$t('publicText.operation')" fixed="right" width="120" align="center">
           <template #default="{ row }">
-            <el-button size="small" type="primary" @click="openEdit(row)" icon="Edit"></el-button>
+            <!-- <el-button size="small" type="primary" @click="openEdit(row)" icon="Edit"></el-button> -->
             <el-button size="small" type="danger" @click="handleDelete(row)" icon="Delete"></el-button>
           </template>
         </el-table-column>
@@ -101,19 +101,19 @@
         <el-form-item :label="t('deviceManage.maintenance.itemName')" prop="itemName">
           <el-input v-model="formData.itemName" :placeholder="t('deviceManage.maintenance.itemNamePlaceholder')" />
         </el-form-item>
-        <el-form-item :label="t('deviceManage.maintenance.description')" prop="description">
+        <!-- <el-form-item :label="t('deviceManage.maintenance.description')" prop="description">
           <el-input v-model="formData.description" type="textarea" :rows="2"
             :placeholder="t('deviceManage.maintenance.descriptionPlaceholder')" />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item :label="t('deviceManage.maintenance.inspectionMethod')" prop="inspectionMethod">
-          <el-input v-model="formData.inspectionMethod"
+          <el-input v-model="formData.inspectionMethod" type="textarea" :rows="2"
             :placeholder="t('deviceManage.maintenance.inspectionMethodPlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.maintenance.sortOrder')" prop="sortOrder">
-          <el-input-number v-model="formData.sortOrder" :min="0" controls-position="right" style="width: 100%" />
+          <el-input-number v-model="formData.sortOrder" :min="1" controls-position="right" style="width: 100%" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.maintenance.standardDuration')" prop="standardDuration">
-          <el-input-number v-model="formData.standardDuration" :min="0" :precision="0" controls-position="right"
+          <el-input-number v-model="formData.standardDuration" :min="1" :precision="0" controls-position="right"
             style="width: 100%" />
         </el-form-item>
         <el-form-item :label="t('deviceManage.maintenance.status')" prop="status">
@@ -150,6 +150,7 @@ import {
 import { exportTableByRef } from "@/utils/exportExcel/generalExportExcel";
 import { useExport } from "@/utils/exportExcel/loadingExcel";
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import dayjs from 'dayjs';
 
 const { showLoading, hideLoading, handleExportSuccess, handleExportError } = useExport();
 const { t } = useI18n();
@@ -226,7 +227,12 @@ const fetchAllData = async () => {
   try {
     const res: any = await GetAllMaintenanceItems({});
     if (res.Success && Array.isArray(res.Data)) {
-      allData.value = res.Data;
+      allData.value = res.Data.map((v:any)=>{
+        v.create_time = dayjs(v.create_time).format('YYYY-MM-DD HH:mm:ss');
+        v.update_time = dayjs(v.update_time).format('YYYY-MM-DD HH:mm:ss');
+        return v;
+      })
+
     } else {
       allData.value = [];
       ElMessage.warning(res.Message || t("message.queryFailure"));

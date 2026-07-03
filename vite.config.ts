@@ -38,6 +38,20 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/deviceApi/, '') 
       },
+      "/ValorMSS":{
+        target: 'http://172.16.28.116',
+        changeOrigin: true
+      },
+      '/smdProApi': {
+        target: 'http://172.20.99.21:9980',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/smdProApi/, '') 
+      },
+      '/baseDataApi': {
+        target: 'http://172.20.99.21:5998',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/baseDataApi/, '') 
+      },
       '/smtApi': {
         target: 'http://192.168.1.237:12026',
         changeOrigin: true,

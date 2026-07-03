@@ -614,7 +614,7 @@ const handleChangeOverResponse = (res: any) => {
         ElNotification.error({
             title: "失败",
             message: res.Message,
-            duration: 4500,
+            duration: 0,
         });
     }
 
@@ -625,12 +625,12 @@ const handleChangeOverResponse = (res: any) => {
                 ElNotification.error({
                     title: "错误",
                     message: v.Msg,
-                    duration: 4500,
+                    duration: 0,
                 });
             }, 500);
         }
     });
-    console.log(lineData.value);
+    // console.log(lineData.value);
 
     // 更新设备状态
     lineData.value = lineData.value.map((device) => {
@@ -654,7 +654,7 @@ const handleChangeOverResponse = (res: any) => {
         for (let i = 1; i <= device.ConveryNum; i++) {
             const trackMcid = `${device.Equipid}-${i}`;
             const trackItem = res.Data.find((s: any) => s.Mcid === trackMcid);
-            console.log('轨道',trackItem);
+            // console.log('轨道',trackItem);
             
             // 轨道状态：如果找到轨道项，根据 success 设为 "1"/"0"；
             // 否则保留设备原有 conveyorStatusList 中对应索引的值（如果存在），否则默认 "2"
@@ -672,7 +672,7 @@ const handleChangeOverResponse = (res: any) => {
             conveyorStatusList,
         };
     });
-    console.log(lineData.value);
+    // console.log(lineData.value);
 
 };
 const handleChangeOverError = (error: any) => {

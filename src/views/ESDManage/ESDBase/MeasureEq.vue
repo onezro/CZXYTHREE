@@ -82,7 +82,7 @@ import { useI18n } from 'vue-i18n';
 import { useUserStoreWithOut } from '@/stores/modules/user';
 import { calculateColumnsWidth } from '@/utils/tableminWidth';
 import { QueryMeasureDeviceList, AddMeasureDevice, UpdateMeasureDevice, DeleteMeasureDevice } from '@/api/esdManage/base';
-
+import dayjs from 'dayjs';
 const { t } = useI18n();
 const userStore = useUserStoreWithOut();
 
@@ -134,7 +134,11 @@ const getData = async () => {
   try {
     const res: any = await QueryMeasureDeviceList(queryParams);
     if (res.Success) {
-      tableData.value = res.Data.rows || [];
+      tableData.value = (res.Data.rows || []).map((item: any) => ({
+        ...item,
+        CreateTime: dayjs(item.CreateTime).format('YYYY-MM-DD HH:mm:ss'),
+        UpdateTime: dayjs(item.UpdateTime).format('YYYY-MM-DD HH:mm:ss'),
+      }));
       total.value = res.Data.total || 0;
     } else {
       ElMessage.error(res.Message || t('message.queryFailure'));

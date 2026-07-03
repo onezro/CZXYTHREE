@@ -11,6 +11,10 @@ export const useTagsView = () => {
 
   const closeAll = (callback?: Fn) => {
     tagsViewStore.delAllViews();
+    const affixTag = tagsViewStore.visitedViews.find((tag:any) => tag.meta?.affix);
+    if (affixTag) {
+      replace({ path: affixTag.path, query: affixTag.query });
+    }
     callback?.();
   };
 

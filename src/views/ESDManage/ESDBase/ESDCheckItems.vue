@@ -29,6 +29,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="CheckContent" :label="t('esd.checkContent.content')" :min-width="getColumnWidth('CheckContent')" />
+        <el-table-column prop="CheckMethod" :label="t('esd.checkContent.checkMethod')" :min-width="getColumnWidth('CheckMethod')" />
         <el-table-column prop="CreateTime" :label="t('esd.checkContent.createTime')" :min-width="getColumnWidth('CreateTime')" />
         <el-table-column prop="CreateUser" :label="t('esd.checkContent.createUser')" :min-width="getColumnWidth('CreateUser')" />
         <el-table-column prop="UpdateTime" :label="t('esd.checkContent.updateTime')" :min-width="getColumnWidth('UpdateTime')" />
@@ -60,6 +61,9 @@
         <el-form-item :label="t('esd.checkContent.content')" prop="CheckContent" required>
           <el-input v-model="formData.CheckContent" :placeholder="t('esd.checkContent.contentPlaceholder')" />
         </el-form-item>
+        <el-form-item :label="t('esd.checkContent.checkMethod')" prop="CheckMethod" required>
+          <el-input v-model="formData.CheckMethod" type="textarea" :placeholder="t('esd.checkContent.checkMethodPlaceholder')" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">{{ t('publicText.cancel') }}</el-button>
@@ -76,7 +80,7 @@ import { useI18n } from 'vue-i18n';
 import { useUserStoreWithOut } from '@/stores/modules/user';
 import { calculateColumnsWidth } from '@/utils/tableminWidth';
 import { QueryCheckContentList, AddCheckContent, UpdateCheckContent, DeleteCheckContent } from '@/api/esdManage/base';
-
+import dayjs from 'dayjs';
 const { t } = useI18n();
 const userStore = useUserStoreWithOut();
 
@@ -99,6 +103,7 @@ const formRef = ref();
 const formData = reactive({
   Id: '',
   CheckContent: '',
+  CheckMethod: '',
 });
 
 const formRules = {
@@ -128,7 +133,11 @@ const getData = async () => {
   try {
     const res: any = await QueryCheckContentList(queryParams);
     if (res.Success) {
-      tableData.value = res.Data.rows || [];
+      tableData.value = (res.Data.rows || []).map((item: any) => ({
+        ...item,
+        CreateTime: dayjs(item.CreateTime).format('YYYY-MM-DD HH:mm:ss'),
+        UpdateTime: dayjs(item.UpdateTime).format('YYYY-MM-DD HH:mm:ss'),
+      }));
       total.value = res.Data.total || 0;
     } else {
       ElMessage.error(res.Message || t('message.queryFailure'));

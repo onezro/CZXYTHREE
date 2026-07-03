@@ -51,3 +51,47 @@ export function DeleteProductLineCapacity(data: any) {
         data
     })
 }
+
+//获取feed宽度数量
+export function GetLineFeederWidthNum(data: any) {
+    return request({
+        url: "/api/aps/config/GetLineFeederWidthNum",
+        method: "post",
+        data
+    })
+}
+//新增feed宽度数量
+export function IULineFeederWidthNum(data: any) {
+    return request({
+        url: "/api/aps/config/IULineFeederWidthNum",
+        method: "post",
+        data
+    })
+}
+
+//删除feed宽度数量
+export function DeleteLineFeederWidthNum(data: any) {
+    return request({
+        url: "/api/aps/config/DLineFeederWidthNum",
+        method: "post",
+        data
+    })
+}
+
+//复制feed宽度数量
+export function CopyLineFeederWidthNum(data: any) {
+    return request({
+        url: "/api/aps/config/CopyLineFeederWidthNum",
+        method: "post",
+        data
+    })
+}
+
+//上传feed宽度数量
+export function UploadLineFeederWidthNum(data: any) {
+    return request({
+        url: "/api/aps/config/UploadLineFeederWidthNum",
+        method: "post",
+        data
+    })
+}

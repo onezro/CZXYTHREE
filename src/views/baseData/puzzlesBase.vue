@@ -2,12 +2,12 @@
     <div class=" p-2">
         <el-card :body-style="{ padding: '8px' }">
             <div class="mb-2 flex justify-between">
-                <el-button type="primary" @click="openAdd">{{ t('publicText.add') }}</el-button>
+                <el-button type="primary" size="small" @click="openAdd">{{ t('publicText.add') }}</el-button>
                 <div>
-                    <el-input v-model="searchText" :placeholder="t('baseData.puzzlesBase.searchPlaceholder')" style="width: 350px"
+                    <el-input v-model="searchText" size="small" :placeholder="t('baseData.puzzlesBase.searchPlaceholder')" style="width: 350px"
                         clearable @keyup.enter="getSearchData" @clear="clearData">
                         <template #append>
-                            <el-button :icon="Search" @click="getSearchData" />
+                            <el-button icon="Search" size="small" @click="getSearchData" />
                         </template>
                     </el-input>
                 </div>
@@ -36,10 +36,10 @@
                 <el-table-column fixed="right" :label="t('publicText.operation')" width="150" align="center">
                     <template #default="scope">
                         <el-tooltip :content="t('publicText.detail')" placement="top">
-                            <el-button type="primary" size="small" :icon="Document" @click="handleEdit(scope.row)" />
+                            <el-button type="primary" size="small" icon="Document" @click="handleEdit(scope.row)" />
                         </el-tooltip>
                         <el-tooltip :content="t('publicText.delete')" placement="top">
-                            <el-button type="danger" size="small" :icon="Delete" @click="handleDelete(scope.row)" />
+                            <el-button type="danger" size="small" icon="Delete" @click="handleDelete(scope.row)" />
                         </el-tooltip>
                     </template>
                 </el-table-column>
@@ -138,8 +138,8 @@
                                 <el-table-column :label="t('publicText.operation')" width="80" align="center">
                                     <template #default="{ $index }">
                                         <el-button v-if="$index === form.Detail.length - 1" type="primary" size="small"
-                                            :icon="Plus" @click="addSmallBoard" />
-                                        <el-button v-else type="danger" size="small" :icon="Delete"
+                                            icon="Plus" @click="addSmallBoard" />
+                                        <el-button v-else type="danger" size="small" icon="Delete"
                                             @click="removeBoardItem($index)" />
                                     </template>
                                 </el-table-column>
@@ -238,10 +238,10 @@
                                 </el-table-column>
                                 <el-table-column :label="t('publicText.operation')" width="120">
                                     <template #default="scope">
-                                        <el-button type="danger" size="small" :icon="Delete"
+                                        <el-button type="danger" size="small" icon="Delete"
                                             @click="handleDetailDelete(scope.row)" />
                                         <el-button v-if="scope.$index === smallBoardTable.length - 1" type="primary"
-                                            size="small" :icon="Plus" @click="handleDetailEdit" />
+                                            size="small" icon="Plus" @click="handleDetailEdit" />
                                     </template>
                                 </el-table-column>
                             </el-table>
@@ -260,19 +260,18 @@
 <script setup lang="ts">
 import { ref, reactive, nextTick, onMounted, onBeforeMount, onBeforeUnmount } from 'vue'
 import { ElNotification, ElMessageBox } from 'element-plus'
-import { Search, Document, Delete, Plus } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 import { getToken } from '@/utils/auth'
-// import {
-//   findPanelizationList,
-//   DeletePanelizationList,
-//   findPnDetail,
-//   addPanelizationdetail,
-//   UpdatePanelizationDetail,
-//   findPartNumberData,
-//   UpdatePanelizationList
-// } from '@/api/puzzleApi'
+import {
+  findPanelizationList,
+  DeletePanelizationList,
+  findPnDetail,
+  addPanelizationdetail,
+  UpdatePanelizationDetail,
+  findPartNumberData,
+  UpdatePanelizationList
+} from '@/api/baseData'
 
 const { t } = useI18n()
 
@@ -349,447 +348,8 @@ const rules = {
 
 // 方法
 const getData = () => {
-const res={
-    "Code": 200,
-    "Success": true,
-    "Msg": "查询成功",
-    "Data": {
-        "Total": 435,
-        "list": [
-            {
-                "id": 463,
-                "PN": "4050217505900+4050217506000-1",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "1",
-                "PCBMaterial": "4050217505900+4050217506000-1",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-17 14:18:47",
-                "Ud_dt": "2026-04-17 14:18:47",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "EHV前照灯SBL(辅助近光)单面8W铝基板PCBA3",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "EHV前照灯-SBL_1W单层铝基板_2OZ_MOT140_黑色",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": ""
-            },
-            {
-                "id": 462,
-                "PN": "4050217505500+4050217505700-1",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "2",
-                "PCBMaterial": "4050217505500+4050217505700-1",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-17 13:40:55",
-                "Ud_dt": "2026-04-17 13:40:55",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "EHV 前照灯 位置/转向灯",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "PCBA-双面FR4",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": ""
-            },
-            {
-                "id": 461,
-                "PN": "4050213612300-2",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "2",
-                "PCBMaterial": "4050213612300-2",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-17 12:59:12",
-                "Ud_dt": "2026-04-17 12:59:12",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "EHV后组合灯2右-驱动",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "PCBA-四层FR4",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": null
-            },
-            {
-                "id": 460,
-                "PN": "4050213612300-1",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "2",
-                "PCBMaterial": "4050213612300-1",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-17 12:57:16",
-                "Ud_dt": "2026-04-17 12:57:16",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "EHV后组合灯2右",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "PCBA-双面FR4",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": null
-            },
-            {
-                "id": 459,
-                "PN": "4050213611500-2",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "2",
-                "PCBMaterial": "4050213611500-2",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-17 09:41:48",
-                "Ud_dt": "2026-04-17 09:41:48",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "EHV后组合灯2左-驱动",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "PCBA-四层FR4",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": null
-            },
-            {
-                "id": 458,
-                "PN": "4050213611500-1",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "2",
-                "PCBMaterial": "4050213611500-1",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-17 09:35:39",
-                "Ud_dt": "2026-04-17 09:35:39",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "EHV后组合灯2左",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "PCBA-双面FR4",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": ""
-            },
-            {
-                "id": 457,
-                "PN": "4050213600900+4050213613300-4",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "2",
-                "PCBMaterial": "4050213600900+4050213613300-4",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-15 19:00:56",
-                "Ud_dt": "2026-04-15 19:00:56",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "EHV后组合灯1 PCBA1",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "位置制动灯板2/3/4_软硬结合板_FR4双层板_黑色_140℃",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": null
-            },
-            {
-                "id": 456,
-                "PN": "4050213600900+4050213613300-3",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "1",
-                "PCBMaterial": "4050213600900+4050213613300-3",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-15 18:59:14",
-                "Ud_dt": "2026-04-15 18:59:14",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "EHV后组合灯1 PCBA1",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "星河灯板_FR4双层板_黑色_140℃",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": ""
-            },
-            {
-                "id": 455,
-                "PN": "4050212371700+4050212609200-1",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "2",
-                "PCBMaterial": "4050212371700+4050212609200-1",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-15 18:45:26",
-                "Ud_dt": "2026-04-15 18:45:26",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "HS11前照灯高配ISD-上方位置灯转向灯",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "线路板分总成-双面FR4",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": ""
-            },
-            {
-                "id": 454,
-                "PN": "4050213600900+4050213613300-2",
-                "Lv": null,
-                "Size": null,
-                "MPQ": null,
-                "Dsc": null,
-                "faceNumber": "2",
-                "PCBMaterial": "4050213600900+4050213613300-2",
-                "type": null,
-                "Max_chkin_qty": null,
-                "Max_extra_qty": null,
-                "Time_limit": null,
-                "Category": null,
-                "Stts": null,
-                "Crt_dt": "2026-04-15 17:44:31",
-                "Ud_dt": "2026-04-15 17:44:31",
-                "Ud_usr": "CZXY-36570",
-                "Total_qty": null,
-                "ERP_Qty": null,
-                "vendor": null,
-                "pn_spec": "EHV后组合灯1 PCBA1",
-                "msd_level": null,
-                "pn_dsc": null,
-                "name": "位置制动灯板1/转向/ADS灯板_FR4双层板_黑色_140℃",
-                "safe_stock_qty": null,
-                "MTART": null,
-                "MTBEZ": null,
-                "MEINS": null,
-                "KZKRI": null,
-                "MATKL": null,
-                "BESKZ": null,
-                "SOBSL": null,
-                "LVORM": null,
-                "MSTAE": null,
-                "XCHAR": null,
-                "MesCode": null,
-                "max_stock_qty": null,
-                "Unit": null,
-                "valuable": null,
-                "version": "",
-                "softwareVersion": null
-            }
-        ]
-    }
-}
-    //   findPanelizationList(getForm.value).then((res:any) => {
+
+      findPanelizationList(getForm.value).then((res:any) => {
         if (res.Success) {
           tableData.value = res.Data.list.map((item: any) => ({
             ...item,
@@ -800,41 +360,41 @@ const res={
           tableData.value = []
           total.value = 0
         }
-    //   })
+      })
 }
 
 const getSearchData = () => {
-    //   findPanelizationList({
-    //     PageIndex: 1,
-    //     PageSize: 10000,
-    //     SearchText: '',
-    //     SearchModel: '',
-    //     StartTime: '',
-    //     EndTime: ''
-    //   }).then((res) => {
-    //     if (res.Data.list.length === 0) {
-    //       ElNotification({
-    //         type: 'error',
-    //         title: t('publicText.tip'),
-    //         message: t('puzzles.noData')
-    //       })
-    //       return
-    //     }
-    //     tableData1.value = res.Data.list.map((item: any) => ({
-    //       ...item,
-    //       Ud_dt: dayjs(item.Ud_dt).format('YYYY-MM-DD HH:mm:ss')
-    //     }))
-    //     const searchName = searchText.value.toLowerCase()
-    //     getForm.PageIndex = 1
-    //     tableData.value = tableData1.value.filter((v) => {
-    //       return (
-    //         String(v.PN).toLowerCase().indexOf(searchName) > -1 ||
-    //         String(v.name).toLowerCase().indexOf(searchName) > -1 ||
-    //         String(v.pn_spec).toLowerCase().indexOf(searchName) > -1
-    //       )
-    //     })
-    //     total.value = tableData.value.length
-    //   })
+      findPanelizationList({
+        PageIndex: 1,
+        PageSize: 10000,
+        SearchText: '',
+        SearchModel: '',
+        StartTime: '',
+        EndTime: ''
+      }).then((res:any) => {
+        if (res.Data.list.length === 0) {
+          ElNotification({
+            type: 'error',
+            title: t('publicText.tip'),
+            message: t('puzzles.noData')
+          })
+          return
+        }
+        tableData1.value = res.Data.list.map((item: any) => ({
+          ...item,
+          Ud_dt: dayjs(item.Ud_dt).format('YYYY-MM-DD HH:mm:ss')
+        }))
+        const searchName = searchText.value.toLowerCase()
+        getForm.value.PageIndex = 1
+        tableData.value = tableData1.value.filter((v) => {
+          return (
+            String(v.PN).toLowerCase().indexOf(searchName) > -1 ||
+            String(v.name).toLowerCase().indexOf(searchName) > -1 ||
+            String(v.pn_spec).toLowerCase().indexOf(searchName) > -1
+          )
+        })
+        total.value = tableData.value.length
+      })
 }
 
 const clearData = () => {
@@ -1145,7 +705,7 @@ const handleCurrentChange = (val: number) => {
 
 const getScreenHeight = () => {
     nextTick(() => {
-        tableHeight.value = window.innerHeight - 220
+        tableHeight.value = window.innerHeight - 190
     })
 }
 

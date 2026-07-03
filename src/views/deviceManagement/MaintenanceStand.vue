@@ -90,56 +90,54 @@
             </div>
         </el-card>
 
-        <!-- 新增/编辑保养标准对话框 -->
-        <el-dialog :title="dialogTitle" v-model="dialogVisible" width="800px" align-center :close-on-click-modal="false"
-            @closed="handleDialogClosed">
-            <el-form ref="formRef" :model="formData" :rules="formRules" label-width="130px" size="small">
+        <!-- ========== 新增弹窗 ========== -->
+        <el-dialog :title="t('publicText.add')" v-model="addDialogVisible" width="80%" align-center
+            :close-on-click-modal="false" @closed="handleAddDialogClosed">
+            <el-form ref="addFormRef" :model="addFormData" :rules="formRules" label-width="130px" size="small">
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item :label="t('deviceManage.maintenanceStand.standardCode')" prop="standardCode">
-                            <el-input v-model="formData.standardCode"
-                                :placeholder="t('deviceManage.maintenanceStand.standardCodePlaceholder')"
-                                :disabled="isEdit" />
+                            <el-input v-model="addFormData.standardCode"
+                                :placeholder="t('deviceManage.maintenanceStand.standardCodePlaceholder')" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item :label="t('deviceManage.maintenanceStand.standardName')" prop="standardName">
-                            <el-input v-model="formData.standardName"
+                            <el-input v-model="addFormData.standardName"
                                 :placeholder="t('deviceManage.maintenanceStand.standardNamePlaceholder')" />
                         </el-form-item>
                     </el-col>
-
                 </el-row>
                 <el-row :gutter="20">
-                    <el-col :span="12"> <el-form-item :label="t('deviceManage.maintenanceStand.description')"
-                            prop="description">
-                            <el-input v-model="formData.description" type="textarea" :rows="2"
+                    <el-col :span="12">
+                        <el-form-item :label="t('deviceManage.maintenanceStand.description')" prop="description">
+                            <el-input v-model="addFormData.description" type="textarea" :rows="2"
                                 :placeholder="t('deviceManage.maintenanceStand.descriptionPlaceholder')" />
-                        </el-form-item></el-col>
-                    <el-col :span="12"><el-form-item :label="t('deviceManage.maintenanceStand.cycleType')"
-                            prop="cycleType">
-                            <el-select v-model="formData.cycleType"
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('deviceManage.maintenanceStand.cycleType')" prop="cycleType">
+                            <el-select v-model="addFormData.cycleType"
                                 :placeholder="t('deviceManage.maintenanceStand.cycleTypePlaceholder')"
                                 style="width: 100%">
                                 <el-option label="日" value="D" />
                                 <el-option label="周" value="W" />
                                 <el-option label="月" value="M" />
                             </el-select>
-                        </el-form-item></el-col>
-
+                        </el-form-item>
+                    </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item :label="t('deviceManage.maintenanceStand.cycleInterval')" prop="cycleInterval">
-                            <el-input-number v-model="formData.cycleInterval" :min="1" controls-position="right"
+                            <el-input-number v-model="addFormData.cycleInterval" :min="1" controls-position="right"
                                 style="width: 100%" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item :label="t('deviceManage.maintenanceStand.cycleDayOfWeek')" prop="cycleDayOfWeek"
-                            v-if="formData.cycleType === 'W'">
-                            <!-- <el-input-number v-model="formData.cycleDayOfWeek" :min="1" controls-position="right" style="width: 100%" /> -->
-                            <el-select v-model="formData.cycleDayOfWeek"
+                            v-if="addFormData.cycleType === 'W'">
+                            <el-select v-model="addFormData.cycleDayOfWeek"
                                 :placeholder="t('deviceManage.maintenanceStand.cycleDayOfWeekPlaceholder')"
                                 style="width: 100%">
                                 <el-option label="星期一" :value="1" />
@@ -152,29 +150,28 @@
                             </el-select>
                         </el-form-item>
                         <el-form-item :label="t('deviceManage.maintenanceStand.cycleDayOfMonth')" prop="cycleDayOfMonth"
-                            v-if="formData.cycleType === 'M'">
-                            <el-input-number v-model="formData.cycleDayOfMonth" :min="1" :max="31"
+                            v-if="addFormData.cycleType === 'M'">
+                            <el-input-number v-model="addFormData.cycleDayOfMonth" :min="1" :max="31"
                                 controls-position="right" style="width: 100%" />
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-form-item :label="t('deviceManage.maintenanceStand.leadTime')" prop="leadTime">
-                    <el-input-number v-model="formData.leadTime" :min="0" controls-position="right"
+                    <el-input-number v-model="addFormData.leadTime" :min="0" controls-position="right"
                         style="width: 100%" />
                 </el-form-item>
                 <el-form-item :label="t('deviceManage.maintenanceStand.status')" prop="status">
-                    <el-switch v-model="formData.status" :active-value="true" :inactive-value="false"
+                    <el-switch v-model="addFormData.status" :active-value="true" :inactive-value="false"
                         :active-text="t('deviceManage.maintenanceStand.enable')"
                         :inactive-text="t('deviceManage.maintenanceStand.disable')" />
                 </el-form-item>
 
-                <!-- 关联保养项目区域 -->
-
+                <!-- 关联保养项目 -->
                 <div style="width: 100%">
-                    <el-button type="primary" size="small" @click="openAddItemDialog" style="margin-bottom: 10px">
+                    <el-button type="primary" size="small" @click="openAddItemDialog(addFormData)" style="margin-bottom: 10px">
                         {{ t('deviceManage.maintenanceStand.addItem') }}
                     </el-button>
-                    <el-table :data="formData.items" border size="small" style="width: 100%" height="300">
+                    <el-table :data="addFormData.items" border size="small" style="width: 100%" height="300">
                         <el-table-column prop="item_code" :label="t('deviceManage.maintenance.itemCode')" width="120" />
                         <el-table-column prop="item_name" :label="t('deviceManage.maintenance.itemName')" width="150" />
                         <el-table-column prop="description" :label="t('deviceManage.maintenance.description')"
@@ -195,25 +192,145 @@
                         </el-table-column>
                         <el-table-column :label="t('publicText.operation')" width="80" align="center">
                             <template #default="{ $index }">
-                                <el-button size="small" type="danger" @click="removeItem($index)"
+                                <el-button size="small" type="danger" @click="removeItem(addFormData, $index)"
                                     icon="Delete"></el-button>
                             </template>
                         </el-table-column>
                     </el-table>
-                    <div v-if="formData.items.length === 0" class="text-center text-gray-400 p-2 border rounded"
+                    <div v-if="addFormData.items.length === 0" class="text-center text-gray-400 p-2 border rounded"
                         style="font-size: 12px">
                         {{ t('deviceManage.maintenanceStand.noItemsTip') }}
                     </div>
                 </div>
             </el-form>
             <template #footer>
-                <el-button @click="dialogVisible = false">{{ t('publicText.cancel') }}</el-button>
-                <el-button type="primary" @click="submitForm" :loading="submitLoading">{{ t('publicText.confirm')
+                <el-button @click="addDialogVisible = false">{{ t('publicText.cancel') }}</el-button>
+                <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{ t('publicText.confirm')
                     }}</el-button>
             </template>
         </el-dialog>
 
-        <!-- 添加保养项目对话框 -->
+        <!-- ========== 编辑弹窗 ========== -->
+        <el-dialog :title="t('publicText.edit')" v-model="editDialogVisible" width="80%" align-center
+            :close-on-click-modal="false" @closed="handleEditDialogClosed">
+            <el-form ref="editFormRef" :model="editFormData" :rules="formRules" label-width="130px" size="small">
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('deviceManage.maintenanceStand.standardCode')" prop="standardCode">
+                            <el-input v-model="editFormData.standardCode"
+                                :placeholder="t('deviceManage.maintenanceStand.standardCodePlaceholder')" disabled />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('deviceManage.maintenanceStand.standardName')" prop="standardName">
+                            <el-input v-model="editFormData.standardName"
+                                :placeholder="t('deviceManage.maintenanceStand.standardNamePlaceholder')" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('deviceManage.maintenanceStand.description')" prop="description">
+                            <el-input v-model="editFormData.description" type="textarea" :rows="2"
+                                :placeholder="t('deviceManage.maintenanceStand.descriptionPlaceholder')" />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('deviceManage.maintenanceStand.cycleType')" prop="cycleType">
+                            <el-select v-model="editFormData.cycleType"
+                                :placeholder="t('deviceManage.maintenanceStand.cycleTypePlaceholder')"
+                                style="width: 100%">
+                                <el-option label="日" value="D" />
+                                <el-option label="周" value="W" />
+                                <el-option label="月" value="M" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('deviceManage.maintenanceStand.cycleInterval')" prop="cycleInterval">
+                            <el-input-number v-model="editFormData.cycleInterval" :min="1" controls-position="right"
+                                style="width: 100%" />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('deviceManage.maintenanceStand.cycleDayOfWeek')" prop="cycleDayOfWeek"
+                            v-if="editFormData.cycleType === 'W'">
+                            <el-select v-model="editFormData.cycleDayOfWeek"
+                                :placeholder="t('deviceManage.maintenanceStand.cycleDayOfWeekPlaceholder')"
+                                style="width: 100%">
+                                <el-option label="星期一" :value="1" />
+                                <el-option label="星期二" :value="2" />
+                                <el-option label="星期三" :value="3" />
+                                <el-option label="星期四" :value="4" />
+                                <el-option label="星期五" :value="5" />
+                                <el-option label="星期六" :value="6" />
+                                <el-option label="星期日" :value="7" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item :label="t('deviceManage.maintenanceStand.cycleDayOfMonth')" prop="cycleDayOfMonth"
+                            v-if="editFormData.cycleType === 'M'">
+                            <el-input-number v-model="editFormData.cycleDayOfMonth" :min="1" :max="31"
+                                controls-position="right" style="width: 100%" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item :label="t('deviceManage.maintenanceStand.leadTime')" prop="leadTime">
+                    <el-input-number v-model="editFormData.leadTime" :min="0" controls-position="right"
+                        style="width: 100%" />
+                </el-form-item>
+                <el-form-item :label="t('deviceManage.maintenanceStand.status')" prop="status">
+                    <el-switch v-model="editFormData.status" :active-value="true" :inactive-value="false"
+                        :active-text="t('deviceManage.maintenanceStand.enable')"
+                        :inactive-text="t('deviceManage.maintenanceStand.disable')" />
+                </el-form-item>
+
+                <!-- 关联保养项目 -->
+                <div style="width: 100%">
+                    <el-button type="primary" size="small" @click="openAddItemDialog(editFormData)" style="margin-bottom: 10px">
+                        {{ t('deviceManage.maintenanceStand.addItem') }}
+                    </el-button>
+                    <el-table :data="editFormData.items" border size="small" style="width: 100%" height="300">
+                        <el-table-column prop="item_code" :label="t('deviceManage.maintenance.itemCode')" width="120" />
+                        <el-table-column prop="item_name" :label="t('deviceManage.maintenance.itemName')" width="150" />
+                        <el-table-column prop="description" :label="t('deviceManage.maintenance.description')"
+                            min-width="150" />
+                        <el-table-column prop="sort_order" :label="t('deviceManage.maintenance.sortOrder')" width="100"
+                            align="center">
+                            <template #default="{ row }">
+                                <el-input-number v-model="row.sort_order" :min="0" size="small"
+                                    controls-position="right" style="width: 100%" />
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="remark" :label="t('deviceManage.maintenanceStand.remark')"
+                            min-width="150">
+                            <template #default="{ row }">
+                                <el-input v-model="row.remark" size="small"
+                                    :placeholder="t('deviceManage.maintenanceStand.remarkPlaceholder')" />
+                            </template>
+                        </el-table-column>
+                        <el-table-column :label="t('publicText.operation')" width="80" align="center">
+                            <template #default="{ $index }">
+                                <el-button size="small" type="danger" @click="removeItem(editFormData, $index)"
+                                    icon="Delete"></el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <div v-if="editFormData.items.length === 0" class="text-center text-gray-400 p-2 border rounded"
+                        style="font-size: 12px">
+                        {{ t('deviceManage.maintenanceStand.noItemsTip') }}
+                    </div>
+                </div>
+            </el-form>
+            <template #footer>
+                <el-button @click="editDialogVisible = false">{{ t('publicText.cancel') }}</el-button>
+                <el-button type="primary" @click="submitEdit" :loading="submitLoading">{{ t('publicText.confirm')
+                    }}</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- ========== 添加保养项目（共用） ========== -->
         <el-dialog :title="t('deviceManage.maintenanceStand.selectItem')" v-model="addItemDialogVisible" width="500px"
             align-center :close-on-click-modal="false">
             <el-form :model="newItemForm" label-width="100px" size="small">
@@ -260,14 +377,15 @@ import {
     GetAllMaintenanceStands,
     AddOrUpdateMaintenanceStands,
     DeleteMaintenanceStands,
-    GetAllMaintenanceItems
+    GetAllMaintenanceItems,
+    GetMaintenanceStandInfoById,   // 新增的详情接口
 } from "@/api/deviceManage/MaintenanceStand";
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
 
 const { t } = useI18n();
 const userStore = useUserStoreWithOut();
 
-// 表格数据
+// ---------- 表格相关 ----------
 const allData = ref<any[]>([]);
 const allMaintenanceItems = ref<any[]>([]);
 const loading = ref(false);
@@ -275,7 +393,6 @@ const submitLoading = ref(false);
 const tableHeight = ref(0);
 const maintenanceStandTableRef = ref();
 
-// 前端分页与筛选
 const searchForm = reactive({
     standardCode: "",
     standardName: "",
@@ -283,7 +400,6 @@ const searchForm = reactive({
 const currentPage = ref(1);
 const pageSize = ref(20);
 
-// 筛选后的数据
 const filteredData = computed(() => {
     let data = [...allData.value];
     if (searchForm.standardCode) {
@@ -295,41 +411,13 @@ const filteredData = computed(() => {
     return data;
 });
 
-// 分页后的数据
 const paginatedData = computed(() => {
     const start = (currentPage.value - 1) * pageSize.value;
     const end = start + pageSize.value;
     return filteredData.value.slice(start, end);
 });
 
-// 新增/编辑对话框
-const dialogVisible = ref(false);
-const isEdit = ref(false);
-const formRef = ref();
-const formData = reactive({
-    standardId: "",
-    standardCode: "",
-    standardName: "",
-    description: "",
-    cycleType: "Daily",
-    cycleInterval: 1,
-    cycleDayOfWeek: 1,
-    cycleDayOfMonth: 1,
-    leadTime: 0,
-    status: true,
-    items: [] as any[],
-});
-
-// 添加项目对话框
-const addItemDialogVisible = ref(false);
-const newItemForm = reactive({
-    itemId: null as number | null,
-    sortOrder: 0,
-    remark: "",
-});
-const selectedItemDetail = ref<any>(null);
-
-// 表单验证规则
+// ---------- 公共验证规则 ----------
 const formRules = {
     standardCode: [{ required: true, message: t("message.pleaseInput") + t("deviceManage.maintenanceStand.standardCode"), trigger: "blur" }],
     standardName: [{ required: true, message: t("message.pleaseInput") + t("deviceManage.maintenanceStand.standardName"), trigger: "blur" }],
@@ -338,128 +426,132 @@ const formRules = {
     leadTime: [{ type: 'number', required: true, message: t("message.pleaseInput") + t("deviceManage.maintenanceStand.leadTime"), trigger: "blur" }],
 };
 
-const dialogTitle = computed(() => isEdit.value ? t("publicText.edit") : t("publicText.add"));
-
-// 可用项目（未被选中的）
-const availableItems = computed(() => {
-    const selectedIds = formData.items.map(item => item.item_id);
-    return allMaintenanceItems.value.filter(item => !selectedIds.includes(item.item_id));
+// ---------- 新增弹窗 ----------
+const addDialogVisible = ref(false);
+const addFormRef = ref();
+const addFormData = reactive({
+    standardCode: "",
+    standardName: "",
+    description: "",
+    cycleType: "D",
+    cycleInterval: 1,
+    cycleDayOfWeek: 1,
+    cycleDayOfMonth: 1,
+    leadTime: 0,
+    status: true,
+    items: [] as any[],
 });
 
-// 周期类型显示转换
-const getCycleTypeText = (type: string) => {
-    const typeMap: Record<string, string> = {
-        'D': t('deviceManage.maintenanceStand.daily'),
-        'W': t('deviceManage.maintenanceStand.weekly'),
-        'M': t('deviceManage.maintenanceStand.monthly')
-    };
-    return typeMap[type] || type;
+const resetAddFormData = () => {
+    addFormData.standardCode = "";
+    addFormData.standardName = "";
+    addFormData.description = "";
+    addFormData.cycleType = "D";
+    addFormData.cycleInterval = 1;
+    addFormData.cycleDayOfWeek = 1;
+    addFormData.cycleDayOfMonth = 1;
+    addFormData.leadTime = 0;
+    addFormData.status = true;
+    addFormData.items = [];
 };
 
-// 获取所有保养标准数据
-const fetchAllData = async () => {
-    loading.value = true;
+const handleAddDialogClosed = () => {
+    addFormRef.value?.resetFields();
+    resetAddFormData();
+};
+
+const openAdd = () => {
+    resetAddFormData();
+    addDialogVisible.value = true;
+};
+
+// ---------- 编辑弹窗 ----------
+const editDialogVisible = ref(false);
+const editFormRef = ref();
+const editFormData = reactive({
+    standardId: "",
+    standardCode: "",
+    standardName: "",
+    description: "",
+    cycleType: "D",
+    cycleInterval: 1,
+    cycleDayOfWeek: 1,
+    cycleDayOfMonth: 1,
+    leadTime: 0,
+    status: true,
+    items: [] as any[],
+});
+
+const resetEditFormData = () => {
+    editFormData.standardId = "";
+    editFormData.standardCode = "";
+    editFormData.standardName = "";
+    editFormData.description = "";
+    editFormData.cycleType = "D";
+    editFormData.cycleInterval = 1;
+    editFormData.cycleDayOfWeek = 1;
+    editFormData.cycleDayOfMonth = 1;
+    editFormData.leadTime = 0;
+    editFormData.status = true;
+    editFormData.items = [];
+};
+
+const handleEditDialogClosed = () => {
+    editFormRef.value?.resetFields();
+    resetEditFormData();
+};
+
+const openEdit = async (row: any) => {
     try {
-        const res: any = await GetAllMaintenanceStands({});
-        if (res.Success && Array.isArray(res.Data)) {
-            allData.value = res.Data;
+        loading.value = true;
+        const res: any = await GetMaintenanceStandInfoById({ recordId: row.standard_id });
+        if (res.Success && res.Data) {
+            const data = res.Data;
+            editFormData.standardId = data.standard_id;
+            editFormData.standardCode = data.standard_code;
+            editFormData.standardName = data.standard_name;
+            editFormData.description = data.description || "";
+            editFormData.cycleType = data.cycle_type || "D";
+            editFormData.cycleInterval = data.cycle_interval ?? 1;
+            editFormData.cycleDayOfWeek = data.cycle_day_of_week ?? 1;
+            editFormData.cycleDayOfMonth = data.cycle_day_of_month ?? 1;
+            editFormData.leadTime = data.lead_time ?? 0;
+            editFormData.status = data.status ?? true;
+            // 处理关联项目
+            editFormData.items = (data.items || []).map((item: any) => ({
+                item_id: item.item_id,
+                item_code: item.item_code,
+                item_name: item.item_name,
+                description: item.description || "",
+                sort_order: item.sort_order ?? 0,
+                remark: item.remark || "",
+            }));
+            editDialogVisible.value = true;
         } else {
-            allData.value = [];
-            ElMessage.warning(res.Message || t("message.queryFailure"));
+            ElMessage.error(res.Message || t("message.queryFailure"));
         }
     } catch (error) {
-        console.error("获取保养标准失败:", error);
-        allData.value = [];
+        console.error("获取保养标准详情失败:", error);
         ElMessage.error(t("message.queryFailure"));
     } finally {
         loading.value = false;
     }
 };
 
-// 获取所有保养项目（用于关联选择）
-const fetchAllItems = async () => {
-    try {
-        const res: any = await GetAllMaintenanceItems({});
-        if (res.Success && Array.isArray(res.Data)) {
-            allMaintenanceItems.value = res.Data;
-        }
-    } catch (error) {
-        console.error("获取保养项目失败:", error);
-    }
-};
+// ---------- 添加保养项目（共用） ----------
+const addItemDialogVisible = ref(false);
+// 当前添加项目的目标表单数据（新增或编辑的 items）
+const addItemTarget = ref<any>(null);
+const newItemForm = reactive({
+    itemId: null as number | null,
+    sortOrder: 0,
+    remark: "",
+});
+const selectedItemDetail = ref<any>(null);
 
-// 搜索与重置
-const handleSearch = () => {
-    currentPage.value = 1;
-};
-
-const resetSearch = () => {
-    searchForm.standardCode = "";
-    searchForm.standardName = "";
-    currentPage.value = 1;
-};
-
-// 前端分页
-const handleSizeChange = (val: number) => {
-    pageSize.value = val;
-    currentPage.value = 1;
-};
-
-const handleCurrentChange = (val: number) => {
-    currentPage.value = val;
-};
-
-// 新增
-const openAdd = () => {
-    isEdit.value = false;
-    resetFormData();
-    dialogVisible.value = true;
-};
-
-// 编辑
-const openEdit = (row: any) => {
-    isEdit.value = true;
-    formData.standardId = row.standard_id;
-    formData.standardCode = row.standard_code;
-    formData.standardName = row.standard_name;
-    formData.description = row.description || "";
-    formData.cycleType = row.cycle_type || "Daily";
-    formData.cycleInterval = row.cycle_interval ?? 1;
-    formData.cycleDayOfWeek = row.cycle_day_of_week ?? 1;
-    formData.cycleDayOfMonth = row.cycle_day_of_month ?? 1;
-    formData.leadTime = row.lead_time ?? 0;
-    formData.status = row.status ?? true;
-
-    // 处理关联项目
-    formData.items = (row.items || []).map((item: any) => ({
-        item_id: item.item_id,
-        item_code: item.item_code,
-        item_name: item.item_name,
-        description: item.description,
-        sort_order: item.sort_order ?? 0,
-        remark: item.remark || "",
-    }));
-
-    dialogVisible.value = true;
-};
-
-// 重置表单数据
-const resetFormData = () => {
-    formData.standardId = "";
-    formData.standardCode = "";
-    formData.standardName = "";
-    formData.description = "";
-    formData.cycleType = "Daily";
-    formData.cycleInterval = 1;
-    formData.cycleDayOfWeek = 1;
-    formData.cycleDayOfMonth = 1;
-    formData.leadTime = 0;
-    formData.status = true;
-    formData.items = [];
-};
-
-// 打开添加项目对话框
-const openAddItemDialog = () => {
+// 打开添加项目对话框，传入目标表单对象
+const openAddItemDialog = (target: any) => {
+    addItemTarget.value = target;
     newItemForm.itemId = null;
     newItemForm.sortOrder = 0;
     newItemForm.remark = "";
@@ -467,19 +559,16 @@ const openAddItemDialog = () => {
     addItemDialogVisible.value = true;
 };
 
-// 项目选择变化
 const onItemSelect = (itemId: number) => {
     const item = allMaintenanceItems.value.find(i => i.item_id === itemId);
     selectedItemDetail.value = item || null;
 };
 
-// 确认添加项目
 const confirmAddItem = () => {
     if (!newItemForm.itemId) return;
-
     const item = allMaintenanceItems.value.find(i => i.item_id === newItemForm.itemId);
-    if (item) {
-        formData.items.push({
+    if (item && addItemTarget.value) {
+        addItemTarget.value.items.push({
             item_id: item.item_id,
             item_code: item.item_code,
             item_name: item.item_name,
@@ -491,65 +580,108 @@ const confirmAddItem = () => {
     addItemDialogVisible.value = false;
 };
 
-// 移除项目
-const removeItem = (index: number) => {
+// 移除项目（通用）
+const removeItem = (formData: any, index: number) => {
     formData.items.splice(index, 1);
 };
 
-// 提交表单（新增/编辑）
-const submitForm = async () => {
-    await formRef.value.validate();
+// 可用项目（根据当前目标表单过滤）
+const availableItems = computed(() => {
+    if (!addItemTarget.value) return allMaintenanceItems.value;
+    const selectedIds = addItemTarget.value.items.map((item: any) => item.item_id);
+    return allMaintenanceItems.value.filter(item => !selectedIds.includes(item.item_id));
+});
 
-    if (formData.items.length === 0) {
+// ---------- 提交新增 ----------
+const submitAdd = async () => {
+    await addFormRef.value?.validate();
+    if (addFormData.items.length === 0) {
         ElMessage.warning(t("deviceManage.maintenanceStand.addItemFirst"));
         return;
     }
-
     submitLoading.value = true;
     try {
         const currentUser = userStore.getUserInfo || "System";
-        const itemsParams = formData.items.map(item => ({
-            item_id: item.item_id,
-            sort_order: item.sort_order,
-            remark: item.remark || "",
-        }));
-
-        const params: any = {
+        const params = {
             user: currentUser,
-            standard_code: formData.standardCode,
-            standard_name: formData.standardName,
-            description: formData.description,
-            cycle_type: formData.cycleType,
-            cycle_interval: formData.cycleInterval,
-            cycle_day_of_week: formData.cycleDayOfWeek,
-            cycle_day_of_month: formData.cycleDayOfMonth,
-            lead_time: formData.leadTime,
-            status: formData.status,
-            Items: itemsParams,
+            standard_code: addFormData.standardCode,
+            standard_name: addFormData.standardName,
+            description: addFormData.description,
+            cycle_type: addFormData.cycleType,
+            cycle_interval: addFormData.cycleInterval,
+            cycle_day_of_week: addFormData.cycleDayOfWeek,
+            cycle_day_of_month: addFormData.cycleDayOfMonth,
+            lead_time: addFormData.leadTime,
+            status: addFormData.status,
+            Items: addFormData.items.map(item => ({
+                item_id: item.item_id,
+                sort_order: item.sort_order,
+                remark: item.remark || "",
+            })),
         };
-
-        if (isEdit.value && formData.standardId) {
-            params.standard_id = formData.standardId;
-        }
-
         const res: any = await AddOrUpdateMaintenanceStands(params);
         if (res.Success) {
-            ElMessage.success(isEdit.value ? t("message.editSuccess") : t("message.addSuccess"));
-            dialogVisible.value = false;
+            ElMessage.success(t("message.addSuccess"));
+            addDialogVisible.value = false;
             await fetchAllData();
             currentPage.value = 1;
         } else {
-            ElMessage.error(res?.Message || (isEdit.value ? t("message.editFailure") : t("message.addFailure")));
+            ElMessage.error(res?.Message || t("message.addFailure"));
         }
     } catch (error) {
-        console.error("提交失败:", error);
+        console.error("新增失败:", error);
         ElMessage.error(t("message.submitFailure"));
     } finally {
         submitLoading.value = false;
     }
 };
 
-// 删除
+// ---------- 提交编辑 ----------
+const submitEdit = async () => {
+    await editFormRef.value?.validate();
+    if (editFormData.items.length === 0) {
+        ElMessage.warning(t("deviceManage.maintenanceStand.addItemFirst"));
+        return;
+    }
+    submitLoading.value = true;
+    try {
+        const currentUser = userStore.getUserInfo || "System";
+        const params = {
+            user: currentUser,
+            standard_id: editFormData.standardId,
+            standard_code: editFormData.standardCode,
+            standard_name: editFormData.standardName,
+            description: editFormData.description,
+            cycle_type: editFormData.cycleType,
+            cycle_interval: editFormData.cycleInterval,
+            cycle_day_of_week: editFormData.cycleDayOfWeek,
+            cycle_day_of_month: editFormData.cycleDayOfMonth,
+            lead_time: editFormData.leadTime,
+            status: editFormData.status,
+            Items: editFormData.items.map(item => ({
+                item_id: item.item_id,
+                sort_order: item.sort_order,
+                remark: item.remark || "",
+            })),
+        };
+        const res: any = await AddOrUpdateMaintenanceStands(params);
+        if (res.Success) {
+            ElMessage.success(t("message.editSuccess"));
+            editDialogVisible.value = false;
+            await fetchAllData();
+            currentPage.value = 1;
+        } else {
+            ElMessage.error(res?.Message || t("message.editFailure"));
+        }
+    } catch (error) {
+        console.error("编辑失败:", error);
+        ElMessage.error(t("message.submitFailure"));
+    } finally {
+        submitLoading.value = false;
+    }
+};
+
+// ---------- 删除 ----------
 const handleDelete = (row: any) => {
     ElMessageBox.confirm(
         `${t("publicText.confirm")}${t("publicText.delete")}【${row.standard_code} - ${row.standard_name}】?`,
@@ -582,12 +714,68 @@ const handleDelete = (row: any) => {
         .catch(() => ElMessage.info(t("publicText.cancel")));
 };
 
-const handleDialogClosed = () => {
-    formRef.value?.resetFields();
-    resetFormData();
+// ---------- 查询/重置 ----------
+const handleSearch = () => {
+    currentPage.value = 1;
 };
 
-// 表格列宽自动计算
+const resetSearch = () => {
+    searchForm.standardCode = "";
+    searchForm.standardName = "";
+    currentPage.value = 1;
+};
+
+const handleSizeChange = (val: number) => {
+    pageSize.value = val;
+    currentPage.value = 1;
+};
+
+const handleCurrentChange = (val: number) => {
+    currentPage.value = val;
+};
+
+// ---------- 获取数据 ----------
+const fetchAllData = async () => {
+    loading.value = true;
+    try {
+        const res: any = await GetAllMaintenanceStands({});
+        if (res.Success && Array.isArray(res.Data)) {
+            allData.value = res.Data;
+        } else {
+            allData.value = [];
+            ElMessage.warning(res.Message || t("message.queryFailure"));
+        }
+    } catch (error) {
+        console.error("获取保养标准失败:", error);
+        allData.value = [];
+        ElMessage.error(t("message.queryFailure"));
+    } finally {
+        loading.value = false;
+    }
+};
+
+const fetchAllItems = async () => {
+    try {
+        const res: any = await GetAllMaintenanceItems({});
+        if (res.Success && Array.isArray(res.Data)) {
+            allMaintenanceItems.value = res.Data;
+        }
+    } catch (error) {
+        console.error("获取保养项目失败:", error);
+    }
+};
+
+// ---------- 周期类型显示 ----------
+const getCycleTypeText = (type: string) => {
+    const typeMap: Record<string, string> = {
+        'D': t('deviceManage.maintenanceStand.daily'),
+        'W': t('deviceManage.maintenanceStand.weekly'),
+        'M': t('deviceManage.maintenanceStand.monthly')
+    };
+    return typeMap[type] || type;
+};
+
+// ---------- 表格列宽自适应 ----------
 const tableColumns = computed(() => {
     if (!maintenanceStandTableRef.value) return [];
     const columns = maintenanceStandTableRef.value.columns
@@ -602,13 +790,14 @@ const columnWidths = computed(() => {
 
 const getColumnWidth = (prop: string) => columnWidths.value[prop] || "auto";
 
-// 表格高度自适应
+// ---------- 表格高度自适应 ----------
 const getScreenHeight = () => {
     nextTick(() => {
         tableHeight.value = window.innerHeight - 190;
     });
 };
 
+// ---------- 生命周期 ----------
 onBeforeMount(() => {
     getScreenHeight();
     fetchAllData();
