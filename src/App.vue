@@ -15,4 +15,7 @@ import {  RouterView } from 'vue-router'
 body.el-popup-parent--hidden {
   width: 100% !important;
 }
+.el-message-box-parent--hidden {
+  width: 100% !important;
+}
 </style>

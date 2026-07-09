@@ -30,8 +30,12 @@
         <el-table-column prop="feedernum" :label="t('Scheduling.abnormalMove.feedernum')" :min-width="getColumnWidth('feedernum')" align="center" />
         <el-table-column :label="t('publicText.operation')" width="120" align="center">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="openEditDialog(row)" icon="Edit"></el-button>
-            <el-button type="danger" size="small" @click="handleDelete(row)" icon="Delete"></el-button>
+             <el-tooltip class="item" :content="t('publicText.edit')" placement="top">
+               <el-button type="primary" size="small" @click="openEditDialog(row)" icon="Edit"></el-button>
+             </el-tooltip>
+             <el-tooltip class="item" :content="t('publicText.delete')" placement="top">
+               <el-button type="danger" size="small" @click="handleDelete(row)" icon="Delete"></el-button>
+             </el-tooltip>
           </template>
         </el-table-column>
         <template #empty><el-empty /></template>
@@ -129,11 +133,6 @@
 
     <el-dialog :title="t('Scheduling.abnormalMove.importTitle')" v-model="importDialogVisible" width="40%" @close="handleImportDialogClose" :append-to-body="true"  :close-on-click-modal="false">
       <el-form :model="importForm" ref="importFormRef" label-width="100px">
-        <el-form-item :label="t('Scheduling.abnormalMove.lineName')" prop="LineName" :rules="[{ required: true, message: t('Scheduling.abnormalMove.selectLine') }]">
-          <el-select v-model="importForm.LineName" placeholder="" style="width:100%">
-            <el-option v-for="item in lineList" :key="item.MfgLineName" :label="item.Description" :value="item.MfgLineName" />
-          </el-select>
-        </el-form-item>
         <el-form-item :label="t('publicText.import')" prop="file">
           <el-upload
             class="upload-demo"
@@ -165,6 +164,8 @@
 import { ref, reactive, onMounted, nextTick } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useI18n } from 'vue-i18n';
+import { useUserStoreWithOut } from '@/stores/modules/user';
+const userStore = useUserStoreWithOut();
 import {
   GetLineFeederWidthNum,
   IULineFeederWidthNum,
@@ -199,7 +200,7 @@ const queryForm = reactive({
   Pn: '',
   Width: '',
   PageIndex: 1,
-  PageSize: 10,
+  PageSize: 50,
 });
 
 const addDialogVisible = ref(false);
@@ -230,9 +231,7 @@ const copyForm = reactive({
   ToLineName: [] as string[],
 });
 
-const importForm = reactive({
-  LineName: '',
-});
+const importForm = reactive({});
 
 const fileList = ref<any[]>([]);
 
@@ -429,7 +428,6 @@ const handleCopy = async () => {
 };
 
 const openImportDialog = () => {
-  importForm.LineName = '';
   fileList.value = [];
   importDialogVisible.value = true;
 };
@@ -453,37 +451,31 @@ const handleExceed = () => {
 };
 
 const handleUpload = async () => {
-  if (!importFormRef.value) return;
-  try {
-    await importFormRef.value.validate();
-    if (fileList.value.length === 0) {
-      ElMessage.warning(t('Scheduling.abnormalMove.selectFile'));
-      return;
-    }
-
-    const file = fileList.value[0].raw;
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const base64Content = e.target?.result as string;
-      const data = {
-        LineName: importForm.LineName,
-        FileName: file.name,
-        FileConent: base64Content.split(',')[1],
-      };
-      console.log(data);
-      const res: any = await UploadLineFeederWidthNum(data);
-      if (res.Success) {
-        ElMessage.success(t('Scheduling.abnormalMove.importSuccess'));
-        handleImportDialogClose();
-        getData();
-      } else {
-        ElMessage.error(res.Message || t('message.queryFailure'));
-      }
-    };
-    reader.readAsDataURL(file);
-  } catch (error) {
-    console.error('表单验证失败:', error);
+  if (fileList.value.length === 0) {
+    ElMessage.warning(t('Scheduling.abnormalMove.selectFile'));
+    return;
   }
+
+  const file = fileList.value[0].raw;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64Content = e.target?.result as string;
+    const data = {
+      FileName: file.name,
+      FileConent: base64Content.split(',')[1],
+      UserNo: userStore.getUserInfo,
+    };
+    console.log(data);
+    const res: any = await UploadLineFeederWidthNum(data);
+    if (res.Success) {
+      ElMessage.success(t('Scheduling.abnormalMove.importSuccess'));
+      handleImportDialogClose();
+      getData();
+    } else {
+      ElMessage.error(res.Message || t('message.queryFailure'));
+    }
+  };
+  reader.readAsDataURL(file);
 };
 
 onMounted(() => {

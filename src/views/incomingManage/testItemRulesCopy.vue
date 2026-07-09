@@ -18,36 +18,22 @@
                     <el-button type="warning" size="small" @click="openAdd">{{ t('publicText.add') }}</el-button>
                 </div>
             </div>
-            <el-row :gutter="10">
+            <el-row :gutter="20">
                 <!-- 左侧：检验规则主表列表 -->
-                <el-col :span="11">
+                <el-col :span="9">
                     <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
                         :tooltip-effect="'dark'" border fit @row-click="handleRowClick" highlight-current-row>
                         <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                             <template #default="scope">
                                 <span>{{
                                     scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1
-                                }}</span>
+                                    }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column :label="t('incomingManage.inspectionRule.materialCode')" prop="MaterialCode"
-                            :min-width="getColumnWidth1('MaterialCode')">
-                            <template #default="{ row }">
-                                <div class="material-multi">{{ row.MaterialCode }}</div>
-                            </template>
-                        </el-table-column>
+                            :min-width="getColumnWidth1('MaterialCode')" />
                         <el-table-column :label="t('incomingManage.inspectionRule.materialName')" prop="MaterialName"
-                            :min-width="getColumnWidth1('MaterialName')">
-                            <template #default="{ row }">
-                                <div class="material-multi">{{ row.MaterialName }}</div>
-                            </template>
-                        </el-table-column>
-                        <el-table-column :label="t('incomingManage.inspectionRule.materialSpec')" prop="MaterialSpec"
-                            :min-width="getColumnWidth1('MaterialSpec')">
-                            <template #default="{ row }">
-                                <div class="material-multi">{{ row.MaterialSpec }}</div>
-                            </template>
-                        </el-table-column>
+                            :min-width="getColumnWidth1('MaterialName')" />
                         <el-table-column :label="t('incomingManage.inspectionRule.isDouble')" prop="IsDouble"
                             :min-width="getColumnWidth1('IsDouble')">
                             <template #default="{ row }">
@@ -90,9 +76,9 @@
                     </div>
                 </el-col>
                 <!-- 右侧：标签页展示明细或已选项目组 -->
-                <el-col :span="13">
+                <el-col :span="15">
                     <el-tabs v-model="activeName" class="demo-tabs">
-                        <el-tab-pane :label="t('incomingManage.inspectionRule.projectGroups')" name="projects">
+                         <el-tab-pane :label="t('incomingManage.inspectionRule.projectGroups')" name="projects">
                             <el-table :data="projectGroupData" size="small" :style="{ width: '100%' }"
                                 :height="tableHeight2" :tooltip-effect="'dark'" border fit>
                                 <el-table-column type="index" align="center" :label="$t('publicText.index')"
@@ -106,13 +92,13 @@
                                 <el-table-column :label="t('incomingManage.inspectionRule.isDefault')" width="100">
                                     <template #default="{ row }">
                                         <span>{{ row.IsDefault === 1 ? t('publicText.yes') : t('publicText.no')
-                                            }}</span>
+                                        }}</span>
                                     </template>
                                 </el-table-column>
-                                <!-- <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser"
+                                <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser"
                                     :min-width="120" />
                                 <el-table-column :label="t('incomingManage.testItems.creatime')" prop="CreateTime"
-                                    :min-width="150" /> -->
+                                    :min-width="150" />
                                 <template #empty>
                                     <div class="flex items-center justify-center h-100%">
                                         <el-empty :description="t('incomingManage.inspectionRule.noProject')" />
@@ -161,18 +147,31 @@
                                 </template>
                             </el-table>
                         </el-tab-pane>
-
+                       
                     </el-tabs>
                 </el-col>
             </el-row>
         </el-card>
 
-        <!-- 新增/编辑检验规则对话框（左右分布：左边物料，右边tab项目组和明细） -->
-        <el-dialog :title="isEditMode ? $t('publicText.edit') : $t('publicText.add')" v-model="addVisible" width="90%"
+        <!-- 新增/编辑检验规则对话框（使用 tabs 区分项目组和明细） -->
+        <el-dialog :title="isEditMode ? $t('publicText.edit') : $t('publicText.add')" v-model="addVisible" width="85%"
             @close="addCancel" align-center :append-to-body="true" :close-on-click-modal="false"
             :close-on-press-escape="false">
             <el-form :model="addForm" ref="addFormRef" label-width="auto" :inline="false" :rules="addRules">
                 <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('incomingManage.inspectionRule.materialCode')" prop="MaterialCode"
+                            required>
+                            <el-select v-model="addForm.MaterialCode" style="width: 100%" filterable remote
+                                :remote-method="searchMaterial" :loading="materialLoading" clearable
+                                :placeholder="t('incomingManage.inspectionRule.materialCodePlaceholder')"
+                                :disabled="isEditMode" @change="handleMaterialSelect">
+                                <el-option v-for="item in materialList" :key="item.MaterialCode"
+                                    :label="`${item.MaterialCode} - ${item.MaterialName}`" :value="item.MaterialCode">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
                     <el-col :span="12">
                         <el-form-item :label="t('incomingManage.inspectionRule.isDouble')" prop="IsDouble">
                             <el-select v-model="addForm.IsDouble" style="width: 100%">
@@ -182,204 +181,140 @@
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <!-- 左右分布布局 -->
-                <el-row :gutter="20" style="margin-top: 16px;">
-                    <!-- 左边：物料列表 -->
-                    <el-col :span="8">
+                <el-row :gutter="20">
+                    <el-col :span="12"> <el-form-item :label="t('incomingManage.inspectionRule.materialName')"
+                            prop="MaterialName">
+                            <el-input v-model="addForm.MaterialName" placeholder="" disabled style="width: 100%" />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12"> <el-form-item :label="t('incomingManage.inspectionRule.materialSpec')"
+                            prop="MaterialSpec">
+                            <el-input  type="textarea" v-model="addForm.MaterialSpec" placeholder="" disabled style="width: 100%" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <!-- 使用 Tabs 区分项目组和明细配置 -->
+                <el-tabs v-model="dialogActiveTab" class="dialog-tabs">
+                    <!-- 项目组 Tab -->
+                    <el-tab-pane :label="t('incomingManage.inspectionRule.projectGroups')" name="project">
                         <div class="detail-table-wrapper">
-                            <el-button type="primary" size="small" @click="openMaterialSelectDialog" class="mb-2">{{
+                            <el-button type="primary" size="small" @click="addProjectRow" class="mb-2">{{
                                 t('publicText.add')
-                                }}物料</el-button>
-                            <el-table :data="addForm.Materials" border size="small" style="width: 100%" height="450">
-                                <el-table-column type="index" align="center" :label="$t('publicText.index')"
-                                    width="50" />
-                                <el-table-column :label="t('incomingManage.inspectionRule.materialCode')"
-                                    min-width="150">
+                            }}项目组</el-button>
+                            <el-table :data="addForm.Projects" border size="small" style="width: 100%" height="350">
+                                <el-table-column :label="t('incomingManage.inspectionRule.projectCode')"
+                                    min-width="200">
+                                    <template #default="{ row, $index }">
+                                        <el-select v-model="row.ProjectCode" size="small" style="width: 100%" filterable
+                                            clearable placeholder=""
+                                            @change="(val: any) => handleProjectSelect(row, val)">
+                                            <el-option v-for="item in projectList" :key="item.ProjectCode"
+                                                :label="`${item.ProjectCode} - ${item.ProjectName}`"
+                                                :value="item.ProjectCode">
+                                            </el-option>
+                                        </el-select>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('incomingManage.inspectionRule.versionNo')" prop="VersionNo"
+                                    width="100">
                                     <template #default="{ row }">
-                                        <el-input v-model="row.MaterialCode" size="small" disabled />
+                                        <el-input v-model="row.VersionNo" size="small" disabled />
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('incomingManage.inspectionRule.isDefault')" width="120"
+                                    align="center">
+                                    <template #default="{ $index, row }">
+                                        <el-radio v-model="addForm.defaultProjectIndex" :label="$index"
+                                            @change="() => setDefaultProject($index)">默认</el-radio>
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="$t('publicText.operation')" width="80" align="center">
                                     <template #default="{ $index }">
-                                        <el-button type="danger" size="small" link @click="removeMaterialRow($index)">{{
+                                        <el-button type="danger" size="small" link @click="removeProjectRow($index)">{{
                                             t('publicText.delete') }}</el-button>
                                     </template>
                                 </el-table-column>
                             </el-table>
-                            <div class="tips">{{ t('incomingManage.inspectionRule.materialTips') }}</div>
                         </div>
-                    </el-col>
-                    <!-- 右边：项目组和明细 Tab -->
-                    <el-col :span="16">
-                        <el-tabs v-model="dialogActiveTab" class="dialog-tabs">
-                            <!-- 项目组 Tab -->
-                            <el-tab-pane :label="t('incomingManage.inspectionRule.projectGroups')" name="project">
-                                <div class="detail-table-wrapper">
-                                    <el-button type="primary" size="small" @click="addProjectRow" class="mb-2">{{
-                                        t('publicText.add')
-                                        }}项目组</el-button>
-                                    <el-table :data="addForm.Projects" border size="small" style="width: 100%"
-                                        height="350">
-                                        <el-table-column :label="t('incomingManage.inspectionRule.projectCode')"
-                                            min-width="200">
-                                            <template #default="{ row, $index }">
-                                                <el-select v-model="row.ProjectCode" size="small" style="width: 100%"
-                                                    filterable clearable placeholder=""
-                                                    @change="(val: any) => handleProjectSelect(row, val)">
-                                                    <el-option v-for="item in availableProjectList"
-                                                        :key="item.ProjectCode"
-                                                        :label="`${item.ProjectCode} - ${item.ProjectName}`"
-                                                        :value="item.ProjectCode">
-                                                    </el-option>
-                                                </el-select>
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column :label="t('incomingManage.inspectionRule.versionNo')"
-                                            prop="VersionNo" width="100">
-                                            <template #default="{ row }">
-                                                <el-input v-model="row.VersionNo" size="small" disabled />
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column :label="t('incomingManage.inspectionRule.isDefault')"
-                                            width="120" align="center">
-                                            <template #default="{ $index, row }">
-                                                <el-radio v-model="addForm.defaultProjectIndex" :label="$index"
-                                                    @change="() => setDefaultProject($index)">默认</el-radio>
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column :label="$t('publicText.operation')" width="80" align="center">
-                                            <template #default="{ $index }">
-                                                <el-button type="danger" size="small" link
-                                                    @click="removeProjectRow($index)">{{
-                                                        t('publicText.delete') }}</el-button>
-                                            </template>
-                                        </el-table-column>
-                                    </el-table>
-                                </div>
-                            </el-tab-pane>
+                    </el-tab-pane>
 
-                            <!-- 明细 Tab -->
-                            <el-tab-pane :label="t('incomingManage.inspectionRule.details')" name="detail">
-                                <div class="detail-table-wrapper">
-                                    <el-button type="primary" size="small" @click="addDetailRow" class="mb-2">{{
-                                        t('publicText.add')
-                                        }}检验项</el-button>
-                                    <el-table :data="addForm.Details" border size="small" style="width: 100%"
-                                        height="350">
-                                        <el-table-column :label="t('incomingManage.testItems.gaugeCode')" width="180">
-                                            <template #default="{ row, $index }">
-                                                <el-select v-model="row.InspectionCode" size="small" style="width: 100%"
-                                                    filterable clearable
-                                                    :placeholder="t('incomingManage.testItems.gaugeCode')"
-                                                    @change="handleInspectionSelect(row, $event)">
-                                                    <el-option v-for="item in availableInspectionList"
-                                                        :key="item.InspectionCode"
-                                                        :label="`${item.InspectionCode} - ${item.InspectionName}`"
-                                                        :value="item.InspectionCode">
-                                                    </el-option>
-                                                </el-select>
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column :label="t('incomingManage.testItems.gaugeName')"
-                                            min-width="120">
-                                            <template #default="{ row }">
-                                                <el-input v-model="row.InspectionName" size="small" disabled />
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column :label="t('incomingManage.testItems.IsInspectionTool')"
-                                            width="100">
-                                            <template #default="{ row }">
-                                                <span>{{ row.IsInspectionTool === 1 ? t('publicText.yes') :
-                                                    t('publicText.no')
-                                                    }}</span>
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column :label="t('incomingManage.testItems.inspectionType')"
-                                            width="140">
-                                            <template #default="{ row }">
-                                                <span>{{ row.InspectionType === 1 ?
-                                                    t('incomingManage.testItems.qualitative') :
-                                                    t('incomingManage.testItems.quantitative') }}</span>
-                                                <!-- <el-select v-model="row.InspectionType" size="small" style="width: 100%"
+                    <!-- 明细 Tab -->
+                    <el-tab-pane :label="t('incomingManage.inspectionRule.details')" name="detail">
+                        <div class="detail-table-wrapper">
+                            <el-button type="primary" size="small" @click="addDetailRow" class="mb-2">{{
+                                t('publicText.add')
+                            }}检验项</el-button>
+                            <el-table :data="addForm.Details" border size="small" style="width: 100%" height="350">
+                                <el-table-column :label="t('incomingManage.testItems.gaugeCode')" width="180">
+                                    <template #default="{ row, $index }">
+                                        <el-select v-model="row.InspectionCode" size="small" style="width: 100%"
+                                            filterable clearable :placeholder="t('incomingManage.testItems.gaugeCode')"
+                                            @change="handleInspectionSelect(row, $event)">
+                                            <el-option v-for="item in inspectionItemList" :key="item.InspectionCode"
+                                                :label="`${item.InspectionCode} - ${item.InspectionName}`"
+                                                :value="item.InspectionCode">
+                                            </el-option>
+                                        </el-select>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('incomingManage.testItems.gaugeName')" min-width="120">
+                                    <template #default="{ row }">
+                                        <el-input v-model="row.InspectionName" size="small" disabled />
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('incomingManage.testItems.IsInspectionTool')" width="100">
+                                    <template #default="{ row }">
+                                        <span>{{ row.IsInspectionTool === 1 ? t('publicText.yes') : t('publicText.no')
+                                        }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('incomingManage.testItems.inspectionType')" width="140">
+                                    <template #default="{ row }">
+                                        <span>{{ row.InspectionType === 1 ? t('incomingManage.testItems.qualitative') :
+                                            t('incomingManage.testItems.quantitative') }}</span>
+                                        <!-- <el-select v-model="row.InspectionType" size="small" style="width: 100%"
                                             @change="handleInspectionTypeChange(row)">
                                             <el-option :label="t('incomingManage.testItems.qualitative')" :value="1" />
                                             <el-option :label="t('incomingManage.testItems.quantitative')" :value="2" />
                                         </el-select> -->
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')"
-                                            width="120">
-                                            <template #default="{ row }">
-                                                <el-input-number v-model="row.LowerLimit" size="small" :controls="false"
-                                                    style="width: 100%" :disabled="row.InspectionType === 1"
-                                                    :placeholder="t('incomingManage.inspectionRule.lowerLimitPlaceholder')" />
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')"
-                                            width="120">
-                                            <template #default="{ row }">
-                                                <el-input-number v-model="row.UpperLimit" size="small" :controls="false"
-                                                    style="width: 100%" :disabled="row.InspectionType === 1"
-                                                    :placeholder="t('incomingManage.inspectionRule.upperLimitPlaceholder')" />
-                                            </template>
-                                        </el-table-column>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" width="120">
+                                    <template #default="{ row }">
+                                        <el-input-number v-model="row.LowerLimit" size="small" :controls="false"
+                                            style="width: 100%" :disabled="row.InspectionType === 1"
+                                            :placeholder="t('incomingManage.inspectionRule.lowerLimitPlaceholder')" />
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" width="120">
+                                    <template #default="{ row }">
+                                        <el-input-number v-model="row.UpperLimit" size="small" :controls="false"
+                                            style="width: 100%" :disabled="row.InspectionType === 1"
+                                            :placeholder="t('incomingManage.inspectionRule.upperLimitPlaceholder')" />
+                                    </template>
+                                </el-table-column>
 
-                                        <el-table-column :label="t('incomingManage.inspectionRule.unit')" width="100">
-                                            <template #default="{ row }">
-                                                <el-input v-model="row.Unit" size="small"
-                                                    :disabled="row.InspectionType === 1"
-                                                    :placeholder="t('incomingManage.inspectionRule.unitPlaceholder')" />
-                                            </template>
-                                        </el-table-column>
-                                        <el-table-column :label="$t('publicText.operation')" width="80" align="center">
-                                            <template #default="{ $index }">
-                                                <el-button type="danger" size="small" link
-                                                    @click="removeDetailRow($index)">{{
-                                                        t('publicText.delete') }}</el-button>
-                                            </template>
-                                        </el-table-column>
-                                    </el-table>
-                                    <div class="tips">{{ t('incomingManage.inspectionRule.detailTips') }}</div>
-                                </div>
-                            </el-tab-pane>
-                        </el-tabs>
-                    </el-col>
-                </el-row>
+                                <el-table-column :label="t('incomingManage.inspectionRule.unit')" width="100">
+                                    <template #default="{ row }">
+                                        <el-input v-model="row.Unit" size="small" :disabled="row.InspectionType === 1"
+                                            :placeholder="t('incomingManage.inspectionRule.unitPlaceholder')" />
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="$t('publicText.operation')" width="80" align="center">
+                                    <template #default="{ $index }">
+                                        <el-button type="danger" size="small" link @click="removeDetailRow($index)">{{
+                                            t('publicText.delete') }}</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <div class="tips">{{ t('incomingManage.inspectionRule.detailTips') }}</div>
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
             </el-form>
             <template #footer>
                 <el-button @click="addCancel">{{ $t("publicText.cancel") }}</el-button>
                 <el-button type="primary" @click="addSubmit">{{ $t("publicText.confirm") }}</el-button>
-            </template>
-        </el-dialog>
-
-        <!-- 物料选择对话框 -->
-        <el-dialog :title="t('incomingManage.inspectionRule.selectMaterials')" v-model="materialSelectVisible"
-            width="700px" @close="materialSelectCancel" align-center :append-to-body="true"
-            :close-on-click-modal="false">
-            <el-form :model="materialSelectForm" label-width="auto" :inline="true" :size="'small'"
-                @submit.native.prevent>
-                <el-form-item :label="t('incomingManage.inspectionRule.materialCode')">
-                    <el-input v-model="materialSelectForm.keyword"
-                        :placeholder="t('incomingManage.inspectionRule.materialCodePlaceholder')" clearable
-                        @clear="searchMaterialSelect" @keyup.enter.native="searchMaterialSelect" style="width: 200px" />
-                </el-form-item>
-                <el-form-item>
-                    <el-button :type="'primary'" @click="searchMaterialSelect">{{ t('publicText.query') }}</el-button>
-                </el-form-item>
-            </el-form>
-            <el-table :data="availableMaterialSelectList" size="small" :style="{ width: '100%' }" height="400" border
-                @selection-change="handleMaterialSelectionChange">
-                <el-table-column type="selection" width="55" />
-                <el-table-column :label="t('incomingManage.inspectionRule.materialCode')" prop="MaterialCode"
-                    min-width="150" />
-                <el-table-column :label="t('incomingManage.inspectionRule.materialName')" prop="MaterialName"
-                    min-width="150" />
-                <el-table-column :label="t('incomingManage.inspectionRule.materialSpec')" prop="MaterialSpec"
-                    min-width="150" />
-            </el-table>
-            <template #footer>
-                <el-button @click="materialSelectCancel">{{ $t("publicText.cancel") }}</el-button>
-                <el-button type="primary" @click="confirmMaterialSelection">{{ $t("publicText.confirm") }}</el-button>
             </template>
         </el-dialog>
     </div>
@@ -395,8 +330,7 @@ import {
     QueryPartNumbersIqc,
     RefreshInspectionProject,
     QueryInspectionRuleProject,
-    UpdateInspectionRule,
-    QueryInspectionRuleMaterial
+    UpdateInspectionRule
 } from "@/api/incomingManage/index";
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
 import {
@@ -440,50 +374,28 @@ const currentRuleId = ref<number | null>(null);
 const addVisible = ref(false);
 const addFormRef = ref();
 const isEditMode = ref(false);
-const dialogActiveTab = ref("materials"); // 对话框内当前激活的 Tab，新增时默认物料Tab
+const dialogActiveTab = ref("project"); // 对话框内当前激活的 Tab，新增时默认项目组，编辑时根据数据决定
 const addForm = reactive({
     ruleId: 0,
+    MaterialCode: "",
+    MaterialName: "",
+    MaterialSpec: '',
     IsDouble: 0,
-    Materials: [] as any[],  // 物料列表
     Projects: [] as any[],   // 项目组列表
     Details: [] as any[],    // 明细列表
     defaultProjectIndex: -1,
 });
-const addRules = {};
+const addRules = {
+    MaterialCode: [{ required: true, message: "请选择物料编码", trigger: "change" }],
+};
 
 // 物料搜索相关
 const materialList = ref<any[]>([]);
 const materialLoading = ref(false);
-
-// 物料选择对话框相关
-const materialSelectVisible = ref(false);
-const materialSelectForm = reactive({
-    keyword: "",
-});
-const materialSelectList = ref<any[]>([]);
-const selectedMaterials = ref<any[]>([]);
 // 检验项列表（检具）
 const inspectionItemList = ref<any[]>([]);
 // 检验项目组列表（用于下拉选择）
 const projectList = ref<any[]>([]);
-
-// 过滤已选物料后的物料选择列表
-const availableMaterialSelectList = computed(() => {
-    const selectedCodes = addForm.Materials.map(m => m.MaterialCode);
-    return materialSelectList.value.filter(item => !selectedCodes.includes(item.MaterialCode));
-});
-
-// 过滤已选项目组后的项目组下拉列表
-const availableProjectList = computed(() => {
-    const selectedCodes = addForm.Projects.filter(p => p.ProjectCode).map(p => p.ProjectCode);
-    return projectList.value.filter(item => !selectedCodes.includes(item.ProjectCode));
-});
-
-// 过滤已选检验项后的检验项下拉列表
-const availableInspectionList = computed(() => {
-    const selectedCodes = addForm.Details.filter(d => d.InspectionCode).map(d => d.InspectionCode);
-    return inspectionItemList.value.filter(item => !selectedCodes.includes(item.InspectionCode));
-});
 
 // ==================== API 调用 ====================
 // 获取主表数据
@@ -530,70 +442,48 @@ const getProjectList = () => {
     });
 };
 
-// 打开物料选择对话框
-const openMaterialSelectDialog = () => {
-    materialSelectVisible.value = true;
-    materialSelectForm.keyword = "";
-    selectedMaterials.value = [];
-    searchMaterialSelect();
-};
-
-// 搜索物料（用于物料选择对话框）
-const searchMaterialSelect = () => {
+// 搜索物料（远程）
+const searchMaterial = (keyword: string) => {
+    if (!keyword) {
+        materialList.value = [];
+        return;
+    }
     materialLoading.value = true;
-    QueryPartNumbersIqc({ keyword: materialSelectForm.keyword || "" })
+    QueryPartNumbersIqc({ keyword })
         .then((res: any) => {
             if (res.Success && res.Data) {
-                materialSelectList.value = res.Data.map((item: any) => ({
+                materialList.value = res.Data.map((item: any) => ({
                     MaterialCode: item.PN || item.MaterialCode,
                     MaterialName: item.name || item.MaterialName,
                     MaterialSpec: item.Spec || item.MaterialSpec || "",
                 }));
             } else {
-                materialSelectList.value = [];
+                materialList.value = [];
             }
         })
         .catch(() => {
-            materialSelectList.value = [];
+            materialList.value = [];
         })
         .finally(() => {
             materialLoading.value = false;
         });
 };
 
-// 物料选择变化
-const handleMaterialSelectionChange = (val: any[]) => {
-    selectedMaterials.value = val;
-};
-
-// 确认物料选择
-const confirmMaterialSelection = () => {
-    if (selectedMaterials.value.length === 0) {
-        ElMessage.warning("请至少选择一个物料");
+// 物料选中后自动填充物料名称
+const handleMaterialSelect = (selectedCode: string) => {
+    if (!selectedCode) {
+        addForm.MaterialName = "";
+        addForm.MaterialSpec = "";
         return;
     }
-    const existingCodes = addForm.Materials.map(m => m.MaterialCode);
-    selectedMaterials.value.forEach(item => {
-        if (!existingCodes.includes(item.MaterialCode)) {
-            addForm.Materials.push({
-                MaterialCode: item.MaterialCode,
-                MaterialName: item.MaterialName,
-                MaterialSpec: item.MaterialSpec,
-            });
-        }
-    });
-    materialSelectVisible.value = false;
-};
-
-// 取消物料选择
-const materialSelectCancel = () => {
-    materialSelectVisible.value = false;
-    selectedMaterials.value = [];
-};
-
-// 删除物料行
-const removeMaterialRow = (index: number) => {
-    addForm.Materials.splice(index, 1);
+    const selected = materialList.value.find(item => item.MaterialCode === selectedCode);
+    if (selected) {
+        addForm.MaterialName = selected.MaterialName;
+        addForm.MaterialSpec = selected.MaterialSpec;
+    } else {
+        addForm.MaterialName = "";
+        addForm.MaterialSpec = "";
+    }
 };
 
 // 查询（重置页码）
@@ -678,12 +568,15 @@ const handleDelete = (row: any) => {
 const openAdd = () => {
     isEditMode.value = false;
     addForm.ruleId = 0;
+    addForm.MaterialCode = "";
+    addForm.MaterialName = "";
     addForm.IsDouble = 0;
-    addForm.Materials = [];
     addForm.Projects = [];
     addForm.Details = [];
     addForm.defaultProjectIndex = -1;
+    // 新增时默认激活项目组 Tab，并添加一行空项目组
     dialogActiveTab.value = "project";
+    addProjectRow(); // 添加一个空项目组行
     getInspectionItems();
     getProjectList();
     addVisible.value = true;
@@ -693,26 +586,22 @@ const openAdd = () => {
 const openEdit = async (row: any) => {
     isEditMode.value = true;
     addForm.ruleId = row.RuleId;
+    addForm.MaterialCode = row.MaterialCode;
+    addForm.MaterialName = row.MaterialName;
+    addForm.MaterialSpec = row.MaterialSpec;
     addForm.IsDouble = row.IsDouble;
 
-    // 并行加载物料、明细和项目组
+    // 并行加载明细和项目组
     try {
-        const [materialRes, detailRes, projectRes] = await Promise.all([
-            QueryInspectionRuleMaterial({ RuleId: row.RuleId }),
+        const [detailRes, projectRes] = await Promise.all([
             QueryInspectionRuleDetail({ RuleId: row.RuleId }),
             QueryInspectionRuleProject({ RuleId: row.RuleId })
         ]);
-        const materials = (materialRes as any).Success ? ((materialRes as any).Data ?? []) : [];
         const details = (detailRes as any).Success ? ((detailRes as any).Data ?? []) : [];
         const projects = (projectRes as any).Success ? ((projectRes as any).Data ?? []) : [];
 
-        addForm.Materials = materials.map((m: any) => ({
-            MaterialCode: m.MaterialCode,
-            MaterialName: m.MaterialName,
-            MaterialSpec: m.MaterialSpec,
-        }));
-
         if (projects.length > 0) {
+            // 项目组模式
             addForm.Projects = projects.map((p: any) => ({
                 ProjectCode: p.ProjectCode,
                 VersionNo: p.VersionNo,
@@ -724,6 +613,7 @@ const openEdit = async (row: any) => {
             addForm.Details = [];
             dialogActiveTab.value = "project";
         } else if (details.length > 0) {
+            // 明细模式
             addForm.Details = details.map((item: any) => ({
                 InspectionCode: item.InspectionCode,
                 InspectionName: item.InspectionName,
@@ -733,20 +623,25 @@ const openEdit = async (row: any) => {
                 LowerLimit: item.LowerLimit,
                 Unit: item.Unit || "",
             }));
+            if (addForm.Details.length === 0) {
+                addDetailRow();
+            }
             addForm.Projects = [];
             addForm.defaultProjectIndex = -1;
             dialogActiveTab.value = "detail";
         } else {
+            // 既无项目组也无明细，默认展示项目组并给一行空行
             addForm.Projects = [];
             addForm.Details = [];
+            addProjectRow();
             dialogActiveTab.value = "project";
         }
     } catch (error) {
         ElMessage.error("加载规则详情失败");
-        addForm.Materials = [];
         addForm.Projects = [];
         addForm.Details = [];
-        dialogActiveTab.value = "materials";
+        addProjectRow();
+        dialogActiveTab.value = "project";
     }
     getInspectionItems();
     getProjectList();
@@ -854,11 +749,7 @@ const addSubmit = () => {
     addFormRef.value.validate((valid: boolean) => {
         if (!valid) return;
 
-        if (addForm.Materials.length === 0) {
-            ElMessage.warning("请至少添加一个物料");
-            return;
-        }
-
+        // 根据哪个 Tab 有数据决定提交哪种模式
         const hasProjects = addForm.Projects.some(p => p.ProjectCode && p.ProjectCode.trim() !== "");
         const hasDetails = addForm.Details.some(d => d.InspectionCode && d.InspectionCode.trim() !== "");
 
@@ -866,6 +757,7 @@ const addSubmit = () => {
         let detailsParams: any[] = [];
 
         if (hasProjects) {
+            // 项目组模式：校验项目组数据
             if (addForm.Projects.length === 0) {
                 ElMessage.warning("请至少添加一个检验项目组");
                 return;
@@ -885,7 +777,9 @@ const addSubmit = () => {
                 VersionNo: proj.VersionNo,
                 IsDefault: proj.IsDefault,
             }));
+            // detailsParams = [];
         } else if (hasDetails) {
+            // 明细模式：校验明细数据
             if (addForm.Details.length === 0) {
                 ElMessage.warning("请至少添加一个检验项");
                 return;
@@ -933,26 +827,25 @@ const addSubmit = () => {
                 }
                 return detail;
             });
+            // projectsParams = [];
         } else {
             ElMessage.warning("请至少配置项目组或检验明细");
             return;
         }
 
-        const materialsParams = addForm.Materials.map((m: any) => ({
-            MaterialCode: m.MaterialCode,
-            MaterialName: m.MaterialName,
-            MaterialSpec: m.MaterialSpec,
-        }));
+        const params: any = {
+            MaterialCode: addForm.MaterialCode,
+            MaterialName: addForm.MaterialName,
+            MaterialSpec: addForm.MaterialSpec,
+            IsDouble: addForm.IsDouble,
+            UpdateUser: userStore.getUserInfo || "admin",
+            Details: detailsParams,
+            Projects: projectsParams,
+        };
 
         if (isEditMode.value) {
-            const params = {
-                RuleId: addForm.ruleId,
-                IsDouble: addForm.IsDouble,
-                UpdateUser: userStore.getUserInfo || "admin",
-                Materials: materialsParams,
-                Projects: projectsParams,
-                Details: detailsParams,
-            };
+
+            params.RuleId = addForm.ruleId;
             UpdateInspectionRule(params).then((res: any) => {
                 if (res.Success) {
                     ElMessage.success(res.Message || "更新成功");
@@ -968,16 +861,18 @@ const addSubmit = () => {
                 ElMessage.error("更新失败");
             });
         } else {
-            const params = {
-                Rule: {
-                    IsDouble: addForm.IsDouble,
-                    CreateUser: userStore.getUserInfo || "admin",
-                },
-                Materials: materialsParams,
+            const ruleParams = {
+                MaterialCode: addForm.MaterialCode,
+                MaterialName: addForm.MaterialName,
+                MaterialSpec: addForm.MaterialSpec,
+                IsDouble: addForm.IsDouble,
+                CreateUser: userStore.getUserInfo || "admin",
+            };
+            AddInspectionRule({
+                Rule: ruleParams,
                 Projects: projectsParams,
                 Details: detailsParams,
-            };
-            AddInspectionRule(params).then((res: any) => {
+            }).then((res: any) => {
                 if (res.Success) {
                     ElMessage.success(res.Message || "新增成功");
                     addVisible.value = false;
@@ -997,7 +892,6 @@ const columnWidths1 = computed(() => {
     const columns = [
         { label: t("incomingManage.inspectionRule.materialCode"), prop: "MaterialCode" },
         { label: t("incomingManage.inspectionRule.materialName"), prop: "MaterialName" },
-        { label: t("incomingManage.inspectionRule.materialSpec"), prop: "MaterialSpec" },
         { label: t("incomingManage.inspectionRule.isDouble"), prop: "IsDouble" },
         { label: t("incomingManage.testItems.creator"), prop: "CreateUser" },
         { label: t("incomingManage.testItems.creatime"), prop: "CreateTime" },
@@ -1047,12 +941,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.material-multi {
-    white-space: pre-line;
-    word-break: break-all;
-    line-height: 1.5;
-}
-
 .el-pagination {
     justify-content: center;
 }

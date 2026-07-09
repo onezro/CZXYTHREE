@@ -2,7 +2,7 @@
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.native.prevent>
-                <el-form-item :label="t('Scheduling.generatePrepare.OrderName')" prop="MergeGroup" class="mb-2">
+                <el-form-item :label="t('Scheduling.generatePrepare.MesOrder')" prop="MergeGroup" class="mb-2">
                     <el-input v-model="getForm.orderName" placeholder="" clearable @clear="searhData"
                         @keyup.enter.native="searhData" style="width: 200px" />
                 </el-form-item>
@@ -24,23 +24,26 @@
                     </template>
                 </el-table-column>
 
-                <el-table-column :label="t('Scheduling.ProductSched.TBSide')" prop="orderName"
-                    :min-width="getColumnWidth1('orderName')" />
-                <el-table-column :label="t('Scheduling.generatePrepare.OrderGroup')" prop="LXGroup"
-                    :min-width="getColumnWidth1('LXGroup')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.OrderGroup')" prop="LXGroup" fixed
+                    :min-width="getColumnWidth('LXGroup')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.TeamOrder')" prop="TeamOrder" 
+                    :min-width="getColumnWidth('TeamOrder')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.MesOrder')" prop="wo"
+                    :min-width="getColumnWidth('wo')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.BtOrder')" prop="orderName"
+                    :min-width="getColumnWidth('orderName')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.Product')" prop="PN"
+                    :min-width="getColumnWidth('PN')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.BomVersion')" prop="BomVer"
+                    :min-width="getColumnWidth('BomVer')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.Quantity')" prop="planQty"
+                    :min-width="getColumnWidth('planQty')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.Side')" prop="Side"
+                    :min-width="getColumnWidth('Side')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.LXLine')" prop="LXLine"
-                    :min-width="getColumnWidth1('LXLine')" />
-                <el-table-column :label="t('Scheduling.ProductSched.MesOrder')" prop="wo"
-                    :min-width="getColumnWidth1('wo')" />
-                <el-table-column :label="'面别'" prop="Side" :min-width="getColumnWidth1('Side')" />
-                <el-table-column :label="t('Scheduling.ProductSched.ProductCode')" prop="PN"
-                    :min-width="getColumnWidth1('PN')" />
-                <el-table-column :label="t('Scheduling.ProductSched.bomVersion')" prop="BomVer"
-                    :min-width="getColumnWidth1('BomVer')" />
-                <el-table-column :label="t('Scheduling.ProductSched.ProductNum')" prop="planQty"
-                    :min-width="getColumnWidth1('planQty')" />
-                <el-table-column :label="t('Scheduling.ProductSched.PlanStartDate')" prop="LXStartTime" :min-width="getColumnWidth1('LXStartTime')" />
-                <el-table-column :label="t('Scheduling.ProductSched.PlanEndDate')" prop="LXEndTime" :min-width="getColumnWidth1('LXEndTime')" />
+                    :min-width="getColumnWidth('LXLine')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.PlanStartTime')" prop="PlanStartTime" :min-width="getColumnWidth('PlanStartTime')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.PlanEndTime')" prop="PlanEndTime" :min-width="getColumnWidth('PlanEndTime')" />
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
@@ -61,12 +64,10 @@
 
 <script setup lang="ts">
 import { QueryWorkOrderList, GenerateMaterialPreparation } from "@/api/Scheduling/index"
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
 import {
     ref,
     reactive,
-    watch,
-    computed,
     nextTick,
     onMounted,
     onBeforeMount,
@@ -99,10 +100,7 @@ const addForm = ref({
 })
 const editForm = ref({
 })
-const tableHeight2 = ref(0);
-const tableData2 = ref([]);
 const tableMasterRef = ref()
-const tableDetailRef = ref()
 const handleSelectionChange = (val: any) => {
     selectList.value = val
 }
@@ -114,13 +112,7 @@ const getData = () => {
     QueryWorkOrderList(getForm.value).then((res: any) => {
         if (res.Success) {
             total.value = res.Data.total
-            tableData.value = res.Data.rows.map((item: any) => {
-                return {
-                    ...item,
-                    LXStartTime: item.LXStartTime ? dayjs(item.LXStartTime).format('YYYY-MM-DD HH:mm:ss') : '',
-                    LXEndTime: item.LXEndTime ? dayjs(item.LXEndTime).format('YYYY-MM-DD HH:mm:ss') : '',
-                }
-            })
+            tableData.value = res.Data.rows
         }
     })
 }
@@ -131,7 +123,7 @@ const handleGenerate = () => {
     }
     let OrderList: any = []
     selectList.value.forEach((v: any) => {
-        OrderList.push(v.orderName)
+        OrderList.push(v.LXGroup)
     });
     data.OrderNames = OrderList.join(',')
     console.log(data);
@@ -169,61 +161,10 @@ const handleCurrentChange = (val: any) => {
     // pageObj.currentPage = val;
 };
 
-const columnWidths1 = computed(() => {
-    if (!tableMasterRef.value) return {};
-    let columns: any = [];
-    columns = tableMasterRef.value.columns
-        .map((item: any) => {
-            return {
-                prop: item.property,
-                label: item.label,
-                type: item.type
-            };
-        })
-        .filter(
-            (item: any) =>
-                item.label !== t("publicText.index") &&
-                item.label !== t("publicText.operation") && item.type !== 'selection',
-        );
-
-    // 批量计算列宽
-    return calculateColumnsWidth(columns, tableData.value, {
-        padding: 25,
-        fontSize: 13,
-    });
+const { getColumnWidth } = useTableColumnWidth(tableMasterRef, tableData, {
+    excludeLabels: [t('publicText.index'), t('publicText.operation')],
+    excludeTypes: ['selection']
 });
-
-// 在模板中使用
-const getColumnWidth1 = (prop: string) => {
-    return columnWidths1.value[prop] || "auto";
-};
-const columnWidths2 = computed(() => {
-    if (!tableDetailRef.value) return {};
-    let columns: any = [];
-    columns = tableDetailRef.value.columns
-        .map((item: any) => {
-            return {
-                prop: item.property,
-                label: item.label,
-            };
-        })
-        .filter(
-            (item: any) =>
-                item.label !== t("publicText.index") &&
-                item.label !== t("publicText.operation"),
-        );
-
-    // 批量计算列宽
-    return calculateColumnsWidth(columns, tableData2.value, {
-        padding: 25,
-        fontSize: 13,
-    });
-});
-
-// 在模板中使用
-const getColumnWidth2 = (prop: string) => {
-    return columnWidths2.value[prop] || "auto";
-};
 onBeforeMount(() => {
     getScreenHeight();
 
@@ -240,7 +181,6 @@ onBeforeUnmount(() => {
 const getScreenHeight = () => {
     nextTick(() => {
         tableHeight.value = window.innerHeight - 190;
-        tableHeight2.value = window.innerHeight - tableHeight.value - 185;
     });
 };
 </script>

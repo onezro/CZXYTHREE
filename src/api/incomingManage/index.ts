@@ -226,3 +226,11 @@ export function DeleteInspectionReview(data:any) {
         data
     });
 }
+//查询检验规则物料
+export function QueryInspectionRuleMaterial(data:any) {
+    return request({
+        url: "/api/iqc/QueryInspectionRuleMaterial",
+        method: "get",
+        params:data
+    });
+}

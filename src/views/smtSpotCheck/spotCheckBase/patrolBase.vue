@@ -17,7 +17,7 @@
                 </div>
             </div>
 
-            <el-row :gutter="20">
+            <el-row :gutter="10">
                 <el-col :span="8">
                     <el-table ref="eltableRef" size="small" :data="displayData" stripe border fit :height="tableHeight"
                         highlight-current-row @row-click="handleRowClick">

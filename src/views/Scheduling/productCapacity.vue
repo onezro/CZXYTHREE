@@ -16,29 +16,48 @@
                             @keyup.enter.native="handleSearch" style="width: 200px"
                             :placeholder="t('Scheduling.productCapacity.inputProductName')" />
                     </el-form-item>
+                    <el-form-item :label="t('Scheduling.productCapacity.side')" prop="Side" class="mb-2">
+                        <el-select v-model="searchForm.Side" clearable style="width: 150px"
+                            :placeholder="t('Scheduling.productCapacity.selectSide')">
+                            <el-option label="TOP" value="TOP" />
+                            <el-option label="BOT" value="BOT" />
+                        </el-select>
+                    </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button :type="'primary'" @click="handleSearch">{{
                             t("publicText.query")
-                            }}</el-button>
+                        }}</el-button>
                     </el-form-item>
                 </el-form>
                 <div>
                     <el-button type="warning" size="small" @click="openAdd">{{
                         t("publicText.add")
-                        }}</el-button>
+                    }}</el-button>
+                    <el-button type="success" size="small" @click="openImportDialog">{{
+                        t("publicText.import")
+                    }}</el-button>
                 </div>
             </div>
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit highlight-current-row v-loading="loading">
+                :tooltip-effect="'dark'" border fit highlight-current-row>
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{
                             scope.$index + pageObj.pageSize * (pageObj.currentPage - 1) + 1
-                            }}</span>
+                        }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="ProductName" fixed :label="t('Scheduling.productCapacity.productName')"
                     min-width="150" />
+                      <el-table-column prop="Side" :label="t('Scheduling.productCapacity.side')" min-width="100"
+                    align="center">
+                    <template #default="{ row }">
+                        <!-- {{ row.Side }} -->
+                          <el-tag :type="row.Side === 'TOP' ? 'primary' : 'info'">
+                            {{ row.Side }}
+                          </el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="LineName" :label="t('Scheduling.productCapacity.lineName')" min-width="150" />
                 <el-table-column prop="TimeLong" :label="t('Scheduling.productCapacity.timeLong')" min-width="120"
                     align="center">
@@ -50,14 +69,17 @@
                     align="center">
 
                 </el-table-column>
+              
                 <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="130" align="center">
                     <template #default="{ row }">
-                        <el-button size="small" type="primary" @click="openEdit(row)">
-                            {{ $t("publicText.edit") }}
-                        </el-button>
-                        <el-button size="small" type="danger" @click="handleDelete(row)">
-                            {{ $t("publicText.delete") }}
-                        </el-button>
+                        <el-tooltip :content="$t('publicText.edit')" placement="top">
+                            <el-button size="small" type="primary" @click="openEdit(row)" icon="Edit">
+                            </el-button>
+                        </el-tooltip>
+                        <el-tooltip :content="$t('publicText.delete')" placement="top">
+                            <el-button size="small" type="danger" @click="handleDelete(row)" icon="Delete">
+                            </el-button>
+                        </el-tooltip>
                     </template>
                 </el-table-column>
                 <template #empty>
@@ -90,6 +112,12 @@
                     <el-input v-model="addForm.ProductName"
                         :placeholder="t('Scheduling.productCapacity.inputProductName')" clearable />
                 </el-form-item>
+                <el-form-item :label="t('Scheduling.productCapacity.side')" prop="Side">
+                    <el-select v-model="addForm.Side" :placeholder="t('Scheduling.productCapacity.selectSide')">
+                        <el-option label="TOP" value="TOP" />
+                        <el-option label="BOT" value="BOT" />
+                    </el-select>
+                </el-form-item>
                 <el-form-item :label="t('Scheduling.productCapacity.timeLong')" prop="TimeLong">
                     <el-input-number v-model="addForm.TimeLong" :min="0" :precision="0"
                         :placeholder="t('Scheduling.productCapacity.inputTimeLong')" style="width: 100%">
@@ -104,7 +132,32 @@
                     <el-button @click="addVisible = false">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{
                         t("publicText.confirm")
-                        }}</el-button>
+                    }}</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+        <!-- 导入对话框 -->
+        <el-dialog :title="t('publicText.import')" v-model="importDialogVisible" width="400px"
+            :close-on-click-modal="false" @closed="handleImportDialogClosed">
+            <el-form :model="importForm" ref="importFormRef" label-width="100px">
+                <el-form-item :label="t('publicText.import')" prop="file">
+                    <el-upload class="upload-demo" ref="uploadRef" style="width:100%" v-model:file-list="fileList"
+                        :auto-upload="false" :on-change="handleFileChange" :on-remove="handleFileRemove"
+                        :on-exceed="handleExceed" accept=".xlsx,.xls" :limit="1" drag>
+                        <el-icon class="el-icon--upload">
+                            <UploadFilled />
+                        </el-icon>
+                        <div class="el-upload__text">{{ t('Scheduling.productCapacity.selectFile') }}</div>
+                    </el-upload>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="importDialogVisible = false">{{ t("publicText.cancel") }}</el-button>
+                    <el-button type="primary" @click="handleUpload" :loading="submitLoading">{{
+                        t("publicText.confirm")
+                    }}</el-button>
                 </div>
             </template>
         </el-dialog>
@@ -119,9 +172,15 @@
                 <el-form-item :label="t('Scheduling.productCapacity.productName')" prop="ProductName">
                     <el-input v-model="editForm.ProductName" disabled />
                 </el-form-item>
+                <el-form-item :label="t('Scheduling.productCapacity.side')" prop="Side">
+                    <el-select v-model="editForm.Side">
+                        <el-option label="TOP" value="TOP" />
+                        <el-option label="BOT" value="BOT" />
+                    </el-select>
+                </el-form-item>
                 <el-form-item :label="t('Scheduling.productCapacity.timeLong')" prop="TimeLong">
                     <el-input-number v-model="editForm.TimeLong" :min="0" :precision="0"
-                        :placeholder="t('Scheduling.productCapacity.inputTimeLong')" style="width: 100%" >
+                        :placeholder="t('Scheduling.productCapacity.inputTimeLong')" style="width: 100%">
                         <template #suffix>
                             <span class="text-sm text-[#006487]">S</span>
                         </template>
@@ -133,7 +192,7 @@
                     <el-button @click="editVisible = false" size="small">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitEdit" size="small" :loading="submitLoading">{{
                         t("publicText.confirm")
-                        }}</el-button>
+                    }}</el-button>
                 </div>
             </template>
         </el-dialog>
@@ -141,7 +200,7 @@
 </template>
 
 <script setup lang="ts">
-import { GetProductLineCapacity, InsertUpdateProductLineCapacity, DeleteProductLineCapacity } from "@/api/Scheduling/apsBaseApi"
+import { GetProductLineCapacity, InsertUpdateProductLineCapacity, DeleteProductLineCapacity, UploadProductLineCapacity } from "@/api/Scheduling/apsBaseApi"
 import { GetMESWorkLineNews } from "@/api/Scheduling/lineCalendar"
 import {
     ref,
@@ -171,6 +230,7 @@ const total = ref(0);
 const searchForm = reactive({
     LineName: "",
     ProductName: "",
+    Side: "",
 });
 
 // 分页参数
@@ -190,6 +250,7 @@ const unitOptions = ref([
 const addForm = reactive({
     LineName: "",
     ProductName: "",
+    Side: "",
     TimeLong: undefined as number | undefined,
 });
 
@@ -197,13 +258,20 @@ const addForm = reactive({
 const editForm = reactive({
     LineName: "",
     ProductName: "",
+    Side: "",
     TimeLong: undefined as number | undefined,
 });
 
 const addVisible = ref(false);
 const editVisible = ref(false);
+const importDialogVisible = ref(false);
 const addFormRef = ref();
 const editFormRef = ref();
+const importFormRef = ref();
+const uploadRef = ref();
+
+const importForm = reactive({});
+const fileList = ref<any[]>([]);
 
 // 表单验证规则
 const formRules = reactive({
@@ -219,6 +287,13 @@ const formRules = reactive({
             required: true,
             message: t("message.pleaseInput") + t("Scheduling.productCapacity.productName"),
             trigger: "blur",
+        },
+    ],
+    Side: [
+        {
+            required: true,
+            message: t("message.pleaseSelect") + t("Scheduling.productCapacity.side"),
+            trigger: "change",
         },
     ],
     TimeLong: [
@@ -257,6 +332,7 @@ const getData = () => {
     const params = {
         LineName: searchForm.LineName || "",
         ProductName: searchForm.ProductName || "",
+        Side: searchForm.Side || "",
         PageIndex: pageObj.currentPage,
         PageSize: pageObj.pageSize,
     };
@@ -303,6 +379,7 @@ const handleCurrentChange = (val: number) => {
 const openAdd = () => {
     addForm.LineName = "";
     addForm.ProductName = "";
+    addForm.Side = "";
     addForm.TimeLong = undefined;
     addVisible.value = true;
 };
@@ -347,6 +424,7 @@ const doSave = () => {
     const params = {
         LineName: addForm.LineName,
         ProductName: addForm.ProductName,
+        Side: addForm.Side,
         TimeLong: String(addForm.TimeLong),
         UserNo: userStore.getUserInfo || "",
     };
@@ -371,6 +449,7 @@ const doSave = () => {
 const openEdit = (row: any) => {
     editForm.LineName = row.LineName;
     editForm.ProductName = row.ProductName;
+    editForm.Side = row.Side || "";
     editForm.TimeLong = row.TimeLong;
     editVisible.value = true;
 };
@@ -388,6 +467,7 @@ const submitEdit = () => {
             const params = {
                 LineName: editForm.LineName,
                 ProductName: editForm.ProductName,
+                Side: editForm.Side,
                 TimeLong: String(editForm.TimeLong),
                 UserNo: userStore.getUserInfo || "",
             };
@@ -409,6 +489,60 @@ const submitEdit = () => {
     });
 };
 
+// 打开导入对话框
+const openImportDialog = () => {
+    fileList.value = [];
+    importDialogVisible.value = true;
+};
+
+// 导入对话框关闭回调
+const handleImportDialogClosed = () => {
+    importFormRef.value?.resetFields();
+    fileList.value = [];
+};
+
+// 文件选择
+const handleFileChange = (uploadFile: any) => {
+};
+
+// 文件移除
+const handleFileRemove = () => {
+    fileList.value = [];
+};
+
+// 文件数量超出限制
+const handleExceed = () => {
+    ElMessage.warning(t("message.fileLimitWarning"));
+};
+
+// 上传文件
+const handleUpload = async () => {
+    if (fileList.value.length === 0) {
+        ElMessage.warning(t('Scheduling.productCapacity.selectFile'));
+        return;
+    }
+
+    const file = fileList.value[0].raw;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const base64Content = e.target?.result as string;
+        const data = {
+            FileName: file.name,
+            FileConent: base64Content.split(',')[1],
+            UserNo: userStore.getUserInfo || "",
+        };
+        const res: any = await UploadProductLineCapacity(data);
+        if (res.Success) {
+            ElMessage.success(t('message.importSuccess'));
+            importDialogVisible.value = false;
+            getData();
+        } else {
+            ElMessage.error(res.Message || t('message.importFailure'));
+        }
+    };
+    reader.readAsDataURL(file);
+};
+
 // 删除
 const handleDelete = (row: any) => {
     ElMessageBox.confirm(
@@ -425,6 +559,7 @@ const handleDelete = (row: any) => {
             DeleteProductLineCapacity({
                 LineName: row.LineName,
                 ProductName: row.ProductName,
+                Side: row.Side,
                 UserNo: userStore.getUserInfo || "",
             })
                 .then((res: any) => {

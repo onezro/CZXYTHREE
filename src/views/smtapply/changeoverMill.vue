@@ -25,15 +25,6 @@
                             </el-select>
                         </el-form-item>
 
-                        <el-form-item label="SIDE面">
-                            <el-select v-model="form.Side" @change="handleSideChoice" placeholder="选择SIDE"
-                                class="full-width">
-                                <el-option v-for="item in sideList" :key="item.sideType" :label="item.sideType"
-                                    :value="item.sideType">
-                                </el-option>
-                            </el-select>
-                        </el-form-item>
-
                         <el-form-item label="当前线体">
                             <div class="line-info">
                                 <span class="line-name">{{ form.LineName || "未选择" }}</span>
@@ -149,7 +140,7 @@
                                             <span class="status-indicator" :class="getStatusClass(status)"></span>
                                             <span :class="getTextColorClass(status)">{{
                                                 getStatusText(status)
-                                            }}</span>
+                                                }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -165,7 +156,7 @@
                                         <el-tag size="large" :type="getDeviceStatusTextType(item)" effect="light" round>
                                             <span class="text-lg font-black">{{
                                                 getDeviceStatusText(item)
-                                            }}</span>
+                                                }}</span>
                                         </el-tag>
                                     </div>
                                 </div>
@@ -188,19 +179,6 @@
                     </div>
                 </div>
             </div>
-            <!-- <div class="fixed text-3xl bottom-[20px] left-1/2 translate-x-1/2 py-2 px-2 toolChang">
-
-                <div class="selected-info" v-if="checkedDevices.length > 0">
-                    已选择 {{ checkedDevices.length }} 个设备
-                </div>
-                <el-button type="primary" @click="changeOver" :disabled="!isFormValid" :loading="isLoading"
-                    class="changeover-btn">
-                    <el-icon>
-                        <SwitchButton />
-                    </el-icon>
-                    {{ isLoading ? "换线中..." : "一键换线" }}
-                </el-button>
-            </div> -->
         </div>
 
         <!-- 线体设置对话框 -->
@@ -321,17 +299,13 @@
         </el-dialog>
 
         <!-- 悬浮错误按钮 -->
-        <div v-if="currentErrors.length > 0" class="float-error-btn" @click="errorDialogVisible = true">
-            <div class="float-btn-ring"></div>
-            <div class="float-btn-inner">
-                <el-badge :value="currentErrors.length" :max="99" class="float-error-badge">
-                    <el-icon class="float-error-icon">
-                        <Warning />
-                    </el-icon>
-                </el-badge>
-            </div>
-            <span class="float-btn-tip">换线错误</span>
-        </div>
+        <el-backtop v-if="currentErrors.length > 0" :bottom="150" :right="30" @click.native.prevent="errorDialogVisible = true">
+            <el-badge :value="currentErrors.length" :max="99" class="backtop-badge">
+                <el-icon class="backtop-error-icon">
+                    <Warning />
+                </el-icon>
+            </el-badge>
+        </el-backtop>
     </div>
 </template>
 
@@ -346,38 +320,24 @@ import {
     GetValorChangeLineWoEquipStatus,
     SMTChangeOverByOneKey,
 } from "@/api/smtApply/changeover";
-// import { getToken } from "@/utils/auth";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 const userStore = useUserStoreWithOut();
 import vueQr from "vue-qr/src/packages/vue-qr.vue";
 import { ElMessage, ElNotification } from "element-plus";
 import dayjs from "dayjs";
 
-interface ChangeoverError {
-    timestamp: string;
-    order: string;
-    line: string;
-    deviceName: string;
-    errorMsg: string;
-}
-
-// 表单引用
 const formRef = ref(null);
 const guideCarouselRef = ref(null);
 
-// 响应式数据
 const form = ref({
     Order: "",
     LineName: "",
-    Side: "",
     Product: "",
     Program: "",
     BomVer: "",
     ProductVer: "",
     Code: "",
 });
-
-const sideList = ref<any[]>([{ sideType: "TOP" }, { sideType: "BOT" }]);
 
 const lineList = ref<any[]>([]);
 const workOrderList = ref<any[]>([]);
@@ -418,9 +378,6 @@ const lineData = ref<any[]>([
         ConveryNum: 1,
         conveyorStatusList: [],
     },
-    // { Equipid: 6, EquipName: "Reflow", equipment: "0", orbit: "0" },
-    // { Equipid: 7, EquipName: "S-AOI", equipment: "0", orbit: "0" },
-    // { Equipid: 8, EquipName: "ICT", equipment: "0", orbit: "0" },
 ]);
 
 const checkedDevices = ref<any[]>([]);
@@ -433,14 +390,20 @@ const isLoading = ref(false);
 const currentDevice = ref<any>(null);
 const lineName = ref("");
 const warningText = ref("");
-const sideCode = ref("");
 const checkBoxVal = ref();
+
+interface ChangeoverError {
+    timestamp: string;
+    order: string;
+    line: string;
+    deviceName: string;
+    errorMsg: string;
+}
 
 const currentErrors = ref<ChangeoverError[]>([]);
 const errorHistory = ref<ChangeoverError[][]>([]);
 const errorDialogVisible = ref(false);
 
-// 计算属性
 const filteredDevices = computed(() => {
     return lineData.value.filter((device, index) => showDevice(device, index));
 });
@@ -448,13 +411,13 @@ const filteredDevices = computed(() => {
 const isFormValid = computed(() => {
     return (
         form.value.Order &&
-        form.value.Side &&
         form.value.LineName &&
         checkedDevices.value.length > 0
     );
 });
+
 onMounted(() => {
-    const savedLineName = localStorage.getItem("lineName");
+    const savedLineName = localStorage.getItem("millLineName");
     if (savedLineName) {
         lineName.value = savedLineName;
         form.value.LineName = savedLineName;
@@ -463,7 +426,7 @@ onMounted(() => {
     getOrderList();
     getLineList();
 });
-//获取设备
+
 const getSMTValorLineEquipMentData = () => {
     GetSMTValorLineEquipMent({
         line: lineName.value,
@@ -473,39 +436,32 @@ const getSMTValorLineEquipMentData = () => {
             lineData.value = res.Data.map((item: any) => {
                 const conveyorStatusList = [];
                 for (let i = 0; i < item.ConveryNum; i++) {
-                    conveyorStatusList.push("2"); // 默认待换线
+                    conveyorStatusList.push("2");
                 }
                 return {
                     Equipid: item.Equipid,
                     EquipName: item.EquipName,
                     ConveryNum: item.ConveryNum,
                     McIdStatus: "2",
-                    conveyorStatusList, // 数组形式存储轨道状态
+                    conveyorStatusList,
                 };
             });
-            console.log(lineData.value);
         }
         getStatus();
     });
 };
-// 方法
-// const getDeviceIcon = (deviceName: any) => {
-//     return CpuIcon;
-// };
-//选择换线设备
+
 const toggleDeviceSelection = (device: any) => {
     if (!showDevice(device, device.Equipid)) {
-        return; // 如果是禁用状态，不处理点击
+        return;
     }
 
     const index = checkedDevices.value.findIndex(
         (d: any) => d.Equipid === device.Equipid,
     );
     if (index > -1) {
-        // 如果已选中，则移除
         checkedDevices.value.splice(index, 1);
     } else {
-        // 如果未选中，则添加
         checkedDevices.value.push(device);
     }
 };
@@ -521,14 +477,13 @@ const getStatusText = (val: any) => {
     else if (val == 1 || val == -1) return "成功";
     else return "待换线";
 };
-// 获取状态指示器类名
+
 const getStatusClass = (val: any) => {
     if (val == 1 || val == -1) return "online";
     if (val == 0) return "offline";
     return "pending";
 };
 
-// 获取文字颜色类名
 const getTextColorClass = (val: any) => {
     if (val == 1 || val == -1) return "online-text";
     if (val == 0) return "offline-text";
@@ -539,17 +494,8 @@ const isDeviceSelected = (device: any) => {
     return checkedDevices.value.some((d: any) => d.Equipid === device.Equipid);
 };
 
-const handleDeviceSelect = (val: any) => {
-    console.log(val);
-
-    // if (checked) {
-    //     showDeviceGuide(device)
-    // }
-};
-
 const showDeviceGuide = (device: any) => {
     currentDevice.value = device;
-    // 这里需要替换为实际的图片列表
     guideImages.value = [];
     guideVisible.value = true;
 };
@@ -569,14 +515,12 @@ const getLineList = async () => {
 const changeOrder = (order: any) => {
     clearAll();
     form.value.LineName = lineName.value;
-    form.value.Side = "";
     GetValorChangeLineWoNew({ workOrder: form.value.Order }).then((res: any) => {
         form.value.Product = res.Data.Product;
         form.value.Program = res.Data.Soft;
         form.value.BomVer = res.Data.BomVer;
         form.value.ProductVer = res.Data.SoftVer;
         form.value.Code = res.Data.Side == "1" ? form.value.Order : "";
-        sideCode.value = res.Data.Side;
         getStatus();
     });
 };
@@ -589,24 +533,19 @@ const getStatus = async () => {
     let data = {
         line: form.value.LineName,
         order: form.value.Order,
-        side: form.value.Side,
+        side: "",
     };
     GetValorChangeLineWoEquipStatus(data).then((res: any) => {
         updateDeviceStatus(res.Data);
     });
-    // console.log(form.value);
 };
 
 const updateDeviceStatus = (statusData: any) => {
-    console.log(statusData);
-
     lineData.value = lineData.value.map((device) => {
         const status = statusData.find((s: any) => s.McId == device.Equipid);
         if (status) {
-            // 构建轨道状态数组
             const conveyorStatusList = [];
             for (let i = 1; i <= device.ConveryNum; i++) {
-                // 根据轨道序号获取对应字段，字段名可能为 ConverConveyorStatus, ConverConveyorStatus2, ...
                 const fieldName =
                     i === 1 ? "ConverConveyorStatus" : `ConverConveyorStatus${i}`;
                 conveyorStatusList.push(status[fieldName] || "2");
@@ -617,15 +556,12 @@ const updateDeviceStatus = (statusData: any) => {
                 conveyorStatusList,
             };
         }
-
         return device;
     });
-    // console.log(lineData.value);
 };
 
 const initializeStatus = () => {
     lineData.value = lineData.value.map((device) => {
-        // 生成与轨道数量相同长度的数组，默认状态为 '2'
         const conveyorStatusList = new Array(device.ConveryNum).fill("2");
         return {
             ...device,
@@ -637,7 +573,7 @@ const initializeStatus = () => {
 
 const changeOver = () => {
     if (!isFormValid.value) {
-        ElMessage.warning("请先完成工单、SIDE、线体的选择，并选择要换线的设备");
+        ElMessage.warning("请先完成工单、线体的选择，并选择要换线的设备");
         return;
     }
 
@@ -649,7 +585,6 @@ const confirmChangeOver = async () => {
     confirmVisible.value = false;
     isLoading.value = true;
     const data = prepareChangeOverData();
-    console.log({ ...data, OperatorUser: userStore.getUserInfo });
     SMTChangeOverByOneKey({ ...data, OperatorUser: userStore.getUserInfo })
         .then((res: any) => {
             handleChangeOverResponse(res);
@@ -670,6 +605,7 @@ const prepareChangeOverData = () => {
 
     return {
         ...form.value,
+        Side: "",
         McIDList: devices,
     };
 };
@@ -740,6 +676,7 @@ const handleChangeOverResponse = (res: any) => {
         };
     });
 };
+
 const handleChangeOverError = (error: any) => {
     console.error("换线请求失败:", error);
     ElNotification.error({
@@ -749,20 +686,10 @@ const handleChangeOverError = (error: any) => {
     });
 };
 
-const handleSideChoice = (type: any) => {
-    console.log(sideCode.value);
-    clearAll();
-    if (sideCode.value == "2") {
-        const arr = form.value.Order.split("_");
-        form.value.Code = arr[0] + "_" + type + "_" + arr[1];
-    }
-    getStatus();
-};
-//选择线体
 const handleLineSetting = async () => {
     clearAll();
     form.value.LineName = lineName.value;
-    localStorage.setItem("lineName", lineName.value);
+    localStorage.setItem("millLineName", lineName.value);
     lineChangeVisible.value = false;
     getSMTValorLineEquipMentData();
 };
@@ -775,15 +702,9 @@ const clearAll = () => {
 const showDevice = (device: any, index: any) => {
     const lineName = form.value.LineName;
     if (!lineName) return true;
-
-    // if (["Line4", "Line5", "Line6", "Line7"].includes(lineName)) {
-    //     return index === 0; // 只显示 Laser
-    // }
-    if (device.EquipName === "ICT") {
-        return true; // 隐藏 Reflow、S-AOI 和 ICT
-    }
-    return false;
+    return true;
 };
+
 const getDeviceStatusTextType = (device: any) => {
     const status = getDeviceStatus(device);
     if (status === "success") return "success";
@@ -791,7 +712,7 @@ const getDeviceStatusTextType = (device: any) => {
     if (status === "failure") return "danger";
     return "info";
 };
-//名称
+
 const getDeviceStatusText = (device: any) => {
     const status = getDeviceStatus(device);
     if (status === "success") return "成功";
@@ -799,29 +720,22 @@ const getDeviceStatusText = (device: any) => {
     if (status === "failure") return "失败";
     return "待换线";
 };
-//获取设备整体状态
+
 const getDeviceStatus = (device: any) => {
-    // console.log(device);
-
-    // 检查是否有状态为0（失败）
     if (device.McIdStatus === "0") return "failure";
-
     if (device.conveyorStatusList.some((status: any) => status === "0"))
         return "failure";
 
-    // 检查是否有状态为4（换线中）或其他自定义中间状态
     if (device.McIdStatus === "4") return "warning";
     if (device.conveyorStatusList.some((status: any) => status === "4"))
         return "warning";
 
-    // 检查主设备状态是否为2（待换线）
     if (device.McIdStatus === "2") return "pending";
-
-    // 检查是否所有轨道状态都为1（成功）
 
     const allConveyorSuccess = device.conveyorStatusList.every(
         (status: any) => status === "1" || status === "-1",
-    ); // 允许轨道状态为成功或待换线
+    );
+ 
     if (
         device.McIdStatus === "1" ||
         (device.McIdStatus === "-1" && allConveyorSuccess)
@@ -833,22 +747,17 @@ const getDeviceStatus = (device: any) => {
 </script>
 
 <style lang="scss" scoped>
-// 主容器
 .changeover-container {
-    // min-height: calc(100vh - 91px);
     min-height: calc(100vh - 91px);
     display: flex;
     flex-direction: column;
     width: 100%;
-    /* 确保宽度占满父容器 */
     box-sizing: border-box;
-    /* 防止 padding 影响宽度 */
     background: linear-gradient(135deg, #f5f8fa 0%, #eef4f8 100%);
-    padding: 10px;
+    padding: 20px;
     font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
-// 页面标题
 .page-header {
     margin-bottom: 30px;
     text-align: center;
@@ -872,14 +781,8 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 主内容区
 .main-content {
-    // display: grid;
-    // grid-template-columns: 1fr 2fr;
-    // gap: 24px;
-    // margin: 0 auto;
     flex: 1;
-    /* 填满剩余高度 */
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 24px;
@@ -891,7 +794,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 面板公共样式
 .info-panel,
 .status-panel {
     background: white;
@@ -949,7 +851,6 @@ const getDeviceStatus = (device: any) => {
     padding: 32px;
 }
 
-// 左侧信息面板
 .info-form {
     .full-width {
         width: 100%;
@@ -1039,7 +940,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 右侧设备状态面板
 .device-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -1060,7 +960,7 @@ const getDeviceStatus = (device: any) => {
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    min-height: 220px; // 确保最小高度一致
+    min-height: 220px;
 
     &:hover {
         border-color: #006487;
@@ -1068,7 +968,6 @@ const getDeviceStatus = (device: any) => {
         transform: translateY(-2px);
     }
 
-    // 成功状态 - 绿色边框
     &.status-success {
         border-color: #4caf50 !important;
 
@@ -1085,7 +984,6 @@ const getDeviceStatus = (device: any) => {
         }
     }
 
-    // 失败状态 - 红色边框
     &.status-warning {
         border-color: #e6a23c !important;
 
@@ -1102,7 +1000,6 @@ const getDeviceStatus = (device: any) => {
         }
     }
 
-    // 失败状态 - 红色边框
     &.status-failure {
         border-color: #f44336 !important;
 
@@ -1119,26 +1016,11 @@ const getDeviceStatus = (device: any) => {
         }
     }
 
-    // 待换线状态 - 保持默认边框颜色
     &.status-pending {
         border-color: #eef1f6;
     }
 
     &.selected {
-        // border-color: #4caf50;
-        // background: linear-gradient(135deg,
-        //         rgba(76, 175, 80, 0.05) 0%,
-        //         rgba(76, 175, 80, 0.02) 100%);
-
-        // .custom-checkbox {
-        //     background-color: #4caf50;
-        //     border-color: #4caf50;
-
-        //     .el-icon {
-        //         opacity: 1;
-        //         transform: scale(1);
-        //     }
-        // }
         border-color: #006487;
         background: linear-gradient(135deg,
                 rgba(0, 100, 135, 0.05) 0%,
@@ -1171,7 +1053,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 自定义复选框样式
 .custom-checkbox {
     position: absolute;
     top: 15px;
@@ -1206,7 +1087,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 设备内容样式
 .device-content {
     display: flex;
     flex-direction: column;
@@ -1246,7 +1126,7 @@ const getDeviceStatus = (device: any) => {
 
     .device-details {
         background: #f8f9fa;
-        border: 2px solid #eef1f6; //
+        border: 2px solid #eef1f6;
         border-radius: 8px;
         padding: 15px;
         margin: 15px 0;
@@ -1263,7 +1143,7 @@ const getDeviceStatus = (device: any) => {
             }
 
             .detail-label {
-                color: #596263; //7f8c8d
+                color: #596263;
                 font-size: 1.1rem;
             }
 
@@ -1273,7 +1153,6 @@ const getDeviceStatus = (device: any) => {
                 gap: 8px;
                 font-weight: 500;
 
-                // 确保文字和指示器对齐
                 .status-indicator {
                     flex-shrink: 0;
                 }
@@ -1284,7 +1163,6 @@ const getDeviceStatus = (device: any) => {
                     font-size: 1.1rem;
                 }
 
-                // 状态指示器颜色
                 .status-indicator {
                     width: 1.1rem;
                     height: 1.1rem;
@@ -1299,11 +1177,10 @@ const getDeviceStatus = (device: any) => {
                     }
 
                     &.pending {
-                        background: #d0d0d0; // 灰色
+                        background: #d0d0d0;
                     }
                 }
 
-                // 文字颜色
                 .online-text {
                     color: #4caf50;
                 }
@@ -1313,15 +1190,15 @@ const getDeviceStatus = (device: any) => {
                 }
 
                 .pending-text {
-                    color: #000000; // 正常黑色
+                    color: #000000;
                 }
             }
         }
     }
 
     .device-actions {
-        margin-top: auto; // 这将使操作指南按钮保持在底部
-        text-align: right; // 将按钮对齐到右侧
+        margin-top: auto;
+        text-align: right;
 
         .guide-btn {
             color: #006487;
@@ -1334,7 +1211,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 添加选中动画
 .device-card {
     &.selected {
         animation: pulse-selected 0.5s ease;
@@ -1355,7 +1231,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 操作区域
 .action-section {
     margin-top: 40px;
     text-align: center;
@@ -1393,7 +1268,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 对话框样式
 :deep(.line-dialog),
 :deep(.confirm-dialog),
 :deep(.warning-dialog),
@@ -1429,7 +1303,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 确认对话框内容
 .confirm-content {
     display: flex;
     align-items: flex-start;
@@ -1484,7 +1357,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 警告对话框内容
 .warning-content {
     display: flex;
     align-items: flex-start;
@@ -1504,7 +1376,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 操作指南轮播
 .guide-slide {
     position: relative;
     height: 100%;
@@ -1533,7 +1404,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-// 响应式调整
 @media (max-width: 768px) {
     .changeover-container {
         padding: 15px;
@@ -1572,43 +1442,6 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-.toolChang {
-    border-radius: 12px;
-    background: color-mix(in srgb, #fff 50%, transparent);
-    backdrop-filter: blur(1px);
-
-    .selected-info {
-        // margin-bottom: 20px;
-        text-align: center;
-        color: #006487;
-        font-weight: 500;
-        font-size: 1.1rem;
-    }
-
-    .changeover-btn {
-        padding: 18px 48px;
-        font-size: 1.2rem;
-        font-weight: 600;
-        background: linear-gradient(135deg, #006487 0%, #0088a3 100%);
-        border: none;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        min-width: 200px;
-
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 100, 135, 0.3);
-        }
-
-        &:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-    }
-}
-
 .error-content {
     .error-summary {
         display: flex;
@@ -1629,6 +1462,11 @@ const getDeviceStatus = (device: any) => {
             color: #f44336;
             font-size: 1.3rem;
         }
+    }
+
+    .error-list {
+        max-height: 400px;
+        overflow-y: auto;
     }
 
     .error-item {
@@ -1741,102 +1579,38 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
-.float-error-btn {
-    position: fixed;
-    right: 30px;
-    bottom: 150px;
-    z-index: 1000;
+:deep(.el-backtop) {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    border-radius: 50%;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(244, 67, 54, 0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
 
-    .float-btn-ring {
-        position: absolute;
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        background: rgba(244, 67, 54, 0.3);
-        animation: float-ring-pulse 2s ease-out infinite;
+    &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 30px rgba(244, 67, 54, 0.5);
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
     }
 
-    .float-btn-inner {
-        position: relative;
-        width: 56px;
-        height: 56px;
-        background: linear-gradient(145deg, #ff5252, #c62828);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow:
-            0 6px 20px rgba(244, 67, 54, 0.4),
-            0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-            0 4px 8px rgba(0, 0, 0, 0.2);
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-        &:hover {
-            transform: scale(1.08) translateY(-2px);
-            box-shadow:
-                0 12px 30px rgba(244, 67, 54, 0.5),
-                0 0 0 1px rgba(255, 255, 255, 0.15) inset,
-                0 6px 12px rgba(0, 0, 0, 0.25);
-        }
-
-        &:active {
-            transform: scale(0.95);
-        }
-    }
-
-    .float-error-icon {
-        font-size: 1.6rem;
+    .backtop-error-icon {
+        font-size: 1.8rem;
         color: white;
-        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
     }
 
-    .float-error-badge {
+    .backtop-badge {
         .el-badge__content {
-            background: linear-gradient(145deg, #ffeb3b, #fbc02d);
-            color: #c62828;
-            font-weight: 700;
-            font-size: 0.75rem;
+            background: #ffeb3b;
+            color: #333;
+            font-weight: bold;
+            font-size: 0.85rem;
             border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
-            padding: 0 6px;
-            min-width: 18px;
-            height: 18px;
-            line-height: 14px;
         }
-    }
-
-    .float-btn-tip {
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.9);
-        background: rgba(0, 0, 0, 0.6);
-        padding: 4px 10px;
-        border-radius: 12px;
-        white-space: nowrap;
-        opacity: 0;
-        transform: translateY(5px);
-        transition: all 0.3s ease;
-        backdrop-filter: blur(4px);
-    }
-
-    &:hover .float-btn-tip {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes float-ring-pulse {
-    0% {
-        transform: scale(1);
-        opacity: 0.6;
-    }
-    100% {
-        transform: scale(1.3);
-        opacity: 0;
     }
 }
 </style>

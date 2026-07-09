@@ -22,7 +22,7 @@
                     <el-button type="warning" size="small" @click="openAdd">{{ t('publicText.add') }}</el-button>
                 </div>
             </div>
-            <el-row :gutter="20">
+            <el-row :gutter="10">
                 <!-- 左侧：检验项目主表列表 -->
                 <el-col :span="9">
                     <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"

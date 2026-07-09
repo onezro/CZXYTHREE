@@ -1,5 +1,5 @@
 <template>
-    <div class="p-2">
+    <div class="p-2 ite">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <div class="flex justify-between">
                 <el-form ref="formRef" :model="getForm" label-width="auto" :inline="true" :size="'small'"
@@ -40,7 +40,7 @@
             </div>
 
             <!-- 主表列表 -->
-            <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
+            <el-table :data="tableData" ref="eltableRef" size="small" :style="{ width: '100%' }" :height="tableHeight"
                 :tooltip-effect="'dark'" border fit highlight-current-row>
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
@@ -48,17 +48,17 @@
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('incomingManage.deliveryNote.iqcNo')" prop="IQCNo"
-                    :min-width="getColumnWidth1('IQCNo')" fixed />
+                    :min-width="getColumnWidth('IQCNo')" fixed />
                 <el-table-column :label="t('incomingManage.deliveryNote.arrivalNo')" prop="ArrivalNo"
-                    :min-width="getColumnWidth1('ArrivalNo')" fixed />
+                    :min-width="getColumnWidth('ArrivalNo')" fixed />
                 <el-table-column :label="t('incomingManage.deliveryNote.arrivalBatch')" prop="ArrivalBatch"
-                    :min-width="getColumnWidth1('ArrivalBatch')" />
+                    :min-width="getColumnWidth('ArrivalBatch')" />
                 <el-table-column :label="t('incomingManage.deliveryNote.materialCode')" prop="MaterialCode"
-                    :min-width="getColumnWidth1('MaterialCode')" />
+                    :min-width="getColumnWidth('MaterialCode')" />
                 <el-table-column :label="t('incomingManage.deliveryNote.materialName')" prop="MaterialName"
-                    :min-width="getColumnWidth1('MaterialName')" />
+                    width="200"  show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.deliveryNote.projectName')" prop="ProjectName"
-                    :min-width="getColumnWidth1('ProjectName')" />
+                    :min-width="getColumnWidth('ProjectName')" />
                 <el-table-column :label="t('incomingManage.deliveryNote.isDouble')" prop="IsDouble" width="80"
                     align="center">
                     <template #default="{ row }">
@@ -70,26 +70,31 @@
                 <el-table-column :label="t('incomingManage.deliveryNote.sampleQty')" prop="SampleQty" width="100"
                     align="right" />
                 <el-table-column :label="t('incomingManage.deliveryNote.result')" prop="Result" width="100"
-                    align="center">
+                    align="center" fixed="right">
                     <template #default="{ row }">
                         <el-tag :type="getResultType(row.Result)" size="small">{{ getResultText(row.Result) }}</el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser"
-                    :min-width="getColumnWidth1('CreateUser')" />
+                    :min-width="getColumnWidth('CreateUser')" />
                 <el-table-column :label="t('incomingManage.testItems.creatime')" prop="CreateTime"
-                    :min-width="getColumnWidth1('CreateTime')" />
-                <el-table-column :label="$t('publicText.operation')" fixed="right" width="220" align="center">
+                    :min-width="getColumnWidth('CreateTime')" />
+                <el-table-column :label="$t('publicText.operation')" fixed="right" width="160" align="center">
                     <template #default="{ row }">
-                        <el-button type="primary" size="small" :disabled="row.Result!==0" @click="openInspectDialog(row)">
-                            {{ t('incomingManage.deliveryNote.inspect') }}
-                        </el-button>
-                        <el-button type="warning" size="small" @click="openReviewDialog(row)">
-                            {{ t('incomingManage.deliveryNote.review') }}
-                        </el-button>
-                        <el-button type="danger" size="small" @click="handleDelete(row)">
-                            {{ t('publicText.delete') }}
-                        </el-button>
+                        <el-tooltip effect="dark" :content="row.Result === 0 ? t('incomingManage.deliveryNote.inspect') : t('publicText.detail')"
+                            placement="top-start">
+                            <el-button type="primary" size="small"
+                                @click="openInspectDialog(row)" :icon="row.Result === 0 ? 'Edit' : 'View'">
+                            </el-button>
+                        </el-tooltip>
+                        <el-tooltip effect="dark" :content=" t('incomingManage.deliveryNote.review')"
+                            placement="top-start">
+                            <el-button type="warning" size="small" @click="openReviewDialog(row)" icon="Check"/>
+                        </el-tooltip>
+                        <el-tooltip effect="dark" :content=" t('publicText.delete')"
+                            placement="top-start">
+                            <el-button type="danger" size="small" @click="handleDelete(row)" icon="Delete"/>
+                        </el-tooltip>   
                     </template>
                 </el-table-column>
                 <template #empty>
@@ -107,7 +112,7 @@
         </el-card>
 
         <!-- 检验弹窗（录入实测值/选择结果） -->
-        <el-dialog :title="t('incomingManage.deliveryNote.inspectTitle')" v-model="inspectDialogVisible" width="1200px"
+        <el-dialog :title="isInspected ? t('publicText.detail') : t('incomingManage.deliveryNote.inspectTitle')" v-model="inspectDialogVisible" width="1200px"
             @close="closeInspectDialog" align-center :append-to-body="true" :close-on-click-modal="false"
             :close-on-press-escape="false">
             <el-form :model="inspectForm" size="small" :inline="true" label-width="auto">
@@ -121,44 +126,51 @@
                     <el-input v-model="inspectForm.MaterialCode" disabled style="width: 200px;" />
                 </el-form-item>
                 <el-form-item :label="t('incomingManage.deliveryNote.materialName')" style="width: 100%;">
-                    <el-input v-model="inspectForm.MaterialName" type="textarea" disabled rows="1" style="width: 100%;" />
+                    <el-input v-model="inspectForm.MaterialName" type="textarea" disabled rows="1"
+                        style="width: 100%;" />
                 </el-form-item>
                 <el-form-item :label="t('incomingManage.deliveryNote.result')">
-                    <el-select v-model="inspectForm.MainResult" size="small" style="width: 200px">
+                    <el-select v-model="inspectForm.MainResult" size="small" style="width: 200px" :disabled="isInspected">
                         <el-option :label="t('incomingManage.deliveryNote.qualified')" :value="1" />
                         <el-option :label="t('incomingManage.deliveryNote.unqualified')" :value="2" />
                     </el-select>
                 </el-form-item>
                 <el-table :data="inspectForm.Details" border size="small" style="width: 100%" height="400">
-                    <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode" width="120" />
-                    <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName" min-width="180" />
+                    <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode"
+                        width="120" />
+                    <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName"
+                        min-width="180" />
                     <el-table-column label="检验项类型" prop="InspectionItemType" width="100" />
                     <el-table-column label="检验工具" prop="InspectionTool" width="100" />
                     <el-table-column label="检测方法" prop="DetectionMethod" width="120" />
-                       <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" prop="LowerLimit" width="90" align="right" />
-                    <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" prop="UpperLimit" width="90" align="right" />
-                 
+                    <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" prop="LowerLimit" width="90"
+                        align="right" />
+                    <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" prop="UpperLimit" width="90"
+                        align="right" />
+
                     <el-table-column :label="t('incomingManage.inspectionRule.unit')" prop="Unit" width="70" />
                     <!-- 定量检验：显示实测值输入框 -->
-                    <el-table-column :label="t('incomingManage.deliveryNote.measuredValue')" width="140" >
+                    <el-table-column :label="t('incomingManage.deliveryNote.measuredValue')" width="140">
                         <template #default="{ row }">
-                            <el-input-number v-model="row.MeasuredValue" :disabled="row.InspectionType!==2" size="small" :controls="false" style="width: 100%"
-                                :precision="4" @change="() => calculateDetailResult(row)" />
+                            <el-input-number v-model="row.MeasuredValue" :disabled="isInspected || row.InspectionType !== 2" size="small"
+                                :controls="false" style="width: 100%" 
+                                @change="() => calculateDetailResult(row)" />
                         </template>
                     </el-table-column>
                     <!-- 检验结果列 -->
                     <el-table-column :label="t('incomingManage.deliveryNote.detailResult')" width="100" align="center">
                         <template #default="{ row }">
                             <!-- 定性检验：手动选择结果 -->
-                            <el-select v-if="row.InspectionType === 1" v-model="row.Result" size="small" style="width: 100%"
-                                @change="updateMainResult">
+                            <el-select v-if="row.InspectionType === 1" v-model="row.Result" size="small"
+                                style="width: 100%" :disabled="isInspected" @change="updateMainResult">
                                 <el-option :label="t('incomingManage.deliveryNote.qualified')" :value="1" />
                                 <el-option :label="t('incomingManage.deliveryNote.unqualified')" :value="0" />
                             </el-select>
                             <!-- 定量检验：显示自动判定的结果 -->
                             <span v-else>
                                 <el-tag :type="row.Result === 1 ? 'success' : 'danger'" size="small">
-                                    {{ row.Result === 1 ? t('incomingManage.deliveryNote.qualified') : t('incomingManage.deliveryNote.unqualified') }}
+                                    {{ row.Result === 1 ? t('incomingManage.deliveryNote.qualified') :
+                                        t('incomingManage.deliveryNote.unqualified') }}
                                 </el-tag>
                             </span>
                         </template>
@@ -166,8 +178,9 @@
                 </el-table>
             </el-form>
             <template #footer>
-                <el-button @click="inspectDialogVisible = false">{{ t("publicText.cancel") }}</el-button>
-                <el-button type="primary" @click="submitInspect" :loading="inspectSubmitting">{{ t("publicText.confirm") }}</el-button>
+                <el-button @click="inspectDialogVisible = false">{{ t("publicText.close") }}</el-button>
+                <el-button type="primary" v-if="!isInspected" @click="submitInspect" :loading="inspectSubmitting">{{ t("publicText.confirm")
+                    }}</el-button>
             </template>
         </el-dialog>
 
@@ -175,7 +188,8 @@
         <el-dialog :title="t('incomingManage.deliveryNote.reviewTitle')" v-model="reviewDialogVisible" width="1000px"
             @close="closeReviewDialog" align-center :append-to-body="true" :close-on-click-modal="false"
             :close-on-press-escape="false">
-            <el-form :model="reviewForm" ref="reviewFormRef" label-width="auto" size="small" :rules="reviewRules" :inline="true">
+            <el-form :model="reviewForm" ref="reviewFormRef" label-width="auto" size="small" :rules="reviewRules"
+                :inline="true">
                 <el-form-item :label="t('incomingManage.deliveryNote.iqcNo')">
                     <el-input v-model="reviewForm.IQCNo" disabled style="width: 200px;" />
                 </el-form-item>
@@ -195,23 +209,32 @@
                 </el-form-item>
             </el-form>
             <el-table :data="viewDetails" border size="small" style="width: 100%" height="400">
-                <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode" width="150" />
-                <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName" min-width="150" />
-                <el-table-column :label="t('incomingManage.inspectionItem.isGauge')" prop="IsInspectionTool" width="80" align="center">
-                    <template #default="{ row }">{{ row.IsInspectionTool === 1 ? t('publicText.yes') : t('publicText.no') }}</template>
+                <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode"
+                    width="150" />
+                <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName"
+                    min-width="150" />
+                <el-table-column :label="t('incomingManage.inspectionItem.isGauge')" prop="IsInspectionTool" width="80"
+                    align="center">
+                    <template #default="{ row }">{{ row.IsInspectionTool === 1 ? t('publicText.yes') :
+                        t('publicText.no') }}</template>
                 </el-table-column>
-                   <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" prop="LowerLimit" width="90" align="right" />
-                <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" prop="UpperLimit" width="90" align="right" />
-             
+                <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" prop="LowerLimit" width="90"
+                    align="right" />
+                <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" prop="UpperLimit" width="90"
+                    align="right" />
+
                 <el-table-column :label="t('incomingManage.inspectionRule.unit')" prop="Unit" width="70" />
-                <el-table-column :label="t('incomingManage.deliveryNote.measuredValue')" prop="MeasuredValue" width="120" align="right" />
+                <el-table-column :label="t('incomingManage.deliveryNote.measuredValue')" prop="MeasuredValue"
+                    width="120" align="right" />
                 <el-table-column :label="t('incomingManage.deliveryNote.detailResult')" width="100" align="center">
-                    <template #default="{ row }">{{ row.Result === 1 ? t('incomingManage.deliveryNote.qualified') : t('incomingManage.deliveryNote.unqualified') }}</template>
+                    <template #default="{ row }">{{ row.Result === 1 ? t('incomingManage.deliveryNote.qualified') :
+                        t('incomingManage.deliveryNote.unqualified') }}</template>
                 </el-table-column>
             </el-table>
             <template #footer>
                 <el-button @click="reviewDialogVisible = false">{{ t("publicText.cancel") }}</el-button>
-                <el-button type="primary" @click="submitReview" :loading="reviewSubmitting">{{ t("publicText.confirm") }}</el-button>
+                <el-button type="primary" @click="submitReview" :loading="reviewSubmitting">{{ t("publicText.confirm")
+                    }}</el-button>
             </template>
         </el-dialog>
     </div>
@@ -219,15 +242,16 @@
 
 <script setup lang="ts">
 import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspectionResult, SubmitInspectionResult, UpdateReviewResult, DeleteArrivalInspection } from "@/api/incomingManage/index";
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import dayjs from "dayjs";
+import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useI18n } from "vue-i18n";
 
 const userStore = useUserStoreWithOut();
 const { t } = useI18n();
-
+const eltableRef = ref();
 const tableHeight = ref(0);
 const tableData = ref<any[]>([]);
 const total = ref(0);
@@ -243,6 +267,7 @@ const getForm = reactive({
 // 检验弹窗
 const inspectDialogVisible = ref(false);
 const inspectSubmitting = ref(false);
+const isInspected = ref(false);
 const inspectForm = reactive<{
     ArrivalId: number | null;
     IQCNo: string;
@@ -289,7 +314,10 @@ const getData = () => {
     }).then((res: any) => {
         if (res.Success) {
             total.value = res.Data.total;
-            tableData.value = res.Data.rows || [];
+            tableData.value = res.Data.rows.map((item: any) => ({
+                ...item,
+                CreateTime: dayjs(item.CreateTime).format("YYYY-MM-DD HH:mm:ss"),
+            })) || [];
         } else {
             ElMessage.error(res.Message || "查询失败");
         }
@@ -372,7 +400,7 @@ const openInspectDialog = async (row: any) => {
                 DetectionMethod: item.DetectionMethod || '',
                 SortNo: item.SortNo,
                 MeasuredValue: item.MeasuredValue ?? null,
-                Result: row.Result==0 ? "" : item.Result,
+                Result: row.Result == 0 ? "" : item.Result,
             }));
             inspectForm.ArrivalId = row.ArrivalId;
             inspectForm.IQCNo = row.IQCNo;
@@ -381,6 +409,7 @@ const openInspectDialog = async (row: any) => {
             inspectForm.MaterialName = row.MaterialName;
             inspectForm.MainResult = row.Result ?? '';
             inspectForm.Details = details;
+            isInspected.value = row.Result !== 0;
             inspectDialogVisible.value = true;
         } else {
             ElMessage.error(res.Message || "加载明细失败");
@@ -461,6 +490,7 @@ const submitInspect = async () => {
 
 const closeInspectDialog = () => {
     inspectDialogVisible.value = false;
+    isInspected.value = false;
     inspectForm.ArrivalId = null;
     inspectForm.IQCNo = "";
     inspectForm.ArrivalNo = "";
@@ -522,21 +552,9 @@ const closeReviewDialog = () => {
 };
 
 // ==================== 列宽自适应 ====================
-const columnWidths1 = computed(() => {
-    const columns = [
-        { label: t("incomingManage.deliveryNote.iqcNo"), prop: "IQCNo" },
-        { label: t("incomingManage.deliveryNote.arrivalNo"), prop: "ArrivalNo" },
-        { label: t("incomingManage.deliveryNote.arrivalBatch"), prop: "ArrivalBatch" },
-        { label: t("incomingManage.deliveryNote.materialCode"), prop: "MaterialCode" },
-        { label: t("incomingManage.deliveryNote.materialName"), prop: "MaterialName" },
-        { label: t("incomingManage.deliveryNote.projectName"), prop: "ProjectName" },
-        { label: t("incomingManage.testItems.creator"), prop: "CreateUser" },
-        { label: t("incomingManage.testItems.creatime"), prop: "CreateTime" },
-    ];
-    return calculateColumnsWidth(columns, tableData.value, { padding: 25, fontSize: 13 });
+const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {
+    excludeLabels: [t('publicText.index'), t('publicText.operation')]
 });
-const getColumnWidth1 = (prop: string) => columnWidths1.value[prop] || "auto";
-
 const getScreenHeight = () => {
     nextTick(() => {
         tableHeight.value = window.innerHeight - 180;

@@ -16,13 +16,16 @@
                     <el-form-item class="mb-2">
                         <el-button :type="'primary'" @click="handleSearch">{{
                             t("publicText.query")
-                            }}</el-button>
+                        }}</el-button>
                     </el-form-item>
                 </el-form>
                 <div>
                     <el-button type="warning" size="small" @click="openAdd">{{
                         t("publicText.add")
-                        }}</el-button>
+                    }}</el-button>
+                    <el-button type="success" size="small" @click="openImportDialog">{{
+                        t("publicText.import")
+                    }}</el-button>
                 </div>
             </div>
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
@@ -31,7 +34,7 @@
                     <template #default="scope">
                         <span>{{
                             scope.$index + pageObj.pageSize * (pageObj.currentPage - 1) + 1
-                            }}</span>
+                        }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="LineName" fixed :label="t('Scheduling.lineChangeTime.lineName')"
@@ -47,12 +50,16 @@
                 </el-table-column>
                 <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="130" align="center">
                     <template #default="{ row }">
-                        <el-button size="small" type="primary" @click="openEdit(row)">
-                            {{ $t("publicText.edit") }}
-                        </el-button>
-                        <el-button size="small" type="danger" @click="handleDelete(row)">
-                            {{ $t("publicText.delete") }}
-                        </el-button>
+                        <el-tooltip class="item" :content="t('publicText.edit')" placement="top">
+                            <el-button size="small" type="primary" @click="openEdit(row)" icon="Edit">
+
+                            </el-button>
+                        </el-tooltip>
+                        <el-tooltip class="item" :content="t('publicText.delete')" placement="top">
+                            <el-button size="small" type="danger" @click="handleDelete(row)" icon="Delete">
+
+                            </el-button>
+                        </el-tooltip>
                     </template>
                 </el-table-column>
                 <template #empty>
@@ -94,7 +101,7 @@
                 <div class="dialog-footer">
                     <el-button @click="addVisible = false">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{ t("publicText.confirm")
-                        }}</el-button>
+                    }}</el-button>
                 </div>
             </template>
         </el-dialog>
@@ -123,11 +130,36 @@
                 </div>
             </template>
         </el-dialog>
+
+        <!-- 导入对话框 -->
+        <el-dialog :title="t('publicText.import')" v-model="importDialogVisible" width="400px"
+            :close-on-click-modal="false" @closed="handleImportDialogClosed">
+            <el-form :model="importForm" ref="importFormRef" label-width="100px">
+                <el-form-item :label="t('publicText.import')" prop="file">
+                    <el-upload class="upload-demo" ref="uploadRef" style="width:100%" v-model:file-list="fileList"
+                        :auto-upload="false" :on-change="handleFileChange" :on-remove="handleFileRemove"
+                        :on-exceed="handleExceed" accept=".xlsx,.xls" :limit="1" drag>
+                        <el-icon class="el-icon--upload">
+                            <UploadFilled />
+                        </el-icon>
+                        <div class="el-upload__text">{{ t('Scheduling.lineChangeTime.selectFile') }}</div>
+                    </el-upload>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="importDialogVisible = false">{{ t("publicText.cancel") }}</el-button>
+                    <el-button type="primary" @click="handleUpload" :loading="submitLoading">{{
+                        t("publicText.confirm")
+                    }}</el-button>
+                </div>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
-import { GetSwitchLineTime, InsertUpdateSwitchLineTime, DeleteSwitchLineTime } from "@/api/Scheduling/apsBaseApi"
+import { GetSwitchLineTime, InsertUpdateSwitchLineTime, DeleteSwitchLineTime, UploadSwitchLineTime } from "@/api/Scheduling/apsBaseApi"
 import { GetMESWorkLineNews } from "@/api/Scheduling/lineCalendar"
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
 import {
@@ -189,8 +221,14 @@ const editForm = reactive({
 
 const addVisible = ref(false);
 const editVisible = ref(false);
+const importDialogVisible = ref(false);
 const addFormRef = ref();
 const editFormRef = ref();
+const importFormRef = ref();
+const uploadRef = ref();
+
+const importForm = reactive({});
+const fileList = ref<any[]>([]);
 
 // 表单验证规则
 const formRules = reactive({
@@ -388,6 +426,60 @@ const submitEdit = () => {
                 });
         }
     });
+};
+
+// 打开导入对话框
+const openImportDialog = () => {
+    fileList.value = [];
+    importDialogVisible.value = true;
+};
+
+// 导入对话框关闭回调
+const handleImportDialogClosed = () => {
+    importFormRef.value?.resetFields();
+    fileList.value = [];
+};
+
+// 文件选择
+const handleFileChange = (uploadFile: any) => {
+};
+
+// 文件移除
+const handleFileRemove = () => {
+    fileList.value = [];
+};
+
+// 文件数量超出限制
+const handleExceed = () => {
+    ElMessage.warning(t("message.fileLimitWarning"));
+};
+
+// 上传文件
+const handleUpload = async () => {
+    if (fileList.value.length === 0) {
+        ElMessage.warning(t('Scheduling.lineChangeTime.selectFile'));
+        return;
+    }
+
+    const file = fileList.value[0].raw;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const base64Content = e.target?.result as string;
+        const data = {
+            FileName: file.name,
+            FileConent: base64Content.split(',')[1],
+            UserNo: userStore.getUserInfo || "",
+        };
+        const res: any = await UploadSwitchLineTime(data);
+        if (res.Success) {
+            ElMessage.success(t('message.importSuccess'));
+            importDialogVisible.value = false;
+            getData();
+        } else {
+            ElMessage.error(res.Message || t('message.importFailure'));
+        }
+    };
+    reader.readAsDataURL(file);
 };
 
 // 删除

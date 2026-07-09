@@ -149,7 +149,7 @@
                                             <span class="status-indicator" :class="getStatusClass(status)"></span>
                                             <span :class="getTextColorClass(status)">{{
                                                 getStatusText(status)
-                                                }}</span>
+                                            }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -165,7 +165,7 @@
                                         <el-tag size="large" :type="getDeviceStatusTextType(item)" effect="light" round>
                                             <span class="text-lg font-black">{{
                                                 getDeviceStatusText(item)
-                                                }}</span>
+                                            }}</span>
                                         </el-tag>
                                     </div>
                                 </div>
@@ -278,6 +278,61 @@
                 </span>
             </template>
         </el-dialog>
+
+        <!-- 错误信息弹窗 -->
+        <el-dialog v-model="errorDialogVisible" title="换线错误信息" width="700px" custom-class="error-dialog"
+            :close-on-click-modal="false" :close-on-press-escape="false" align-center>
+            <div class="error-content">
+                <div class="error-summary">
+                    <el-icon class="summary-icon">
+                        <Warning />
+                    </el-icon>
+                    <span>本次换线共出现 <strong>{{ currentErrors.length }}</strong> 个错误</span>
+                </div>
+                <el-scrollbar height="400px">
+                    <div v-for="(error, index) in currentErrors" :key="index" class="error-item">
+                        <div class="error-index">{{ index + 1 }}</div>
+                        <div class="error-info">
+                            <div class="error-header">
+                                <span class="device-name">{{ error.deviceName }}</span>
+                                <span class="error-time">{{ error.timestamp }}</span>
+                            </div>
+                            <div class="error-details">
+                                <span class="detail-item">工单: {{ error.order }}</span>
+                                <span class="detail-item">线体: {{ error.line }}</span>
+                            </div>
+                            <div class="error-message">
+                                <el-icon>
+                                    <CloseCircle />
+                                </el-icon>
+                                {{ error.errorMsg }}
+                            </div>
+                        </div>
+                    </div>
+                </el-scrollbar>
+
+
+            </div>
+
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button type="danger" @click="errorDialogVisible = false">关闭</el-button>
+                </span>
+            </template>
+        </el-dialog>
+
+        <!-- 悬浮错误按钮 -->
+        <div v-if="currentErrors.length > 0" class="float-error-btn" @click="errorDialogVisible = true">
+            <div class="float-btn-ring"></div>
+            <div class="float-btn-inner">
+                <el-badge :value="currentErrors.length" :max="99" class="float-error-badge">
+                    <el-icon class="float-error-icon">
+                        <Warning />
+                    </el-icon>
+                </el-badge>
+            </div>
+            <span class="float-btn-tip">换线错误</span>
+        </div>
     </div>
 </template>
 
@@ -297,7 +352,7 @@ import { useUserStoreWithOut } from "@/stores/modules/user";
 const userStore = useUserStoreWithOut();
 import vueQr from "vue-qr/src/packages/vue-qr.vue";
 import { ElMessage, ElNotification } from "element-plus";
-
+import dayjs from "dayjs";
 // 表单引用
 const formRef = ref(null);
 const guideCarouselRef = ref(null);
@@ -372,6 +427,19 @@ const lineName = ref("");
 const warningText = ref("");
 const sideCode = ref("");
 const checkBoxVal = ref();
+
+interface ChangeoverError {
+    timestamp: string;
+    order: string;
+    line: string;
+    deviceName: string;
+    errorMsg: string;
+}
+
+const currentErrors = ref<ChangeoverError[]>([
+]);
+const errorHistory = ref<ChangeoverError[][]>([]);
+const errorDialogVisible = ref(false);
 
 // 计算属性
 const filteredDevices = computed(() => {
@@ -574,6 +642,7 @@ const changeOver = () => {
         return;
     }
 
+    currentErrors.value = [];
     confirmVisible.value = true;
 };
 
@@ -606,38 +675,52 @@ const prepareChangeOverData = () => {
 };
 
 const handleChangeOverResponse = (res: any) => {
-    // console.log(res);
+    const timestamp = dayjs().format("YYYY-MM-DD HH:mm:ss");
+    const errors: ChangeoverError[] = [];
 
-    if (res.Success) {
-        checkedDevices.value = [];
-    } else {
-        ElNotification.error({
-            title: "失败",
-            message: res.Message,
-            duration: 0,
+    if (!res.Success) {
+        errors.push({
+            timestamp,
+            order: form.value.Order,
+            line: form.value.LineName,
+            deviceName: "全局",
+            errorMsg: res.Message,
         });
     }
 
-    // 处理每个设备的通知（原有逻辑保留）
     res.Data.forEach((v: any) => {
-        if (!v.success) {
-            setTimeout(() => {
-                ElNotification.error({
-                    title: "错误",
-                    message: v.Msg,
-                    duration: 0,
-                });
-            }, 500);
+        if (!v.success && v.Msg) {
+            const device = lineData.value.find((d: any) => String(d.Equipid) === String(v.Mcid));
+            errors.push({
+                timestamp,
+                order: form.value.Order,
+                line: form.value.LineName,
+                deviceName: device?.EquipName || `设备(${v.Mcid})`,
+                errorMsg: v.Msg,
+            });
         }
     });
+
+    if (errors.length > 0) {
+        currentErrors.value = errors;
+        errorHistory.value.unshift(errors);
+        if (errorHistory.value.length > 10) {
+            errorHistory.value.pop();
+        }
+        errorDialogVisible.value = true;
+    }
+
+    if (res.Success) {
+        checkedDevices.value = [];
+    }
     // console.log(lineData.value);
 
     // 更新设备状态
     lineData.value = lineData.value.map((device) => {
         // 查找主设备状态（Mcid 等于设备ID）
         const mainStatusItem = res.Data.find((s: any) => s.Mcid === device.Equipid);
-        console.log('设备',mainStatusItem);
-        
+        console.log('设备', mainStatusItem);
+
         const mcIdStatus = mainStatusItem
             ? (mainStatusItem.success ? "1" : "0")
             : device.McIdStatus;   // 保持原有状态不变
@@ -655,7 +738,7 @@ const handleChangeOverResponse = (res: any) => {
             const trackMcid = `${device.Equipid}-${i}`;
             const trackItem = res.Data.find((s: any) => s.Mcid === trackMcid);
             // console.log('轨道',trackItem);
-            
+
             // 轨道状态：如果找到轨道项，根据 success 设为 "1"/"0"；
             // 否则保留设备原有 conveyorStatusList 中对应索引的值（如果存在），否则默认 "2"
             const originalStatus = device.conveyorStatusList?.[i - 1] ?? "2";
@@ -757,8 +840,8 @@ const getDeviceStatus = (device: any) => {
     const allConveyorSuccess = device.conveyorStatusList.every(
         (status: any) => status === "1" || status === "-1",
     ); // 允许轨道状态为成功或待换线
- 
-    
+
+
     if (
         device.McIdStatus === "1" ||
         (device.McIdStatus === "-1" && allConveyorSuccess)
@@ -1506,6 +1589,242 @@ const getDeviceStatus = (device: any) => {
 
     .device-card {
         padding: 15px;
+    }
+}
+
+.error-content {
+    .error-summary {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px;
+        background: rgba(244, 67, 54, 0.1);
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+        color: #f44336;
+
+        .summary-icon {
+            font-size: 1.5rem;
+        }
+
+        strong {
+            color: #f44336;
+            font-size: 1.3rem;
+        }
+    }
+
+    .error-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .error-item {
+        display: flex;
+        gap: 16px;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        border-left: 4px solid #f44336;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        .error-index {
+            width: 32px;
+            height: 32px;
+            background: #f44336;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .error-info {
+            flex: 1;
+
+            .error-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+
+                .device-name {
+                    font-weight: 600;
+                    font-size: 1.1rem;
+                    color: #2c3e50;
+                }
+
+                .error-time {
+                    font-size: 0.9rem;
+                    color: #7f8c8d;
+                }
+            }
+
+            .error-details {
+                display: flex;
+                gap: 20px;
+                margin-bottom: 10px;
+
+                .detail-item {
+                    font-size: 0.95rem;
+                    color: #596263;
+                    background: white;
+                    padding: 4px 10px;
+                    border-radius: 4px;
+                }
+            }
+
+            .error-message {
+                display: flex;
+                align-items: flex-start;
+                gap: 8px;
+                font-size: 1rem;
+                color: #f44336;
+                line-height: 1.5;
+
+                .el-icon {
+                    margin-top: 2px;
+                    flex-shrink: 0;
+                }
+            }
+        }
+    }
+}
+
+:deep(.error-dialog) {
+    border-radius: 16px;
+
+    .el-dialog__header {
+        padding: 24px 32px;
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        border-radius: 16px 16px 0 0;
+
+        .el-dialog__title {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .el-dialog__headerbtn {
+            .el-dialog__close {
+                color: white;
+                font-size: 1.2rem;
+            }
+        }
+    }
+
+    .el-dialog__body {
+        padding: 32px;
+    }
+
+    .el-dialog__footer {
+        padding: 20px 32px;
+        border-top: 1px solid #eef1f6;
+    }
+}
+
+.float-error-btn {
+    position: fixed;
+    right: 30px;
+    bottom: 150px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    .float-btn-ring {
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: rgba(244, 67, 54, 0.3);
+        animation: float-ring-pulse 2s ease-out infinite;
+    }
+
+    .float-btn-inner {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(145deg, #ff5252, #c62828);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow:
+            0 6px 20px rgba(244, 67, 54, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+            0 4px 8px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+        &:hover {
+            transform: scale(1.08) translateY(-2px);
+            box-shadow:
+                0 12px 30px rgba(244, 67, 54, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+                0 6px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+
+    .float-error-icon {
+        font-size: 1.6rem;
+        color: white;
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    }
+
+    .float-error-badge {
+        .el-badge__content {
+            background: linear-gradient(145deg, #ffeb3b, #fbc02d);
+            color: #c62828;
+            font-weight: 700;
+            font-size: 0.75rem;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+            padding: 0 6px;
+            min-width: 18px;
+            height: 18px;
+            line-height: 14px;
+        }
+    }
+
+    .float-btn-tip {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.9);
+        background: rgba(0, 0, 0, 0.6);
+        padding: 4px 10px;
+        border-radius: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateY(5px);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(4px);
+    }
+
+    &:hover .float-btn-tip {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float-ring-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
     }
 }
 

@@ -21,7 +21,7 @@
                 </div>
             </div>
 
-            <el-row :gutter="20">
+            <el-row :gutter="10">
                 <!-- 左侧树形表格 -->
                 <el-col :span="10">
                     <el-table ref="treeTableRef" size="small" :data="displayTreeData" stripe border fit

@@ -95,3 +95,21 @@ export function UploadLineFeederWidthNum(data: any) {
         data
     })
 }
+
+//上传产线换线时间
+export function UploadSwitchLineTime(data: any) {
+    return request({
+        url: "/api/aps/config/UploadSwitchLineTime",
+        method: "post",
+        data
+    })
+}
+
+//上传产品线容量
+export function UploadProductLineCapacity(data: any) {
+    return request({
+        url: "/api/aps/config/UploadProductLineCapacity",
+        method: "post",
+        data
+    })
+}
