@@ -1,5 +1,5 @@
 <template>
-    <div class="p-2 flex gap-[10px]">
+    <div class="p-2 flex gap-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }" class="w-[250px] h-[calc(100vh-97px)]">
             <template #header>
                 <div class="card-header flex justify-between items-center">
@@ -15,7 +15,7 @@
                     </el-tooltip>
                 </div>
             </template>
-            <el-scrollbar class="h-[calc(100vh-160px)] pb-2">
+            <el-scrollbar class="h-[calc(100vh-180px)] pb-2">
                 <el-tree style="max-width: 600px" :default-expanded-keys="['所有线体']"  node-key="OrganizationName" highlight-current :data="organTree"
                     :expand-on-click-node="false" :props="{
                         children: 'children',

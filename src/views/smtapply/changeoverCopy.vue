@@ -204,9 +204,9 @@
         </div>
 
         <!-- 线体设置对话框 -->
-        <el-dialog v-model="lineChangeVisible" title="线体设置" width="400px" custom-class="line-dialog">
+        <el-dialog v-model="lineChangeVisible" title="线体设置" width="400px" custom-class="line-dialog"     :close-on-click-modal="false" :close-on-press-escape="false">
             <div class="dialog-content">
-                <el-select v-model="lineName" placeholder="请选择线体" class="full-width">
+                <el-select v-model="lineName" placeholder="请选择线体" class="full-width" filterable>
                     <el-option v-for="item in lineList" :key="item.line" :label="item.line" :value="item.line">
                     </el-option>
                 </el-select>
@@ -436,7 +436,7 @@ interface ChangeoverError {
     errorMsg: string;
 }
 
-const currentErrors = ref<ChangeoverError[]>([
+const currentErrors = ref<ChangeoverError[]>([ 
 ]);
 const errorHistory = ref<ChangeoverError[][]>([]);
 const errorDialogVisible = ref(false);
@@ -599,7 +599,7 @@ const getStatus = async () => {
 };
 
 const updateDeviceStatus = (statusData: any) => {
-    console.log(statusData);
+    // console.log(statusData);
 
     lineData.value = lineData.value.map((device) => {
         const status = statusData.find((s: any) => s.McId == device.Equipid);
@@ -688,18 +688,20 @@ const handleChangeOverResponse = (res: any) => {
         });
     }
 
-    res.Data.forEach((v: any) => {
-        if (!v.success && v.Msg) {
-            const device = lineData.value.find((d: any) => String(d.Equipid) === String(v.Mcid));
-            errors.push({
-                timestamp,
-                order: form.value.Order,
-                line: form.value.LineName,
-                deviceName: device?.EquipName || `设备(${v.Mcid})`,
-                errorMsg: v.Msg,
-            });
-        }
-    });
+    if (res.Data && Array.isArray(res.Data)) {
+        res.Data.forEach((v: any) => {
+            if (!v.success && v.Msg) {
+                const device = lineData.value.find((d: any) => String(d.Equipid) === String(v.Mcid));
+                errors.push({
+                    timestamp,
+                    order: form.value.Order,
+                    line: form.value.LineName,
+                    deviceName: device?.EquipName || `设备(${v.Mcid})`,
+                    errorMsg: v.Msg,
+                });
+            }
+        });
+    }
 
     if (errors.length > 0) {
         currentErrors.value = errors;
@@ -719,7 +721,7 @@ const handleChangeOverResponse = (res: any) => {
     lineData.value = lineData.value.map((device) => {
         // 查找主设备状态（Mcid 等于设备ID）
         const mainStatusItem = res.Data.find((s: any) => s.Mcid === device.Equipid);
-        console.log('设备', mainStatusItem);
+        // console.log('设备', mainStatusItem);
 
         const mcIdStatus = mainStatusItem
             ? (mainStatusItem.success ? "1" : "0")
@@ -768,7 +770,7 @@ const handleChangeOverError = (error: any) => {
 };
 
 const handleSideChoice = (type: any) => {
-    console.log(sideCode.value);
+    // console.log(sideCode.value);
     clearAll();
     if (sideCode.value == "2") {
         const arr = form.value.Order.split("_");

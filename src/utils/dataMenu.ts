@@ -147,6 +147,48 @@ export const shortcuts = [
     },
   },
 ];
+
+export const shortcuts1 = [
+
+  {
+    text: "本月",
+    value: () => {
+      const end = new Date();
+      end.setHours(23, 59, 59, 999); // 结束时间为当天结束
+
+      const start = new Date();
+      start.setDate(1); // 设置为本月第一天
+      start.setHours(0, 0, 0, 0); // 起始时间为当天开始
+
+      return [start, end];
+    },
+  },
+  {
+    text: "近七天",
+    value: () => {
+      const end = new Date();
+      end.setHours(23, 59, 59, 999); // 结束时间为当天结束
+
+      const start = new Date();
+      start.setDate(start.getDate() - 6); // 设置为7天前
+      start.setHours(0, 0, 0, 0); // 起始时间为当天开始
+
+      return [start, end];
+    },
+  },
+  {
+    text: "当天",
+    value: () => {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0); // 起始时间为当天开始
+
+      const end = new Date();
+      end.setHours(23, 59, 59, 999); // 结束时间为当天结束
+
+      return [start, end];
+    },
+  },
+];
 export const setTodayDate = (isSecond?: boolean) => {
   const now = new Date();
   const year = now.getFullYear();

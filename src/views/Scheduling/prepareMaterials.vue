@@ -36,12 +36,17 @@
                
                 <el-table-column :label="t('Scheduling.PrepareMaterials.Line')" prop="Line"
                     :min-width="getColumnWidth1('Line')" />
-                <el-table-column :label="t('Scheduling.PrepareMaterials.BtWorkOrderTotalQty')"
-                    prop="BtWorkOrderTotalQty" :min-width="getColumnWidth1('BtWorkOrderTotalQty')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.PlanStartTime')" prop="PlanStartTime"
                     :min-width="getColumnWidth1('PlanStartTime')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.PlanEndTime')" prop="PlanEndTime"
                     :min-width="getColumnWidth1('PlanEndTime')" />
+                <el-table-column fixed="right" :label="$t('publicText.operation')" width="80" align="center">
+                    <template #default="scope">
+                        <el-tooltip :content="t('Scheduling.PrepareMaterials.resendPrepare')" placement="top">
+                            <el-button :type="'info'" size="small" icon="Refresh" @click="handleResend(scope.row)" />
+                        </el-tooltip>
+                    </template>
+                </el-table-column>
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
@@ -72,25 +77,30 @@
                         }}</span>
                     </template>
                 </el-table-column>
-              
-                <el-table-column :label="t('Scheduling.PrepareMaterials.PN')" fixed prop="TeamOrder"
-                    :min-width="getColumnWidth2('TeamOrder')" />
-                <el-table-column :label="t('Scheduling.PrepareMaterials.BtWorkOrder')" prop="BtWorkOrder"
-                    :min-width="getColumnWidth2('BtWorkOrder')" />
-                 <el-table-column :label="t('Scheduling.PrepareMaterials.MesWorkOrder')" prop="MesWorkOrder"
-                    :min-width="getColumnWidth2('MesWorkOrder')" />
-                      <el-table-column :label="t('Scheduling.PrepareMaterials.ProductCode')" prop="ProductCode"
-                    :min-width="getColumnWidth2('ProductCode')" />
-                            <el-table-column :label="t('Scheduling.PrepareMaterials.Side')" prop="Side"
-                    :min-width="getColumnWidth2('Side')" />
-                     <el-table-column :label="t('Scheduling.PrepareMaterials.BomVersion')" prop="BomVersion"
-                    :min-width="getColumnWidth2('BomVersion')" />
-                        <el-table-column :label="t('Scheduling.PrepareMaterials.TeamOrderQty')" prop="TeamOrderQty"
-                    :min-width="getColumnWidth2('TeamOrderQty')" />
-                <el-table-column :label="t('Scheduling.PrepareMaterials.PlanStartTime')" prop="PlanStartTime"
-                    :min-width="getColumnWidth2('PlanStartTime')" />
-                <el-table-column :label="t('Scheduling.PrepareMaterials.PlanEndTime')" prop="PlanEndTime"
-                    :min-width="getColumnWidth2('PlanEndTime')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPreparationNo')" prop="MaterialPreparationNo"
+                    :min-width="getColumnWidth2('MaterialPreparationNo')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialWo')" prop="MaterialWo"
+                    :min-width="getColumnWidth2('MaterialWo')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPn')" prop="MaterialPn"
+                    :min-width="getColumnWidth2('MaterialPn')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPnName')" prop="MaterialPnName"
+                    :min-width="getColumnWidth2('MaterialPnName')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPnDesc')" prop="MaterialPnDesc"
+                    :min-width="getColumnWidth2('MaterialPnDesc')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialQty')" prop="MaterialQty"
+                    :min-width="getColumnWidth2('MaterialQty')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.LockNum1')" prop="LockNum1"
+                    :min-width="getColumnWidth2('LockNum1')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.LockNum2')" prop="LockNum2"
+                    :min-width="getColumnWidth2('LockNum2')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.LotNumber')" prop="LotNumber"
+                    :min-width="getColumnWidth2('LotNumber')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.RequestNo')" prop="RequestNo"
+                    :min-width="getColumnWidth2('RequestNo')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.RemainingQty')" prop="RemainingQty"
+                    :min-width="getColumnWidth2('RemainingQty')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.SatisfiedTime')" prop="SatisfiedTime"
+                    :min-width="getColumnWidth2('SatisfiedTime')" />
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
@@ -131,13 +141,11 @@
 </template>
 
 <script setup lang="ts">
-import { QueryMaterialPreparationList, QueryMaterialPreparationDetail, GenerateMaterialRequest, AddSupplementMaterialPreparation } from "@/api/Scheduling/index"
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import { QueryMaterialPreparationList, QueryMaterialPreparationDetail, GenerateMaterialRequest, AddSupplementMaterialPreparation, ManualCreateSaiYiPreparePlan } from "@/api/Scheduling/index"
+import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
 import {
     ref,
     reactive,
-    watch,
-    computed,
     nextTick,
     onMounted,
     onBeforeMount,
@@ -248,23 +256,59 @@ const fetchDetail = (row: any) => {
 const handleGenerateCall = () => {
     const selected = selectList.value[0];
     if (!selected) return;
-    // 弹出原因输入框（可选）
-    const params = {
-        MaterialPreparationNo: selected.MaterialPreparationNo,
-        CreateUser: userStore.getUserInfo,
-        Reason: "",
-    };
-    // 调用 GenerateMaterialRequest 接口
-    GenerateMaterialRequest(params).then((res: any) => {
-        ElNotification({
-            title: t('publicText.tipTitle'),
-            message: res.Message,
-            type: res.Success ? "success" : "error",
+    ElMessageBox.prompt(
+        t('Scheduling.PrepareMaterials.inputReason'),
+        t('Scheduling.PrepareMaterials.generateCall'),
+        {
+            confirmButtonText: t('publicText.confirm'),
+            cancelButtonText: t('publicText.cancel'),
+            inputType: 'textarea',
+            inputPlaceholder: t('Scheduling.PrepareMaterials.inputReasonPlaceholder'),
+            inputValidator: (value: string) => {
+                if (!value.trim()) {
+                    return t('Scheduling.PrepareMaterials.reasonRequired');
+                }
+                return true;
+            }
+        }
+    ).then(({ value }: { value: string }) => {
+        const params = {
+            MaterialPreparationNo: selected.MaterialPreparationNo,
+            CreateUser: userStore.getUserInfo,
+            Reason: value.trim(),
+        };
+        GenerateMaterialRequest(params).then((res: any) => {
+            ElNotification({
+                title: t('publicText.tipTitle'),
+                message: res.Message,
+                type: res.Success ? "success" : "error",
+            });
+            if (res.Success) getData();
         });
-        if (res.Success) getData();
+    }).catch(() => {
+        ElMessage.info(t('publicText.operationCancelled'));
     });
+};
 
-
+// 重新发送备料
+const handleResend = (row: any) => {
+    if (!row) return;
+    ManualCreateSaiYiPreparePlan({ MaterialPreparationNo: row.MaterialPreparationNo }).then((res: any) => {
+        if (res.Success) {
+            ElNotification({
+                title: t('publicText.tip'),
+                message: res.Data?.SaiYiSendStatusText || t('publicText.operationSuccess'),
+                type: "success",
+            });
+            getData();
+        } else {
+            ElNotification({
+                title: t('publicText.tip'),
+                message: res.Data?.SaiYiSendStatusText || res.Message || t('publicText.operationFailed'),
+                type: "error",
+            });
+        }
+    });
 };
 
 const addMaterial = () => {
@@ -314,53 +358,14 @@ const handleCurrentChange1 = (val: any) => {
 };
 
 // ---------- 列宽自动计算 ----------
-const columnWidths1 = computed(() => {
-    if (!tableMasterRef.value) return {};
-    let columns: any = [];
-    columns = tableMasterRef.value.columns
-        .map((item: any) => {
-            return {
-                prop: item.property,
-                label: item.label,
-            };
-        })
-        .filter(
-            (item: any) =>
-                item.label !== t("publicText.index") &&
-                item.label !== t("publicText.operation"),
-        );
-    return calculateColumnsWidth(columns, tableData.value, {
-        padding: 25,
-        fontSize: 13,
-    });
+const { getColumnWidth: getColumnWidth1 } = useTableColumnWidth(tableMasterRef, tableData, {
+    excludeLabels: [t('publicText.index'), t('publicText.operation')],
+    excludeTypes: ['selection']
 });
-const getColumnWidth1 = (prop: string) => {
-    return columnWidths1.value[prop] || "auto";
-};
 
-const columnWidths2 = computed(() => {
-    if (!tableDetailRef.value) return {};
-    let columns: any = [];
-    columns = tableDetailRef.value.columns
-        .map((item: any) => {
-            return {
-                prop: item.property,
-                label: item.label,
-            };
-        })
-        .filter(
-            (item: any) =>
-                item.label !== t("publicText.index") &&
-                item.label !== t("publicText.operation"),
-        );
-    return calculateColumnsWidth(columns, tableData2.value, {
-        padding: 25,
-        fontSize: 13,
-    });
+const { getColumnWidth: getColumnWidth2 } = useTableColumnWidth(tableDetailRef, tableData2, {
+    excludeLabels: [t('publicText.index'), t('publicText.operation')]
 });
-const getColumnWidth2 = (prop: string) => {
-    return columnWidths2.value[prop] || "auto";
-};
 const getScreenHeight = () => {
     nextTick(() => {
         tableHeight.value = window.innerHeight - 500;

@@ -116,3 +116,21 @@ export function UpdateMaterialRequestStatus(data:any) {
         params:data
     });
 }
+
+//手动生成赛意备料计划
+export function ManualCreateSaiYiPreparePlan(data:any) {
+    return request({
+        url: "/api/MaterialPreparation/ManualCreateSaiYiPreparePlan",
+        method: "post",
+        data
+    });
+}
+
+//查询操作日志
+export function QueryOperationLog(data:any) {
+    return request({
+        url: "/api/APIRequestLogs/QueryPage",
+        method: "post",
+        data
+    });
+}

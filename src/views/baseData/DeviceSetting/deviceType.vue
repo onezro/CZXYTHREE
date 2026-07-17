@@ -94,9 +94,6 @@
         <el-dialog :title="t('publicText.edit')" v-model="editVisible" width="500px" :close-on-click-modal="false"
             @closed="handleEditDialogClosed">
             <el-form ref="editFormRef" :model="editForm" :rules="formRules" label-width="auto">
-                <el-form-item :label="$t('deviceSetting.deviceType.equipTypeId')" prop="EquipTypeId">
-                    <el-input v-model="editForm.EquipTypeId" disabled />
-                </el-form-item>
                 <el-form-item :label="$t('deviceSetting.deviceType.equipmentCategory')" prop="EquipmentCategory">
                     <el-input v-model="editForm.EquipmentCategory"
                         :placeholder="$t('deviceSetting.deviceType.inputEquipmentCategory')" clearable />

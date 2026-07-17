@@ -44,6 +44,12 @@
                     :min-width="getColumnWidth('LXLine')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.PlanStartTime')" prop="PlanStartTime" :min-width="getColumnWidth('PlanStartTime')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.PlanEndTime')" prop="PlanEndTime" :min-width="getColumnWidth('PlanEndTime')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.DeliveryDate')" prop="DeliveryDate" :min-width="getColumnWidth('DeliveryDate')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.GroupStatus')" prop="GroupStatus" :min-width="getColumnWidth('GroupStatus')" fixed="right">
+                    <template #default="{ row }">
+                        <el-tag :type="getStatusType(row.GroupStatus)">{{ getGroupStatusName(row.GroupStatus) }}</el-tag>
+                    </template>
+                </el-table-column>
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
@@ -182,6 +188,32 @@ const getScreenHeight = () => {
     nextTick(() => {
         tableHeight.value = window.innerHeight - 190;
     });
+};
+
+const getGroupStatusName = (status: number) => {
+    const statusMap: Record<number, string> = {
+        0: t('Scheduling.generatePrepare.statusScheduled'),
+        1: t('Scheduling.generatePrepare.statusPrepared'),
+        2: t('Scheduling.generatePrepare.statusCalled'),
+        3: t('Scheduling.generatePrepare.statusReceived'),
+        4: t('Scheduling.generatePrepare.statusReceivedCompleted'),
+        99: t('Scheduling.generatePrepare.statusWorkOrderCompleted'),
+        999: t('Scheduling.generatePrepare.statusWorkOrderCancelled')
+    };
+    return statusMap[status] ?? t('publicText.unknown');
+};
+
+const getStatusType = (status: number) => {
+    const typeMap: Record<number, string> = {
+        0: 'info',
+        1: 'warning',
+        2: 'primary',
+        3: 'success',
+        4: 'success',
+        99: 'success',
+        999: 'danger'
+    };
+    return typeMap[status] ?? 'info';
 };
 </script>
 <style scoped>

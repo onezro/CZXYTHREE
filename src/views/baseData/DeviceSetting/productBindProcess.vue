@@ -113,16 +113,16 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="$t('deviceSetting.productBindProcess.standardValue')" prop="StandardValue">
-                    <el-input-number v-model="addForm.StandardValue" :min="0" style="width: 100%"
+                    <el-input v-model="addForm.StandardValue" style="width: 100%"
                         :placeholder="$t('deviceSetting.productBindProcess.inputStandardValue')" />
                 </el-form-item>
                 
                 <el-form-item :label="$t('deviceSetting.productBindProcess.lowerLimit')" prop="LowerLimit">
-                    <el-input-number v-model="addForm.LowerLimit" :min="0" style="width: 100%"
+                    <el-input v-model="addForm.LowerLimit" style="width: 100%"
                         :placeholder="$t('deviceSetting.productBindProcess.inputLowerLimit')" />
                 </el-form-item>
                 <el-form-item :label="$t('deviceSetting.productBindProcess.upperLimit')" prop="UpperLimit">
-                    <el-input-number v-model="addForm.UpperLimit" :min="0" style="width: 100%"
+                    <el-input v-model="addForm.UpperLimit" style="width: 100%"
                         :placeholder="$t('deviceSetting.productBindProcess.inputUpperLimit')" />
                 </el-form-item>
                 <el-form-item :label="$t('deviceSetting.productBindProcess.unit')" prop="Unit">
@@ -174,15 +174,15 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="$t('deviceSetting.productBindProcess.standardValue')" prop="StandardValue">
-                    <el-input-number v-model="editForm.StandardValue" :min="0" style="width: 100%"
+                    <el-input v-model="editForm.StandardValue" style="width: 100%"
                         :placeholder="$t('deviceSetting.productBindProcess.inputStandardValue')" />
                 </el-form-item>
                 <el-form-item :label="$t('deviceSetting.productBindProcess.lowerLimit')" prop="LowerLimit">
-                    <el-input-number v-model="editForm.LowerLimit" :min="0"  style="width: 100%"
+                    <el-input v-model="editForm.LowerLimit" style="width: 100%"
                         :placeholder="$t('deviceSetting.productBindProcess.inputLowerLimit')" />
                 </el-form-item>
                 <el-form-item :label="$t('deviceSetting.productBindProcess.upperLimit')" prop="UpperLimit">
-                    <el-input-number v-model="editForm.UpperLimit" :min="0"  style="width: 100%"
+                    <el-input v-model="editForm.UpperLimit" style="width: 100%"
                         :placeholder="$t('deviceSetting.productBindProcess.inputUpperLimit')" />
                 </el-form-item>
                 
@@ -261,9 +261,9 @@ const addForm = reactive({
     EquipmentCategory: "",
     EquipmentModel: "",
     ProcessParameterName: "",
-    StandardValue: null,
-    UpperLimit: null,
-    LowerLimit: null,
+    StandardValue: "",
+    UpperLimit: "",
+    LowerLimit: "",
     Unit: "",
     ProductType: "*",
 });
@@ -274,9 +274,9 @@ const editForm = reactive({
     EquipmentCategory: "",
     EquipmentModel: "",
     ProcessParameterName: "",
-    StandardValue: null,
-    UpperLimit: null,
-    LowerLimit: null,
+    StandardValue: "",
+    UpperLimit: "",
+    LowerLimit: "",
     Unit: "",
     ProductType: "*",
 });
@@ -306,27 +306,6 @@ const formRules = reactive({
             required: true,
             message: t("message.pleaseSelect") + t("deviceSetting.productBindProcess.processParameterName"),
             trigger: "change",
-        },
-    ],
-    StandardValue: [
-        {
-            required: true,
-            message: t("message.pleaseInput") + t("deviceSetting.productBindProcess.standardValue"),
-            trigger: "blur",
-        },
-    ],
-    UpperLimit: [
-        {
-            required: true,
-            message: t("message.pleaseInput") + t("deviceSetting.productBindProcess.upperLimit"),
-            trigger: "blur",
-        },
-    ],
-    LowerLimit: [
-        {
-            required: true,
-            message: t("message.pleaseInput") + t("deviceSetting.productBindProcess.lowerLimit"),
-            trigger: "blur",
         },
     ],
     Unit: [
@@ -485,9 +464,9 @@ const openAdd = () => {
     addForm.EquipmentCategory = "";
     addForm.EquipmentModel = "";
     addForm.ProcessParameterName = "";
-    addForm.StandardValue = null;
-    addForm.UpperLimit = null;
-    addForm.LowerLimit = null;
+    addForm.StandardValue = "";
+    addForm.UpperLimit = "";
+    addForm.LowerLimit = "";
     addForm.Unit = "";
     addForm.ProductType = "*";
     addVisible.value = true;
@@ -540,9 +519,9 @@ const openEdit = (row: any) => {
     editForm.EquipmentCategory = row.EquipmentCategory;
     editForm.EquipmentModel = row.EquipmentModel;
     editForm.ProcessParameterName = row.ProcessParameterName;
-    editForm.StandardValue = row.StandardValue;
-    editForm.UpperLimit = row.UpperLimit;
-    editForm.LowerLimit = row.LowerLimit;
+    editForm.StandardValue = String(row.StandardValue ?? "");
+    editForm.UpperLimit = String(row.UpperLimit ?? "");
+    editForm.LowerLimit = String(row.LowerLimit ?? "");
     editForm.Unit = row.Unit;
     editForm.ProductType = row.ProductType || "*";
     editVisible.value = true;

@@ -103,9 +103,6 @@
         <el-dialog :title="t('publicText.edit')" v-model="editVisible" width="500px" :close-on-click-modal="false"
             @closed="handleEditDialogClosed">
             <el-form ref="editFormRef" :model="editForm" :rules="formRules" label-width="auto">
-                <el-form-item :label="$t('deviceSetting.processParameter.paramNameId')" prop="ParamNameId">
-                    <el-input v-model="editForm.ParamNameId" disabled />
-                </el-form-item>
                 <el-form-item :label="$t('deviceSetting.processParameter.equipmentCategory')" prop="EquipmentCategory">
                     <el-select v-model="editForm.EquipmentCategory" clearable filterable
                         :placeholder="$t('deviceSetting.processParameter.selectEquipmentCategory')"

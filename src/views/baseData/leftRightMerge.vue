@@ -346,7 +346,9 @@ import { ref, reactive, computed, watch, nextTick, onMounted, onBeforeMount, onB
 import { ElNotification, ElMessageBox } from 'element-plus'
 import { Search, Document, Delete, Plus } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
-import { getToken } from '@/utils/auth'
+import { useUserStoreWithOut } from "@/stores/modules/user";
+const userStore = useUserStoreWithOut()
+
 // 请根据实际 API 路径调整
 import {
     QueryPanelmergeAllList,
@@ -506,14 +508,14 @@ const openAdd = () => {
 // 自动完成远程搜索
 const remoteMethod = (query: string, cb: any) => {
     if (query.length >= 13) {
-        // QueryFoundation({ part_no: query, part_type: '0' }).then((res) => {
-        //   if (!res.Data || res.Data.length === 0) {
-        //     ElNotification({ type: 'error', title: t('publicText.tip'), message: t('baseData.leftRightMerge.noData') })
-        //     cb([])
-        //     return
-        //   }
-        //   cb(res.Data.map((item: any) => ({ value: item.part_no, ...item })))
-        // })
+        QueryFoundation({ part_no: query, part_type: '0' }).then((res:any) => {
+          if (!res.Data || res.Data.length === 0) {
+            ElNotification({ type: 'error', title: t('publicText.tip'), message: t('baseData.leftRightMerge.noData') })
+            cb([])
+            return
+          }
+          cb(res.Data.map((item: any) => ({ value: item.part_no, ...item })))
+        })
     } else {
         cb([])
     }
@@ -573,16 +575,16 @@ const onSubmit = () => {
         ElNotification({ type: 'error', title: t('publicText.tip'), message: t('baseData.leftRightMerge.requiredPanel') })
         return
     }
-    //   form.value.panelmerge_updateuser = getToken()
-    // addPanelmergeList(form.value).then((res) => {
-    //   if (res.Success) {
-    //     ElNotification({ type: 'success', title: t('publicText.tip'), message: t('publicText.addSuccess') })
-    //     dialogVisible.value = false
-    //     getData()
-    //   } else {
-    //     ElNotification({ type: 'error', title: t('publicText.tip'), message: res.Msg })
-    //   }
-    // })
+      form.value.panelmerge_updateuser = userStore.getUserInfo
+    addPanelmergeList(form.value).then((res:any) => {
+      if (res.Success) {
+        ElNotification({ type: 'success', title: t('publicText.tip'), message: t('publicText.addSuccess') })
+        dialogVisible.value = false
+        getData()
+      } else {
+        ElNotification({ type: 'error', title: t('publicText.tip'), message: res.Msg })
+      }
+    })
 }
 
 const addCancel = () => {
@@ -604,34 +606,34 @@ const addCancel = () => {
 
 // 编辑
 const handleEdit = (row: any) => {
-    // QueryPanelmerge({ id: row.id }).then((res) => {
-    //   if (res.Success) {
-    //     editForm.value = res.Data
-    //     if (editForm.value.bomlist.length === 0) {
-    //       editForm.value.bomlist.push({ panelmergebom_no: '', panelmergebom_name: '', panelmergebom_desc: '', panelmergebom_qty: 1 })
-    //     }
-    //     detailVisible.value = true
-    //   } else {
-    //     ElNotification({ type: 'error', title: t('publicText.tip'), message: res.Msg })
-    //   }
-    // })
+    QueryPanelmerge({ id: row.id }).then((res:any) => {
+      if (res.Success) {
+        editForm.value = res.Data
+        if (editForm.value.bomlist.length === 0) {
+          editForm.value.bomlist.push({ panelmergebom_no: '', panelmergebom_name: '', panelmergebom_desc: '', panelmergebom_qty: 1 })
+        }
+        detailVisible.value = true
+      } else {
+        ElNotification({ type: 'error', title: t('publicText.tip'), message: res.Msg })
+      }
+    })
     // 临时模拟
-    editForm.value = JSON.parse(JSON.stringify(row))
-    if (editForm.value.bomlist.length === 0) {
-        editForm.value.bomlist.push({ panelmergebom_no: '', panelmergebom_name: '', panelmergebom_desc: '', panelmergebom_qty: 1 })
-    }
-    detailVisible.value = true
+    // editForm.value = JSON.parse(JSON.stringify(row))
+    // if (editForm.value.bomlist.length === 0) {
+    //     editForm.value.bomlist.push({ panelmergebom_no: '', panelmergebom_name: '', panelmergebom_desc: '', panelmergebom_qty: 1 })
+    // }
+    // detailVisible.value = true
 }
 
 const handleDelete = (row: any) => {
     ElMessageBox.confirm(t('publicText.confirmDelete'), t('publicText.tip'), { type: 'warning' })
         .then(() => {
-            // DeletePanelmerge({ id: row.id }).then((res) => {
-            //   if (res.Success) {
-            //     ElNotification({ type: 'success', title: t('publicText.tip'), message: t('publicText.deleteSuccess') })
-            //     getData()
-            //   }
-            // })
+            DeletePanelmerge({ id: row.id }).then((res:any) => {
+              if (res.Success) {
+                ElNotification({ type: 'success', title: t('publicText.tip'), message: t('publicText.deleteSuccess') })
+                getData()
+              }
+            })
         })
         .catch(() => { })
 }
@@ -648,14 +650,14 @@ const addDetailSmallBoard = () => {
 }
 
 const onDetailSubmit = () => {
-    //   editForm.value.panelmerge_updateuser = getToken()
-    // addPanelmergeList(editForm.value).then((res) => {
-    //   if (res.Success) {
-    //     ElNotification({ type: 'success', title: t('publicText.tip'), message: t('publicText.editSuccess') })
-    //     detailVisible.value = false
-    //     getData()
-    //   }
-    // })
+      editForm.value.panelmerge_updateuser = userStore.getUserInfo
+    addPanelmergeList(editForm.value).then((res:any) => {
+      if (res.Success) {
+        ElNotification({ type: 'success', title: t('publicText.tip'), message: t('publicText.editSuccess') })
+        detailVisible.value = false
+        getData()
+      }
+    })
 }
 
 const addDetailCancel = () => {

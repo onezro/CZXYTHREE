@@ -343,13 +343,18 @@ const addSubmit = () => { }
 const editCancel = () => { editVisible.value = false }
 const editSubmit = () => { }
 
-const handleCallMaterial=()=>{
-     const selected = selectList.value[0];
+const handleCallMaterial = () => {
+    const selected = selectList.value[0];
     if (!selected) return;
-    // 弹出原因输入框（可选）
+
+    if (selected.MaterialRequest_RequestInfo !== 1) {
+        ElMessage.warning(t('Scheduling.CallMaterials.onlySaiYi'));
+        return;
+    }
+
     const params = {
         MaterialRequestNo: selected.MaterialRequest_No,
-        CreateUser: userStore.getUserInfo
+        OpUser: userStore.getUserInfo
     };
 
     ManualSubmitSaiYiMaterialRequest(params).then((res: any) => {

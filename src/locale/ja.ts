@@ -23,6 +23,7 @@ const ja = {
     addFailure: "追加に失敗しました",
     pleaseInput: "入力してください",
     confirmDelete: "削除を確認",
+    dataExists: "この機器IDと生産ラインの組み合わせは既に存在します",
   },
   publicText: {
     tipTitle: "注意",

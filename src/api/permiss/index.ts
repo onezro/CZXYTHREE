@@ -273,3 +273,12 @@ export function ResetEmpPwd(data) {
         params: data
     });
 }
+
+//查询操作日志
+export function QueryOperationLog(data: any) {
+    return request({
+        url: "/api/APIRequestLogs/QueryPage",
+        method: "post",
+        data
+    });
+}

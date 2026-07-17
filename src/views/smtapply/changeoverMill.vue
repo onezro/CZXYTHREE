@@ -182,9 +182,9 @@
         </div>
 
         <!-- 线体设置对话框 -->
-        <el-dialog v-model="lineChangeVisible" title="线体设置" width="400px" custom-class="line-dialog">
+        <el-dialog v-model="lineChangeVisible" title="线体设置" width="400px" custom-class="line-dialog"     :close-on-click-modal="false" :close-on-press-escape="false">
             <div class="dialog-content">
-                <el-select v-model="lineName" placeholder="请选择线体" class="full-width">
+                <el-select v-model="lineName" placeholder="请选择线体" class="full-width" filterable>
                     <el-option v-for="item in lineList" :key="item.line" :label="item.line" :value="item.line">
                     </el-option>
                 </el-select>
@@ -313,13 +313,13 @@
 import { ref, reactive, computed, onMounted } from "vue";
 
 import {
-    GetSMTValorChangeLineWoList,
-    GetSMTValorLine,
-    GetValorChangeLineWoNew,
-    GetSMTValorLineEquipMent,
-    GetValorChangeLineWoEquipStatus,
-    SMTChangeOverByOneKey,
-} from "@/api/smtApply/changeover";
+   GetMillingValorLine,
+   GetMillingValorChangeLineWoList,
+   GetMillingValorChangeLineWoNew,
+   GetMillingValorLineEquipMent,
+   MillingChangeOverByOneKey,
+   GetMillingChangeLineWoEquipStatus,
+} from "@/api/smtApply/changeoverMill";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 const userStore = useUserStoreWithOut();
 import vueQr from "vue-qr/src/packages/vue-qr.vue";
@@ -428,7 +428,7 @@ onMounted(() => {
 });
 
 const getSMTValorLineEquipMentData = () => {
-    GetSMTValorLineEquipMent({
+    GetMillingValorLineEquipMent({
         line: lineName.value,
         EquipType: "",
     }).then((res: any) => {
@@ -501,13 +501,13 @@ const showDeviceGuide = (device: any) => {
 };
 
 const getOrderList = async () => {
-    GetSMTValorChangeLineWoList({}).then((res: any) => {
+    GetMillingValorChangeLineWoList({}).then((res: any) => {
         workOrderList.value = res.Data;
     });
 };
 
 const getLineList = async () => {
-    GetSMTValorLine({}).then((res: any) => {
+    GetMillingValorLine({}).then((res: any) => {
         lineList.value = res.Data;
     });
 };
@@ -515,7 +515,7 @@ const getLineList = async () => {
 const changeOrder = (order: any) => {
     clearAll();
     form.value.LineName = lineName.value;
-    GetValorChangeLineWoNew({ workOrder: form.value.Order }).then((res: any) => {
+    GetMillingValorChangeLineWoNew({ workOrder: form.value.Order }).then((res: any) => {
         form.value.Product = res.Data.Product;
         form.value.Program = res.Data.Soft;
         form.value.BomVer = res.Data.BomVer;
@@ -535,7 +535,7 @@ const getStatus = async () => {
         order: form.value.Order,
         side: "",
     };
-    GetValorChangeLineWoEquipStatus(data).then((res: any) => {
+    GetMillingChangeLineWoEquipStatus(data).then((res: any) => {
         updateDeviceStatus(res.Data);
     });
 };
@@ -585,7 +585,7 @@ const confirmChangeOver = async () => {
     confirmVisible.value = false;
     isLoading.value = true;
     const data = prepareChangeOverData();
-    SMTChangeOverByOneKey({ ...data, OperatorUser: userStore.getUserInfo })
+    MillingChangeOverByOneKey({ ...data, OperatorUser: userStore.getUserInfo })
         .then((res: any) => {
             handleChangeOverResponse(res);
         })
@@ -624,18 +624,20 @@ const handleChangeOverResponse = (res: any) => {
         });
     }
 
-    res.Data.forEach((v: any) => {
-        if (!v.success && v.Msg) {
-            const device = lineData.value.find((d: any) => String(d.Equipid) === String(v.Mcid));
-            errors.push({
-                timestamp,
-                order: form.value.Order,
-                line: form.value.LineName,
-                deviceName: device?.EquipName || `设备(${v.Mcid})`,
-                errorMsg: v.Msg,
-            });
-        }
-    });
+    if (res.Data && Array.isArray(res.Data)) {
+        res.Data.forEach((v: any) => {
+            if (!v.success && v.Msg) {
+                const device = lineData.value.find((d: any) => String(d.Equipid) === String(v.Mcid));
+                errors.push({
+                    timestamp,
+                    order: form.value.Order,
+                    line: form.value.LineName,
+                    deviceName: device?.EquipName || `设备(${v.Mcid})`,
+                    errorMsg: v.Msg,
+                });
+            }
+        });
+    }
 
     if (errors.length > 0) {
         currentErrors.value = errors;

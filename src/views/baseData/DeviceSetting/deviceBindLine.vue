@@ -32,14 +32,17 @@
                 </el-table-column>
                 <!-- <el-table-column prop="LineBindId" fixed :label="$t('deviceSetting.deviceBindLine.lineBindId')"
                     :min-width="getColumnWidth('LineBindId')" /> -->
+                       
+                     <el-table-column prop="EquipmentId" :label="$t('deviceSetting.deviceBindLine.equipmentId')" 
+                    :min-width="getColumnWidth('EquipmentId')" />
+                        <el-table-column prop="EquipmentModel" :label="$t('deviceSetting.deviceBindLine.equipmentModel')" 
+                    :min-width="getColumnWidth('EquipmentModel')" />
                 <el-table-column prop="EquipmentCategory" :label="$t('deviceSetting.deviceBindLine.equipmentCategory')" 
                     :min-width="getColumnWidth('EquipmentCategory')" />
-                <el-table-column prop="EquipmentModel" :label="$t('deviceSetting.deviceBindLine.equipmentModel')" 
-                    :min-width="getColumnWidth('EquipmentModel')" />
-                <el-table-column prop="EquipmentId" :label="$t('deviceSetting.deviceBindLine.equipmentId')" 
-                    :min-width="getColumnWidth('EquipmentId')" />
-                <el-table-column prop="ProductionLine" :label="$t('deviceSetting.deviceBindLine.productionLine')" 
+              <el-table-column prop="ProductionLine" :label="$t('deviceSetting.deviceBindLine.productionLine')" 
                     :min-width="getColumnWidth('ProductionLine')" />
+               
+           
                 <el-table-column prop="Operator" :label="$t('deviceSetting.deviceBindLine.operator')" 
                     :min-width="getColumnWidth('Operator')" />
                 <el-table-column prop="OperationTime" :label="$t('deviceSetting.deviceBindLine.operationTime')" 
@@ -76,13 +79,7 @@
         <el-dialog :title="t('publicText.add')" v-model="addVisible" width="500px" :close-on-click-modal="false"
             @closed="handleAddDialogClosed">
             <el-form ref="addFormRef" :model="addForm" :rules="formRules" label-width="auto">
-                <el-form-item :label="$t('deviceSetting.deviceBindLine.paramName')" prop="ParamNameId">
-                    <el-select v-model="addForm.ParamNameId" clearable filterable
-                        :placeholder="$t('deviceSetting.deviceBindLine.selectParamName')">
-                        <el-option v-for="item in processParameterData" :key="item.ParamNameId" 
-                            :label="item.ProcessParameterName" :value="item.ParamNameId" />
-                    </el-select>
-                </el-form-item>
+               
                 <el-form-item :label="$t('deviceSetting.deviceBindLine.equipmentCategory')" prop="EquipmentCategory">
                     <el-select v-model="addForm.EquipmentCategory" clearable filterable
                         :placeholder="$t('deviceSetting.deviceBindLine.selectEquipmentCategory')"
@@ -123,16 +120,6 @@
         <el-dialog :title="t('publicText.edit')" v-model="editVisible" width="500px" :close-on-click-modal="false"
             @closed="handleEditDialogClosed">
             <el-form ref="editFormRef" :model="editForm" :rules="formRules" label-width="auto">
-                <el-form-item :label="$t('deviceSetting.deviceBindLine.lineBindId')" prop="LineBindId">
-                    <el-input v-model="editForm.LineBindId" disabled />
-                </el-form-item>
-                <el-form-item :label="$t('deviceSetting.deviceBindLine.paramName')" prop="ParamNameId">
-                    <el-select v-model="editForm.ParamNameId" clearable filterable
-                        :placeholder="$t('deviceSetting.deviceBindLine.selectParamName')">
-                        <el-option v-for="item in processParameterData" :key="item.ParamNameId" 
-                            :label="item.ProcessParameterName" :value="item.ParamNameId" />
-                    </el-select>
-                </el-form-item>
                 <el-form-item :label="$t('deviceSetting.deviceBindLine.equipmentCategory')" prop="EquipmentCategory">
                     <el-select v-model="editForm.EquipmentCategory" clearable filterable
                         :placeholder="$t('deviceSetting.deviceBindLine.selectEquipmentCategory')"
@@ -222,7 +209,6 @@ const pageObj = reactive({
 
 const addForm = reactive({
     LineBindId: 0,
-    ParamNameId: 0,
     EquipmentCategory: "",
     EquipmentModel: "",
     EquipmentId: "",
@@ -231,7 +217,6 @@ const addForm = reactive({
 
 const editForm = reactive({
     LineBindId: 0,
-    ParamNameId: 0,
     EquipmentCategory: "",
     EquipmentModel: "",
     EquipmentId: "",
@@ -386,7 +371,7 @@ const openAdd = () => {
     getLineData();
     getProcessParameterData();
     addForm.LineBindId = 0;
-    addForm.ParamNameId = 0;
+    
     addForm.EquipmentCategory = "";
     addForm.EquipmentModel = "";
     addForm.EquipmentId = "";
@@ -401,9 +386,16 @@ const handleAddDialogClosed = () => {
 const submitAdd = () => {
     addFormRef.value.validate((valid: boolean) => {
         if (valid) {
+            const exists = allData.value.some(item => 
+                item.EquipmentId === addForm.EquipmentId && item.ProductionLine === addForm.ProductionLine
+            );
+            if (exists) {
+                ElMessage.error(t("message.dataExists"));
+                return;
+            }
             submitLoading.value = true;
             const params = {
-                ParamNameId: addForm.ParamNameId,
+             
                 EquipmentCategory: addForm.EquipmentCategory,
                 EquipmentModel: addForm.EquipmentModel,
                 EquipmentId: addForm.EquipmentId,
@@ -433,7 +425,7 @@ const openEdit = (row: any) => {
     getLineData();
     getProcessParameterData();
     editForm.LineBindId = row.LineBindId;
-    editForm.ParamNameId = row.ParamNameId;
+ 
     editForm.EquipmentCategory = row.EquipmentCategory;
     editForm.EquipmentModel = row.EquipmentModel;
     editForm.EquipmentId = row.EquipmentId;
@@ -448,10 +440,18 @@ const handleEditDialogClosed = () => {
 const submitEdit = () => {
     editFormRef.value.validate((valid: boolean) => {
         if (valid) {
+            const exists = allData.value.some(item => 
+                item.LineBindId !== editForm.LineBindId &&
+                item.EquipmentId === editForm.EquipmentId && 
+                item.ProductionLine === editForm.ProductionLine
+            );
+            if (exists) {
+                ElMessage.error(t("message.dataExists"));
+                return;
+            }
             submitLoading.value = true;
             const params = {
                 LineBindId: editForm.LineBindId,
-                ParamNameId: editForm.ParamNameId,
                 EquipmentCategory: editForm.EquipmentCategory,
                 EquipmentModel: editForm.EquipmentModel,
                 EquipmentId: editForm.EquipmentId,

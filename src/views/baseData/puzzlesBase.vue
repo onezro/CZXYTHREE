@@ -2,7 +2,7 @@
     <div class=" p-2">
         <el-card :body-style="{ padding: '8px' }">
             <div class="mb-2 flex justify-between">
-                <el-button type="primary" size="small" @click="openAdd">{{ t('publicText.add') }}</el-button>
+              
                 <div>
                     <el-input v-model="searchText" size="small" :placeholder="t('baseData.puzzlesBase.searchPlaceholder')" style="width: 350px"
                         clearable @keyup.enter="getSearchData" @clear="clearData">
@@ -11,29 +11,30 @@
                         </template>
                     </el-input>
                 </div>
+                  <el-button type="primary" size="small" @click="openAdd">{{ t('publicText.add') }}</el-button>
             </div>
-            <el-table :data="tableData.slice(
+            <el-table ref="tableMasterRef" :data="tableData.slice(
                 (getForm.PageIndex - 1) * getForm.PageSize,
                 getForm.PageIndex * getForm.PageSize,
             )" border :height="tableHeight" size="small" style="width: 100%">
-                <el-table-column :label="t('publicText.index')" width="55" align="center">
+                <el-table-column :label="t('publicText.index')" width="55" align="center" fixed="left">
                     <template #default="scope">
                         <span>{{ scope.$index + 1 + (getForm.PageIndex - 1) * getForm.PageSize }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="PN" :label="t('baseData.puzzlesBase.pn')" width="220" />
-                <el-table-column prop="name" :label="t('baseData.puzzlesBase.name')" />
-                <el-table-column prop="pn_spec" :label="t('baseData.puzzlesBase.spec')" />
-                <el-table-column prop="faceNumber" :label="t('baseData.puzzlesBase.side')" width="80" align="center">
+                <el-table-column prop="PN" :label="t('baseData.puzzlesBase.pn')" :min-width="getColumnWidth('PN')" fixed="left"/>
+                <el-table-column prop="name" :label="t('baseData.puzzlesBase.name')" :min-width="getColumnWidth('name')" />
+                <el-table-column prop="pn_spec" :label="t('baseData.puzzlesBase.spec')" :min-width="getColumnWidth('pn_spec')" />
+                <el-table-column prop="faceNumber" :label="t('baseData.puzzlesBase.side')" :min-width="getColumnWidth('faceNumber')" align="center">
                     <template #default="scope">
                         <span v-if="scope.row.faceNumber == 1">{{ t('baseData.puzzlesBase.single') }}</span>
                         <span v-else>{{ t('baseData.puzzlesBase.double') }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="softwareVersion" :label="t('baseData.puzzlesBase.softwareVersion')" width="80" />
-                <el-table-column prop="Ud_usr" :label="t('baseData.puzzlesBase.operator')" width="130" />
-                <el-table-column prop="Ud_dt" :label="t('baseData.puzzlesBase.operateTime')" width="145" />
-                <el-table-column fixed="right" :label="t('publicText.operation')" width="150" align="center">
+                <el-table-column prop="softwareVersion" :label="t('baseData.puzzlesBase.softwareVersion')" :min-width="getColumnWidth('softwareVersion')" />
+                <el-table-column prop="Ud_usr" :label="t('baseData.puzzlesBase.operator')" :min-width="getColumnWidth('Ud_usr')" />
+                <el-table-column prop="Ud_dt" :label="t('baseData.puzzlesBase.operateTime')" :min-width="getColumnWidth('Ud_dt')" />
+                <el-table-column fixed="right" :label="t('publicText.operation')" width="120" align="center">
                     <template #default="scope">
                         <el-tooltip :content="t('publicText.detail')" placement="top">
                             <el-button type="primary" size="small" icon="Document" @click="handleEdit(scope.row)" />
@@ -125,15 +126,9 @@
                                         <el-input v-model="scope.row.finished_code" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.name')">
-                                    <template #default="scope">
-                                        <el-input v-model="scope.row.name" size="small" />
-                                    </template>
+                                <el-table-column :label="t('baseData.puzzlesBase.name')" prop="name">
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.spec')">
-                                    <template #default="scope">
-                                        <el-input v-model="scope.row.model" size="small" />
-                                    </template>
+                                <el-table-column :label="t('baseData.puzzlesBase.spec')" prop="model" width="200" show-overflow-tooltip>
                                 </el-table-column>
                                 <el-table-column :label="t('publicText.operation')" width="80" align="center">
                                     <template #default="{ $index }">
@@ -176,7 +171,7 @@
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="8" :offset="0">
-                        <el-form-item :label="t('baseData.puzzlesBase.sideSelect')" prop="side" class="mb-2">
+                        <el-form-item :label="t('baseData.puzzlesBase.side')" prop="side" class="mb-2">
                             <el-select v-model="editForm.side" :placeholder="t('publicText.select')" style="width: 100%"
                                 size="small">
                                 <el-option :label="t('baseData.puzzlesBase.single')" value="1" />
@@ -205,7 +200,7 @@
                                             @select="(item: any) => change1(item, scope.$index)" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.qty')" prop="small_board_qty" width="100">
+                                <el-table-column :label="t('baseData.puzzlesBase.pcbQty')" prop="small_board_qty" width="100">
                                     <template #default="scope">
                                         <el-input v-model.number="scope.row.small_board_qty" type="number"
                                             size="small" />
@@ -227,14 +222,9 @@
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.name')" prop="name">
-                                    <template #default="scope">
-                                        <el-input v-model="scope.row.name" size="small" />
-                                    </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.spec')" prop="model">
-                                    <template #default="scope">
-                                        <el-input v-model="scope.row.model" size="small" />
-                                    </template>
+                                <el-table-column :label="t('baseData.puzzlesBase.spec')" prop="model" width="200" show-overflow-tooltip>
+
                                 </el-table-column>
                                 <el-table-column :label="t('publicText.operation')" width="120">
                                     <template #default="scope">
@@ -258,11 +248,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, nextTick, onMounted, onBeforeMount, onBeforeUnmount } from 'vue'
-import { ElNotification, ElMessageBox } from 'element-plus'
-import { useI18n } from 'vue-i18n'
-import dayjs from 'dayjs'
-import { getToken } from '@/utils/auth'
 import {
   findPanelizationList,
   DeletePanelizationList,
@@ -272,13 +257,22 @@ import {
   findPartNumberData,
   UpdatePanelizationList
 } from '@/api/baseData'
+import { ref, reactive, nextTick, onMounted, onBeforeMount, onBeforeUnmount } from 'vue'
+import { ElNotification, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
+import dayjs from 'dayjs'
+import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
+import { useUserStoreWithOut } from "@/stores/modules/user";
 
-const { t } = useI18n()
 
-// 响应式数据
+const userStore = useUserStoreWithOut();
+const { t } = useI18n();
+
+
+
+
 const searchText = ref('')
 const tableData = ref<any[]>([])
-const tableData1 = ref<any[]>([])
 const total = ref(0)
 const tableHeight = ref(0)
 const dialogVisible = ref(false)
@@ -286,6 +280,7 @@ const detailVisible = ref(false)
 const formRef = ref()
 const editFormRef = ref()
 const options = ref<any[]>([])
+const tableMasterRef = ref()
 
 const getForm = ref({
     PageIndex: 1,
@@ -303,7 +298,9 @@ const form = ref({
         name: '',
         version: '',
         softwareVersion: '',
-        PCBMaterial: ''
+        PCBMaterial: '',
+        cr_user: '',
+        cr_time: ''
     },
     Detail: [
         {
@@ -346,9 +343,7 @@ const rules = {
     'list.side': [{ required: true, message: '单双面不能为空', trigger: 'change' }]
 }
 
-// 方法
 const getData = () => {
-
       findPanelizationList(getForm.value).then((res:any) => {
         if (res.Success) {
           tableData.value = res.Data.list.map((item: any) => ({
@@ -364,37 +359,9 @@ const getData = () => {
 }
 
 const getSearchData = () => {
-      findPanelizationList({
-        PageIndex: 1,
-        PageSize: 10000,
-        SearchText: '',
-        SearchModel: '',
-        StartTime: '',
-        EndTime: ''
-      }).then((res:any) => {
-        if (res.Data.list.length === 0) {
-          ElNotification({
-            type: 'error',
-            title: t('publicText.tip'),
-            message: t('puzzles.noData')
-          })
-          return
-        }
-        tableData1.value = res.Data.list.map((item: any) => ({
-          ...item,
-          Ud_dt: dayjs(item.Ud_dt).format('YYYY-MM-DD HH:mm:ss')
-        }))
-        const searchName = searchText.value.toLowerCase()
-        getForm.value.PageIndex = 1
-        tableData.value = tableData1.value.filter((v) => {
-          return (
-            String(v.PN).toLowerCase().indexOf(searchName) > -1 ||
-            String(v.name).toLowerCase().indexOf(searchName) > -1 ||
-            String(v.pn_spec).toLowerCase().indexOf(searchName) > -1
-          )
-        })
-        total.value = tableData.value.length
-      })
+      getForm.value.PageIndex = 1
+      getForm.value.SearchText = searchText.value
+      getData()
 }
 
 const clearData = () => {
@@ -413,26 +380,26 @@ const change = (val: any, index: number) => {
 }
 
 const remoteMethod = (query: string, cb: any) => {
-    //   findPartNumberData(query).then((res) => {
-    //     if (res.Success) {
-    //       if (res.Data === null || res.Data.length === 0) {
-    //         ElNotification({
-    //           type: 'error',
-    //           title: t('publicText.tip'),
-    //           message: t('puzzles.noData')
-    //         })
-    //         cb([])
-    //         return
-    //       }
-    //       const searchData = JSON.parse(res.Data)
-    //       cb(
-    //         searchData.map((item: any) => ({
-    //           value: item.PN,
-    //           ...item
-    //         }))
-    //       )
-    //     }
-    //   })
+      findPartNumberData(query).then((res:any) => {
+        if (res.Success) {
+          if (res.Data === null || res.Data.length === 0) {
+            ElNotification({
+              type: 'error',
+              title: t('publicText.tip'),
+              message: t('puzzles.noData')
+            })
+            cb([])
+            return
+          }
+          const searchData = JSON.parse(res.Data)
+          cb(
+            searchData.map((item: any) => ({
+              value: item.PN,
+              ...item
+            }))
+          )
+        }
+      })
 }
 
 const change1 = (val: any, index: number) => {
@@ -478,22 +445,22 @@ const handleDelete = (row: any) => {
         type: 'warning'
     })
         .then(() => {
-            //   DeletePanelizationList(row.PN).then((res) => {
-            //     if (res.Success) {
-            //       ElNotification({
-            //         type: 'success',
-            //         title: t('publicText.tip'),
-            //         message: res.Msg
-            //       })
-            //       getData()
-            //     } else {
-            //       ElNotification({
-            //         type: 'error',
-            //         title: t('publicText.tip'),
-            //         message: res.Msg
-            //       })
-            //     }
-            //   })
+              DeletePanelizationList(row.PN).then((res:any) => {
+                if (res.Success) {
+                  ElNotification({
+                    type: 'success',
+                    title: t('publicText.tip'),
+                    message: res.Msg
+                  })
+                  getData()
+                } else {
+                  ElNotification({
+                    type: 'error',
+                    title: t('publicText.tip'),
+                    message: res.Msg
+                  })
+                }
+              })
         })
         .catch(() => {
             ElNotification({
@@ -516,30 +483,30 @@ const onSubmit = () => {
                 return
             }
             const filteredDetail = form.value.Detail.filter((item) => item.finished_code !== '')
-            //   form.value.list.cr_user = getToken()
-            //   form.value.list.cr_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
+            form.value.list.cr_user = userStore.getUserInfo
+            form.value.list.cr_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
             filteredDetail.forEach((item: any) => {
-                item.cr_user = getToken()
+                item.cr_user = userStore.getUserInfo
                 item.cr_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
             })
-            //   addPanelizationdetail({ list: form.list, Detail: filteredDetail }).then((res) => {
-            //     if (res.Success) {
-            //       ElNotification({
-            //         type: 'success',
-            //         title: t('publicText.tip'),
-            //         message: res.Msg
-            //       })
-            //       restForm()
-            //       dialogVisible.value = false
-            //       getData()
-            //     } else {
-            //       ElNotification({
-            //         type: 'error',
-            //         title: t('publicText.tip'),
-            //         message: res.Msg
-            //       })
-            //     }
-            //   })
+            addPanelizationdetail({ list: form.value.list, Detail: filteredDetail }).then((res:any) => {
+                if (res.Success) {
+                    ElNotification({
+                        type: 'success',
+                        title: t('publicText.tip'),
+                        message: res.Msg
+                    })
+                    restForm()
+                    dialogVisible.value = false
+                    getData()
+                } else {
+                    ElNotification({
+                        type: 'error',
+                        title: t('publicText.tip'),
+                        message: res.Msg
+                    })
+                }
+            })
         } else {
             ElNotification({
                 type: 'error',
@@ -559,7 +526,9 @@ const restForm = () => {
         name: '',
         version: '',
         softwareVersion: '',
-        PCBMaterial: ''
+        PCBMaterial: '',
+        cr_user: '',
+        cr_time: ''
     }
     form.value.Detail = [
         {
@@ -592,39 +561,39 @@ const handleEdit = (row: any) => {
     editForm.value.softwareVersion = row.softwareVersion
     editForm.value.PCBMaterial = row.PCBMaterial
 
-    //   findPnDetail(row.PN).then((res) => {
-    //     if (res.Data == null || res.Data.length === 0) {
-    //       smallBoardTable.value = [
-    //         {
-    //           version: '',
-    //           small_board_qty: 0,
-    //           finished_code: '',
-    //           name: '',
-    //           model: '',
-    //           pcb_code: '',
-    //           module_start: 0,
-    //           module_end: 0
-    //         }
-    //       ]
-    //     } else {
-    //       smallBoardTable.value = JSON.parse(res.Data)
-    //     }
-    //     detailVisible.value = true
-    //   })
+      findPnDetail(row.PN).then((res: any) => {
+        if (res.Data == null || res.Data.length === 0) {
+          smallBoardTable.value = [
+            {
+              version: '',
+              small_board_qty: 0,
+              finished_code: '',
+              name: '',
+              model: '',
+              pcb_code: '',
+              module_start: 0,
+              module_end: 0
+            }
+          ]
+        } else {
+          smallBoardTable.value = JSON.parse(res.Data)
+        }
+        detailVisible.value = true
+      })
 }
 
 const upDateSubmit = () => {
     editForm.value.cr_user = ''
     editForm.value.cr_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
-    //   UpdatePanelizationList(editForm.value).then((res) => {
-    //     if (!res.Success) {
-    //       ElNotification({
-    //         type: 'error',
-    //         title: t('publicText.tip'),
-    //         message: res.Msg
-    //       })
-    //     }
-    //   })
+      UpdatePanelizationList(editForm.value).then((res:any) => {
+        if (!res.Success) {
+          ElNotification({
+            type: 'error',
+            title: t('publicText.tip'),
+            message: res.Msg
+          })
+        }
+      })
 }
 
 const addDetailCancel = () => {
@@ -669,28 +638,28 @@ const onDetailSubmit = () => {
     upDateSubmit()
     const filteredTable = smallBoardTable.value.filter((item) => item.finished_code !== '')
     filteredTable.forEach((item) => {
-        item.cr_user = getToken()
+        item.cr_user = userStore.getUserInfo
         item.cr_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
         item.softwareVersion = editForm.value.softwareVersion
     })
     upDateForm.list = filteredTable
-    // UpdatePanelizationDetail(upDateForm).then((res) => {
-    //     if (res.Success) {
-    //         ElNotification({
-    //             type: 'success',
-    //             title: t('publicText.tip'),
-    //             message: res.Msg
-    //         })
-    //         detailVisible.value = false
-    //         getData()
-    //     } else {
-    //         ElNotification({
-    //             type: 'error',
-    //             title: t('publicText.tip'),
-    //             message: res.Msg
-    //         })
-    //     }
-    // })
+    UpdatePanelizationDetail(upDateForm).then((res:any) => {
+        if (res.Success) {
+            ElNotification({
+                type: 'success',
+                title: t('publicText.tip'),
+                message: res.Msg
+            })
+            detailVisible.value = false
+            getData()
+        } else {
+            ElNotification({
+                type: 'error',
+                title: t('publicText.tip'),
+                message: res.Msg
+            })
+        }
+    })
 }
 
 const handleSizeChange = (val: number) => {
@@ -703,13 +672,16 @@ const handleCurrentChange = (val: number) => {
     getData()
 }
 
+const { getColumnWidth } = useTableColumnWidth(tableMasterRef, tableData, {
+    excludeLabels: [t('publicText.index'), t('publicText.operation')]
+})
+
 const getScreenHeight = () => {
     nextTick(() => {
         tableHeight.value = window.innerHeight - 190
     })
 }
 
-// 生命周期
 onBeforeMount(() => {
     getScreenHeight()
     getData()
