@@ -6,32 +6,41 @@
                     <el-input v-model="getForm.KittingNo" placeholder="" clearable @clear="getData"
                         @keyup.enter.native="getData" style="width: 200px" />
                 </el-form-item>
+                <el-form-item :label="t('Scheduling.CallMaterials.GroupOrder')" prop="MaterialRequest_WoGroup" class="mb-2">
+                    <el-input v-model="getForm.MaterialRequest_WoGroup" placeholder="" clearable @clear="getData"
+                        @keyup.enter.native="getData" style="width: 200px" />
+                </el-form-item>
                 <el-form-item class="mb-2">
-                    <el-button :type="'primary'" @click="getData">查询</el-button>
-                    <!-- <el-button :type="'warning'">叫料</el-button> -->
-                        <el-button :type="'warning'" :disabled="selectList.length !== 1" @click="handleCallMaterial">
-                        {{ t('Scheduling.CallMaterials.call') }}
-                    </el-button>
+                    <el-button :type="'primary'" @click="getData">{{ t('publicText.query') }}</el-button>
                 </el-form-item>
             </el-form>
             <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit ref="eltableRef"  @selection-change="handleSelectionChange">
+                :tooltip-effect="'dark'" border fit ref="eltableRef" @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="55" align="center" />
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{
                             scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1
-                            }}</span>
+                        }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.CallMaterials.CallOrder')" fixed prop="MaterialRequest_No"
                     :min-width="getColumnWidth1('MaterialRequest_No')" />
-                <el-table-column :label="t('Scheduling.ProductSched.MesOrder')" prop="MaterialRequest_Wo"
-                    :min-width="getColumnWidth1('MaterialRequest_Wo')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPreparationNo')" fixed
+                    prop="MaterialRequest_KittingNo" :min-width="getColumnWidth1('MaterialRequest_KittingNo')" />
+                <!-- <el-table-column :label="t('Scheduling.ProductSched.MesOrder')" prop="MaterialRequest_Wo"
+                    :min-width="getColumnWidth1('MaterialRequest_Wo')" /> -->
 
                 <el-table-column :label="t('Scheduling.CallMaterials.GroupOrder')" fixed prop="MaterialRequest_WoGroup"
                     :min-width="getColumnWidth1('MaterialRequest_WoGroup')" />
 
+                <el-table-column :label="t('Scheduling.CallMaterials.RequestInfo')" prop="RequestInfo"
+                    :min-width="getColumnWidth1('RequestInfo')">
+                    <template #default="{ row }">
+                        <el-tag type="primary" v-if="row.RequestInfo === 0">方仓</el-tag>
+                        <el-tag type="success" v-else-if="row.RequestInfo === 1">赛意</el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column :label="t('Scheduling.ERPDocument.Status')" prop="MaterialRequest_Status"
                     :min-width="getColumnWidth1('MaterialRequest_Status')">
 
@@ -49,14 +58,24 @@
 
                 <el-table-column :label="t('Scheduling.ERPDocument.Creator')" prop="MaterialRequest_InsertUser"
                     :min-width="getColumnWidth1('MaterialRequest_InsertUser')" />
-                <el-table-column :label="t('publicText.operation')" prop="operation" width="130" align="center">
+                <el-table-column :label="t('publicText.operation')" prop="operation" width="200" align="center">
                     <template #default="{ row }">
-                        <el-button type="primary" size="small" @click="fetchDetail(row)">{{
-                            $t('Scheduling.CallMaterials.Detail') }}</el-button>
+                        <el-tooltip class="item" effect="dark" :content="$t('Scheduling.CallMaterials.Detail')"
+                            placement="top">
+                            <el-button type="primary" size="small" icon="Tickets" @click="fetchDetail(row)" />
+                        </el-tooltip>
+
+                        <el-tooltip class="item" effect="dark" :content="$t('Scheduling.CallMaterials.call')"
+                            placement="top">
+                            <el-button type="warning" size="small" icon="Bell" :disabled="row.RequestInfo !== 1" @click="handleCallMaterial(row)" />
+                        </el-tooltip>
+
                         <!-- <el-button type="warning" size="small" @click="handleChangeStatus(row)">{{
                             $t('Scheduling.CallMaterials.changeStatus') }}</el-button> -->
-                        <el-button type="danger" size="small" @click="handleCancel(row)">{{
-                            $t('Scheduling.CallMaterials.Cancel') }}</el-button>
+                        <el-tooltip class="item" effect="dark" :content="$t('Scheduling.CallMaterials.Cancel')"
+                            placement="top">
+                            <el-button type="danger" size="small" icon="DocumentDelete" @click="handleCancel(row)" />
+                        </el-tooltip>
                     </template>
                 </el-table-column>
                 <template #empty>
@@ -181,10 +200,11 @@ const tableData = ref([]); // 备料单列表
 const total = ref(0);
 const selectList = ref<any>([]);
 
-const getForm = ref({
+const getForm = reactive({
     PageIndex: 1,
     PageSize: 50,
     KittingNo: '',
+    MaterialRequest_WoGroup: '',
 })
 
 // 详情弹窗相关
@@ -226,7 +246,7 @@ onBeforeUnmount(() => {
 });
 
 const getData = () => {
-    QueryMaterialRequestList(getForm.value).then((res: any) => {
+    QueryMaterialRequestList(getForm).then((res: any) => {
         if (res.Success) {
             tableData.value = res.Data.rows
             total.value = res.Data.total
@@ -343,11 +363,11 @@ const addSubmit = () => { }
 const editCancel = () => { editVisible.value = false }
 const editSubmit = () => { }
 
-const handleCallMaterial = () => {
-    const selected = selectList.value[0];
+const handleCallMaterial = (row?: any) => {
+    const selected = row || selectList.value[0];
     if (!selected) return;
 
-    if (selected.MaterialRequest_RequestInfo !== 1) {
+    if (selected.RequestInfo !== 1) {
         ElMessage.warning(t('Scheduling.CallMaterials.onlySaiYi'));
         return;
     }
@@ -370,11 +390,11 @@ const handleSelectionChange = (val: any[]) => {
     selectList.value = val;
 };
 const handleSizeChange = (val: any) => {
-    getForm.value.PageSize = val
+    getForm.PageSize = val
     getData()
 };
 const handleCurrentChange = (val: any) => {
-    getForm.value.PageIndex = val
+    getForm.PageIndex = val
     getData()
 };
 

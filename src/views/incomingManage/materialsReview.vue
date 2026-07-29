@@ -37,7 +37,7 @@
 
             <!-- 主表列表 -->
             <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit highlight-current-row>
+                :tooltip-effect="'dark'" border fit highlight-current-row ref="eltableRef">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{ scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1 }}</span>
@@ -69,17 +69,25 @@
                         </el-tag>
                     </template>
                 </el-table-column>
+                <el-table-column :label="t('incomingManage.materialReview.reviewStatus')" prop="ReviewStatus" width="100"
+                    align="center">
+                    <template #default="{ row }">
+                        <el-tag :type="row.ReviewStatus === 1 ? 'success' : 'info'" size="small">
+                            {{ row.ReviewStatus === 1 ? t('publicText.completed') : t('publicText.notStarted') }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column :label="t('incomingManage.deliveryNote.remarks')" prop="Remarks" min-width="120"
                     show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.materialReview.ngAuditUser')" prop="NgAuditUser"
-                    width="100" />
+                   :min-width="getColumnWidth1('NgAuditUser')" />
                 <el-table-column :label="t('incomingManage.materialReview.ngAuditDate')" prop="NgAuditDate"
-                    width="160" />
+                   :min-width="getColumnWidth1('NgAuditDate')" />
                 <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser" width="100" />
                 <el-table-column :label="t('incomingManage.testItems.creatime')" prop="CreateTime" width="160" />
                 <el-table-column :label="$t('publicText.operation')" fixed="right" width="160" align="center">
                     <template #default="{ row }">
-                        <el-button type="primary" size="small" @click="openReviewDialog(row)">
+                        <el-button type="primary" size="small" @click="openReviewDialog(row)" :disabled="row.ReviewStatus==1">
                             {{ t('incomingManage.materialReview.review') }}
                         </el-button>
                         <el-button type="danger" size="small" @click="handleDelete(row)">
@@ -188,7 +196,7 @@
 
 <script setup lang="ts">
 import { QueryInspectionReviewList, QueryInspectionReviewDetailList, SaveInspectionReview, DeleteInspectionReview } from "@/api/incomingManage/index";
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -198,6 +206,7 @@ const userStore = useUserStoreWithOut();
 const { t } = useI18n();
 
 // 表格高度自适应
+const eltableRef = ref();
 const tableHeight = ref(0);
 const tableData = ref<any[]>([]);
 const total = ref(0);
@@ -231,8 +240,48 @@ const reviewForm = reactive({
 
 const reviewRules = {
     ReviewResult: [{ required: true, message: "请选择评审结果", trigger: "change" }],
-    AcceptedQty: [{ required: true, message: "请输入允收数量", trigger: "blur" }],
-    RejectedQty: [{ required: true, message: "请输入拒收数量", trigger: "blur" }],
+    AcceptedQty: [
+        { required: true, message: "请输入允收数量", trigger: "blur" },
+        {
+            validator: (rule: any, value: any, callback: any) => {
+                if (value === null || value === undefined) {
+                    callback();
+                    return;
+                }
+                if (value < 0) {
+                    callback(new Error("数量不能为负数"));
+                    return;
+                }
+                if (value + (reviewForm.RejectedQty || 0) > reviewForm.ArrivalQty) {
+                    callback(new Error(t("incomingManage.materialReview.qtyExceedWarning")));
+                    return;
+                }
+                callback();
+            },
+            trigger: "blur",
+        },
+    ],
+    RejectedQty: [
+        { required: true, message: "请输入拒收数量", trigger: "blur" },
+        {
+            validator: (rule: any, value: any, callback: any) => {
+                if (value === null || value === undefined) {
+                    callback();
+                    return;
+                }
+                if (value < 0) {
+                    callback(new Error("数量不能为负数"));
+                    return;
+                }
+                if ((reviewForm.AcceptedQty || 0) + value > reviewForm.ArrivalQty) {
+                    callback(new Error(t("incomingManage.materialReview.qtyExceedWarning")));
+                    return;
+                }
+                callback();
+            },
+            trigger: "blur",
+        },
+    ],
 };
 
 // ==================== API 调用 ====================
@@ -398,18 +447,9 @@ const closeReviewDialog = () => {
 };
 
 // ==================== 列宽自适应 ====================
-const columnWidths1 = computed(() => {
-    const columns = [
-        { label: t("incomingManage.materialReview.reviewNo"), prop: "ReviewNo" },
-        { label: t("incomingManage.deliveryNote.iqcNo"), prop: "IQCNo" },
-        { label: t("incomingManage.deliveryNote.arrivalNo"), prop: "ArrivalNo" },
-        { label: t("incomingManage.deliveryNote.materialCode"), prop: "MaterialCode" },
-        { label: t("incomingManage.deliveryNote.materialName"), prop: "MaterialName" },
-        { label: t("incomingManage.deliveryNote.projectName"), prop: "ProjectName" },
-    ];
-    return calculateColumnsWidth(columns, tableData.value, { padding: 25, fontSize: 13 });
+const { getColumnWidth: getColumnWidth1 } = useTableColumnWidth(eltableRef, tableData, {
+    excludeLabels: [t("publicText.index"), t("publicText.operation")],
 });
-const getColumnWidth1 = (prop: string) => columnWidths1.value[prop] || "auto";
 
 // 高度自适应
 const getScreenHeight = () => {

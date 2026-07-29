@@ -18,4 +18,7 @@ body.el-popup-parent--hidden {
 .el-message-box-parent--hidden {
   width: 100% !important;
 }
+.el-pagination {
+    justify-content: center;
+}
 </style>

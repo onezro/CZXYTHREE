@@ -149,7 +149,7 @@
                                             <span class="status-indicator" :class="getStatusClass(status)"></span>
                                             <span :class="getTextColorClass(status)">{{
                                                 getStatusText(status)
-                                            }}</span>
+                                                }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -165,7 +165,7 @@
                                         <el-tag size="large" :type="getDeviceStatusTextType(item)" effect="light" round>
                                             <span class="text-lg font-black">{{
                                                 getDeviceStatusText(item)
-                                            }}</span>
+                                                }}</span>
                                         </el-tag>
                                     </div>
                                 </div>
@@ -204,7 +204,8 @@
         </div>
 
         <!-- 线体设置对话框 -->
-        <el-dialog v-model="lineChangeVisible" title="线体设置" width="400px" custom-class="line-dialog"     :close-on-click-modal="false" :close-on-press-escape="false">
+        <el-dialog v-model="lineChangeVisible" title="线体设置" width="400px" custom-class="line-dialog"
+            :close-on-click-modal="false" :close-on-press-escape="false">
             <div class="dialog-content">
                 <el-select v-model="lineName" placeholder="请选择线体" class="full-width" filterable>
                     <el-option v-for="item in lineList" :key="item.line" :label="item.line" :value="item.line">
@@ -436,7 +437,7 @@ interface ChangeoverError {
     errorMsg: string;
 }
 
-const currentErrors = ref<ChangeoverError[]>([ 
+const currentErrors = ref<ChangeoverError[]>([
 ]);
 const errorHistory = ref<ChangeoverError[][]>([]);
 const errorDialogVisible = ref(false);
@@ -650,6 +651,11 @@ const confirmChangeOver = async () => {
     confirmVisible.value = false;
     isLoading.value = true;
     const data = prepareChangeOverData();
+    //  handleChangeOverResponse({
+    //     Success: false,
+    //     Message: "产品编号:XY4050213591500+4050213591800-1对应的轨道宽度未",
+    //     Code:100300
+    //  });
     SMTChangeOverByOneKey({ ...data, OperatorUser: userStore.getUserInfo })
         .then((res: any) => {
             handleChangeOverResponse(res);
@@ -1824,6 +1830,7 @@ const getDeviceStatus = (device: any) => {
         transform: scale(1);
         opacity: 0.6;
     }
+
     100% {
         transform: scale(1.3);
         opacity: 0;

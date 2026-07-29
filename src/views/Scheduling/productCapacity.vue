@@ -67,7 +67,9 @@
                 </el-table-column>
                 <el-table-column prop="Unit" :label="t('Scheduling.productCapacity.unit')" min-width="100"
                     align="center">
-
+                    <template #default="{ row }">
+                        {{ getUnitLabel(row.Unit) }}
+                    </template>
                 </el-table-column>
               
                 <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="130" align="center">
@@ -122,7 +124,7 @@
                     <el-input-number v-model="addForm.TimeLong" :min="0" :precision="0"
                         :placeholder="t('Scheduling.productCapacity.inputTimeLong')" style="width: 100%">
                         <template #suffix>
-                            <span class="text-sm text-[#006487]">S</span>
+                            <span class="text-sm text-[#006487]">{{ t('Scheduling.lineChangeTime.second') }}</span>
                         </template>
                     </el-input-number>
                 </el-form-item>
@@ -182,7 +184,7 @@
                     <el-input-number v-model="editForm.TimeLong" :min="0" :precision="0"
                         :placeholder="t('Scheduling.productCapacity.inputTimeLong')" style="width: 100%">
                         <template #suffix>
-                            <span class="text-sm text-[#006487]">S</span>
+                            <span class="text-sm text-[#006487]">{{ t('Scheduling.lineChangeTime.second') }}</span>
                         </template>
                     </el-input-number>
                 </el-form-item>

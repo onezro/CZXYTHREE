@@ -49,7 +49,7 @@ export function AddProcessParameterName(data: any) {
   return request({
     url: "/api/EquipmentProcess/AddProcessParameterName",
     method: "post",
-    data,
+    data
   });
 }
 

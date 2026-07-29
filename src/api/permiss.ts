@@ -205,8 +205,42 @@ export function ResetPwd(data: any) {
         params: data
     });
 }
+//重置密码
+export function ResetEmpPwd(data: any) {
+    return request({
+        url: "/api/employee/ResetEmpPwd",
+        method: "post",
+        params: data
+    });
+}
+//同步用户
+export function OpcenterEmployeeSync(data: any) {
+    return request({
+        url: "/api/employee/OpcenterEmployeeSync",
+        method: "post",
+        data
+    });
+}
+export function AddEmployee(data: any) {
+    return request({
+        url: "/api/employee/AddEmployee",
+        method: "post",
+        params: data
+    });
+}
 
+//根据工号查询员工登录历史
+export function findEmpLoginLog(data: any) {
+    return request({
+        url: "/api/employee/findEmpLoginLog",
+        method: "post",
+        params: {
+            employeeName:data
+        }
+    });
+}
 
+//获取组织架构
 export function getOrganization(){
     return request({
         url: "/api/employee/findOrganization",
@@ -219,5 +253,37 @@ export function GetVersion(){
     return request({
         url: "/api/system/GetVersion",
         method: "post",
+    });
+}
+
+//获取角色的用户
+export function getEmployeesByRole(data: any) {
+    return request({
+        url: "/api/role/getEmployeesByRole",
+        method: "post",
+        params: {
+            roleid:data
+        }
+    });
+}
+
+//获取角色未绑定的用户列表
+export function getUnassignEmployeesByRole(roleid: any,name: any) {
+    return request({
+        url: "/api/role/getUnassignEmployeesByRole",
+        method: "post",
+        params: {
+            roleid,
+            name
+        }
+    });
+}
+
+//修改角色的用户列表
+export function updateEmployeesByRole(data: any) {
+    return request({
+        url: "/api/role/updateEmployeesByRole",
+        method: "post",
+        data
     });
 }

@@ -103,7 +103,7 @@ export function ManualSubmitSaiYiMaterialRequest(data:any) {
 //添加补料备料
 export function AddSupplementMaterialPreparation(data:any) {
     return request({
-        url: "/api/MaterialPreparation/AddSupplementMaterialPreparation",
+        url: "/api/MaterialPreparation/CreateWorkOrderSupplementPreparation",
         method: "post",
         data
     });

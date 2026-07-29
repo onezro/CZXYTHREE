@@ -67,16 +67,32 @@
                 </el-table-column>
                 <el-table-column :label="t('incomingManage.deliveryNote.arrivalQty')" prop="ArrivalQty" width="100"
                     align="right" />
-                <el-table-column :label="t('incomingManage.deliveryNote.sampleQty')" prop="SampleQty" width="100"
-                    align="right" />
+                <!-- <el-table-column :label="t('incomingManage.deliveryNote.sampleQty')" prop="SampleQty" width="100"
+                    align="right" /> -->
                 <el-table-column :label="t('incomingManage.deliveryNote.result')" prop="Result" width="100"
                     align="center" fixed="right">
                     <template #default="{ row }">
                         <el-tag :type="getResultType(row.Result)" size="small">{{ getResultText(row.Result) }}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('incomingManage.testItems.creator')" prop="CreateUser"
-                    :min-width="getColumnWidth('CreateUser')" />
+                <el-table-column :label="t('incomingManage.deliveryNote.acceptedQty')" prop="AcceptedQty" width="100"
+                    align="right" />
+                <el-table-column :label="t('incomingManage.deliveryNote.rejectedQty')" prop="RejectedQty" width="100"
+                    align="right" />
+                <el-table-column :label="t('incomingManage.deliveryNote.inspector')" prop="Inspector"
+                    :min-width="getColumnWidth('Inspector')" />
+                <el-table-column :label="t('incomingManage.deliveryNote.inspectTime')" prop="InspectTime"
+                    :min-width="getColumnWidth('InspectTime')" />
+                <el-table-column :label="t('incomingManage.materialReview.reviewStatus')" prop="ReviewStatus" width="100"
+                    align="center">
+                    <template #default="{ row }">
+                        <el-tag :type="row.ReviewStatus === 1 ? 'success' : 'info'" size="small">
+                            {{ row.ReviewStatus === 1 ? t('publicText.completed') : t('publicText.notStarted') }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column :label="t('incomingManage.testItems.creator')" prop="UserName"
+                    :min-width="getColumnWidth('UserName')" />
                 <el-table-column :label="t('incomingManage.testItems.creatime')" prop="CreateTime"
                     :min-width="getColumnWidth('CreateTime')" />
                 <el-table-column :label="$t('publicText.operation')" fixed="right" width="160" align="center">
@@ -89,12 +105,12 @@
                         </el-tooltip>
                         <el-tooltip effect="dark" :content=" t('incomingManage.deliveryNote.review')"
                             placement="top-start">
-                            <el-button type="warning" size="small" @click="openReviewDialog(row)" icon="Check"/>
+                            <el-button type="warning" size="small" @click="openReviewDialog(row)" icon="Check" :disabled="row.Result !== 2||row.ReviewStatus==1"/>
                         </el-tooltip>
                         <el-tooltip effect="dark" :content=" t('publicText.delete')"
                             placement="top-start">
-                            <el-button type="danger" size="small" @click="handleDelete(row)" icon="Delete"/>
-                        </el-tooltip>   
+                            <el-button type="danger" size="small" @click="handleDelete(row)" icon="Delete" :disabled="row.Result === 2"/>
+                        </el-tooltip>
                     </template>
                 </el-table-column>
                 <template #empty>
@@ -317,6 +333,7 @@ const getData = () => {
             tableData.value = res.Data.rows.map((item: any) => ({
                 ...item,
                 CreateTime: dayjs(item.CreateTime).format("YYYY-MM-DD HH:mm:ss"),
+                InspectTime: item.InspectTime ? dayjs(item.InspectTime).format("YYYY-MM-DD HH:mm:ss") : "",
             })) || [];
         } else {
             ElMessage.error(res.Message || "查询失败");

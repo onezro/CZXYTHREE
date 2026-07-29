@@ -135,3 +135,12 @@ export function objToFormData(obj: Recordable) {
   })
   return formData
 }
+
+/**
+ * 时间格式化，将空格替换为T
+ * @param time 时间字符串
+ * @returns 格式化后的时间字符串 2026-01-01T00:00:00
+ */
+export const missTime = (time: string) => {
+  return time ? time.replace(/\s+/g, 'T') : ''
+}

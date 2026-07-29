@@ -1,5 +1,6 @@
 
 import request from '@/request/baseDataRequst'
+//
 export function findPanelizationList(data:any) {
     return request({
         url: "/api/Panelization/findPanelizationList",

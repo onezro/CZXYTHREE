@@ -26,8 +26,8 @@
 
                 <el-table-column :label="t('Scheduling.generatePrepare.OrderGroup')" prop="LXGroup" fixed
                     :min-width="getColumnWidth('LXGroup')" />
-                <el-table-column :label="t('Scheduling.generatePrepare.TeamOrder')" prop="TeamOrder" 
-                    :min-width="getColumnWidth('TeamOrder')" />
+                <!-- <el-table-column :label="t('Scheduling.generatePrepare.TeamOrder')" prop="TeamOrder" 
+                    :min-width="getColumnWidth('TeamOrder')" /> -->
                 <el-table-column :label="t('Scheduling.generatePrepare.MesOrder')" prop="wo"
                     :min-width="getColumnWidth('wo')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.BtOrder')" prop="orderName"
@@ -42,12 +42,19 @@
                     :min-width="getColumnWidth('Side')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.LXLine')" prop="LXLine"
                     :min-width="getColumnWidth('LXLine')" />
+                <el-table-column :label="t('Scheduling.generatePrepare.ProgramMerge')" prop="ProgramMerge"
+                    :min-width="getColumnWidth('ProgramMerge')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.PlanStartTime')" prop="PlanStartTime" :min-width="getColumnWidth('PlanStartTime')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.PlanEndTime')" prop="PlanEndTime" :min-width="getColumnWidth('PlanEndTime')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.DeliveryDate')" prop="DeliveryDate" :min-width="getColumnWidth('DeliveryDate')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.GroupStatus')" prop="GroupStatus" :min-width="getColumnWidth('GroupStatus')" fixed="right">
                     <template #default="{ row }">
                         <el-tag :type="getStatusType(row.GroupStatus)">{{ getGroupStatusName(row.GroupStatus) }}</el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column :label="t('Scheduling.generatePrepare.UploadStatus')" prop="status" :min-width="getColumnWidth('status')" fixed="right">
+                    <template #default="{ row }">
+                        <el-tag :type="row.status === 1 ? 'success' : 'info'">{{ getUploadStatusName(row.status) }}</el-tag>
                     </template>
                 </el-table-column>
                 <template #empty>
@@ -214,6 +221,14 @@ const getStatusType = (status: number) => {
         999: 'danger'
     };
     return typeMap[status] ?? 'info';
+};
+
+const getUploadStatusName = (status: number) => {
+    const statusMap: Record<number, string> = {
+        0: t('Scheduling.generatePrepare.statusNotUploaded'),
+        1: t('Scheduling.generatePrepare.statusUploaded'),
+    };
+    return statusMap[status] ?? t('publicText.unknown');
 };
 </script>
 <style scoped>

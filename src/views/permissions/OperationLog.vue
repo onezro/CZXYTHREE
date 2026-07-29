@@ -133,7 +133,7 @@
                 <div class="json-left">
                     <div class="json-header">
                         <span>{{ t("permissions.operationLog.requestJson") }}</span>
-                        <el-button type="text" size="small" @click="copyRequestJson">{{
+                        <el-button type="success" size="small" @click="copyRequestJson">{{
                             t("publicText.copy")
                             }}</el-button>
                     </div>
@@ -142,7 +142,7 @@
                 <div class="json-right">
                     <div class="json-header">
                         <span>{{ t("permissions.operationLog.returnJson") }}</span>
-                        <el-button type="text" size="small" @click="copyReturnJson">{{
+                        <el-button type="success" size="small" @click="copyReturnJson">{{
                             t("publicText.copy")
                             }}</el-button>
                     </div>
@@ -165,6 +165,7 @@ import { shortcuts1 } from "@/utils/dataMenu";
 import { ref, reactive, onMounted, nextTick, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { ElMessage } from "element-plus";
+import dayjs from "dayjs";
 const { t } = useI18n();
 
 const formRef = ref();
@@ -285,7 +286,11 @@ const disabledDate = (time: Date) => {
 const getData = () => {
     QueryOperationLog(getForm).then((res: any) => {
         if (res.Success) {
-            tableData.value = res.Data?.rows || [];
+            tableData.value = res.Data?.rows.map((item: any) => ({
+                ...item,
+                RequestDateime: dayjs(item.RequestDateime).format("YYYY-MM-DD HH:mm:ss"),
+                ReturnDateime: dayjs(item.ReturnDateime).format("YYYY-MM-DD HH:mm:ss"),
+            })) || [];
             total.value = res.Data?.total || 0;
         }
     });

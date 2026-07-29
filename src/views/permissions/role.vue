@@ -14,7 +14,7 @@
         <el-table-column label="序号" type="index" width="60" align="center"></el-table-column>
         <el-table-column label="角色名称" prop="RoleName" > </el-table-column>
         <el-table-column label="描述" prop="RoleDesc"> </el-table-column>
-        <el-table-column fixed="right" label="操作" width="120">
+        <el-table-column fixed="right" label="操作" width="180">
           <template #default="scope">
             <!-- <el-button
               type="primary"
@@ -26,6 +26,10 @@
 
             <el-tooltip content="编辑" placement="top">
               <el-button type="primary" icon="EditPen" size="small" @click.prevent="handleAssigned(scope.row)" />
+            </el-tooltip>
+            <el-tooltip content="角色用户编辑" placement="top">
+              <el-button type="warning" icon="User" size="small"
+                @click.prevent="roleEdit(scope.row)"></el-button>
             </el-tooltip>
             <el-tooltip content="删除" placement="top">
               <el-button type="danger" icon="Delete" size="small" @click.prevent="handleDelete(scope.row)"></el-button>
@@ -85,6 +89,53 @@
         </span>
       </template>
     </el-dialog>
+
+    <el-dialog :append-to-body="true" :close-on-click-modal="false" title="角色所属用户" v-model="roleVisible"
+      width="850px" @close="clear()">
+      <div class="edit_dev">
+        <div class="search-box">
+          <el-input
+            v-model="globalSearch"
+            placeholder="搜索所有未绑定用户"
+            clearable
+            @input="handleGlobalSearch"
+            style="width: 782px;"
+          >
+            <template #append>
+              <el-button icon="Search"></el-button>
+            </template>
+          </el-input>
+        </div>
+
+        <el-transfer
+          :titles="['未绑定用户', '已绑定用户']"
+          v-model="boundKeys"
+          :data="combinedData"
+          @change="handleTransferChange">
+
+          <!-- 左侧分页器 -->
+          <template #left-footer>
+            <el-pagination
+              small
+              align="right"
+              class="mt-2"
+              @current-change="handleCurrentChangeTran"
+              :current-page="page.pageNo"
+              :page-size="page.pageSize"
+              :total="totalUnbound"
+              :pager-count="5"
+              layout="total,prev, pager, next">
+            </el-pagination>
+          </template>
+        </el-transfer>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="clear()">取消</el-button>
+          <el-button type="primary" @click="upData">确认更新</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -98,6 +149,9 @@ import {
   getMeunRole,
   updateRoleMeun,
   deleteRole,
+  getEmployeesByRole,
+  getUnassignEmployeesByRole,
+  updateEmployeesByRole,
 } from "@/api/permiss";
 import { ElMessage, ElMessageBox, ElTree, ElNotification } from "element-plus";
 import { useUserStoreWithOut } from '@/stores/modules/user'
@@ -106,6 +160,7 @@ import {
   unref,
   nextTick,
   reactive,
+  computed,
   onBeforeMount,
   watch,
   onMounted,
@@ -176,6 +231,18 @@ const rules = reactive({
 })
 const searchName = ref("");
 const tableData1 = ref<any[]>([]);
+const roleVisible = ref(false);
+const roleId = ref("");
+const globalSearch = ref("");
+const allUnboundData = ref<any[]>([]);
+const boundData = ref<any[]>([]);
+const boundKeys = ref<string[]>([]);
+const filteredUnboundData = ref<any[]>([]);
+
+const page = reactive({
+  pageNo: 1,
+  pageSize: 50,
+});
 watch(
   () => searchName.value,
   (newdata) => {
@@ -364,6 +431,21 @@ const comparefunction = (arr1: any, arr2: any) => {
   }
 };
 
+const paginatedUnbound = computed(() => {
+  let data = filteredUnboundData.value;
+  const start = (page.pageNo - 1) * page.pageSize;
+  const end = start + page.pageSize;
+  return data.slice(start, end);
+});
+
+const combinedData = computed(() => {
+  return [...paginatedUnbound.value, ...boundData.value];
+});
+
+const totalUnbound = computed(() => {
+  return filteredUnboundData.value.length;
+});
+
 const handleDelete = (row: any) => {
   ElMessageBox.confirm("确定删除", "确认操作", {
     confirmButtonText: "确定",
@@ -402,6 +484,100 @@ const handleDelete = (row: any) => {
     });
 };
 
+const roleEdit = async (row: any) => {
+  roleId.value = row.ID;
+  globalSearch.value = "";
+
+  await getEmployeesByRole(row.ID).then((data: any) => {
+    if (data.Success && data.Data != null) {
+      boundData.value = data.Data.map((item: any) => {
+        return {
+          key: item.EmployeeName,
+          label: item.EmployeeName + " " + item.FullName,
+        };
+      });
+      boundKeys.value = data.Data.map((item: any) => item.EmployeeName);
+    } else {
+      boundData.value = [];
+      boundKeys.value = [];
+    }
+  });
+
+  await getUnassignEmployeesByRole(row.ID, "").then((data: any) => {
+    if (data.Success && data.Data != null) {
+      allUnboundData.value = data.Data.map((item: any) => {
+        return {
+          key: item.EmployeeName,
+          label: item.EmployeeName + " " + item.FullName,
+        };
+      });
+      filteredUnboundData.value = [...allUnboundData.value];
+    } else {
+      allUnboundData.value = [];
+      filteredUnboundData.value = [];
+    }
+  });
+
+  page.pageNo = 1;
+  roleVisible.value = true;
+};
+
+const handleGlobalSearch = () => {
+  const keyword = globalSearch.value.toLowerCase();
+
+  if (!keyword) {
+    filteredUnboundData.value = [...allUnboundData.value];
+    return;
+  }
+
+  filteredUnboundData.value = allUnboundData.value.filter((item: any) => {
+    return (
+      item.key.toLowerCase().includes(keyword) ||
+      item.label.toLowerCase().includes(keyword)
+    );
+  });
+
+  page.pageNo = 1;
+};
+
+const handleCurrentChangeTran = (val: number) => {
+  page.pageNo = val;
+};
+
+const handleTransferChange = (newBoundKeys: string[]) => {
+  boundKeys.value = newBoundKeys;
+};
+
+const clear = () => {
+  allUnboundData.value = [];
+  boundData.value = [];
+  boundKeys.value = [];
+  roleVisible.value = false;
+};
+
+const upData = () => {
+  updateEmployeesByRole({
+    EmployeeName: boundKeys.value,
+    ID: roleId.value,
+  }).then((data: any) => {
+    if (data.Success) {
+      getData();
+      ElNotification({
+        title: "提示信息",
+        message: "更新成功",
+        type: "success",
+      });
+      roleVisible.value = false;
+    } else {
+      ElNotification({
+        title: "提示信息",
+        message: "更新失败",
+        type: "error",
+      });
+    }
+  });
+};
+
 const handleSizeChange = (val: any) => {
   currentPage.value = 1;
   pageSize.value = val;
@@ -421,5 +597,17 @@ const getScreenHeight = () => {
 <style scoped>
 .el-pagination {
   justify-content: center;
+}
+
+.edit_dev :deep(.el-transfer-panel) {
+  width: 300px;
+}
+.search-box {
+  margin-bottom: 15px;
+}
+
+/* 隐藏el-transfer自带的搜索框 */
+.edit_dev :deep(.el-transfer-panel__filter) {
+  display: none;
 }
 </style>

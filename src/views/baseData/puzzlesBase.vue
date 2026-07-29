@@ -13,10 +13,7 @@
                 </div>
                   <el-button type="primary" size="small" @click="openAdd">{{ t('publicText.add') }}</el-button>
             </div>
-            <el-table ref="tableMasterRef" :data="tableData.slice(
-                (getForm.PageIndex - 1) * getForm.PageSize,
-                getForm.PageIndex * getForm.PageSize,
-            )" border :height="tableHeight" size="small" style="width: 100%">
+            <el-table ref="tableMasterRef" :data="tableData" border :height="tableHeight" size="small" style="width: 100%">
                 <el-table-column :label="t('publicText.index')" width="55" align="center" fixed="left">
                     <template #default="scope">
                         <span>{{ scope.$index + 1 + (getForm.PageIndex - 1) * getForm.PageSize }}</span>
@@ -34,10 +31,13 @@
                 <el-table-column prop="softwareVersion" :label="t('baseData.puzzlesBase.softwareVersion')" :min-width="getColumnWidth('softwareVersion')" />
                 <el-table-column prop="Ud_usr" :label="t('baseData.puzzlesBase.operator')" :min-width="getColumnWidth('Ud_usr')" />
                 <el-table-column prop="Ud_dt" :label="t('baseData.puzzlesBase.operateTime')" :min-width="getColumnWidth('Ud_dt')" />
-                <el-table-column fixed="right" :label="t('publicText.operation')" width="120" align="center">
+                <el-table-column fixed="right" :label="t('publicText.operation')" width="180" align="center">
                     <template #default="scope">
                         <el-tooltip :content="t('publicText.detail')" placement="top">
                             <el-button type="primary" size="small" icon="Document" @click="handleEdit(scope.row)" />
+                        </el-tooltip>
+                        <el-tooltip :content="t('baseData.puzzlesBase.syncSaiYi')" placement="top">
+                            <el-button type="success" size="small" icon="Refresh" @click="handleSyncSaiYi(scope.row)" />
                         </el-tooltip>
                         <el-tooltip :content="t('publicText.delete')" placement="top">
                             <el-button type="danger" size="small" icon="Delete" @click="handleDelete(scope.row)" />
@@ -99,7 +99,7 @@
                                         <span>{{ scope.$index + 1 }}</span>
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.pcbCode')">
+                                <el-table-column :label="t('baseData.puzzlesBase.pcbCode')" width="150">
                                     <template #default="scope">
                                         <el-autocomplete v-model="scope.row.pcb_code" :fetch-suggestions="remoteMethod"
                                             @select="(item:any) => change(item, scope.$index)" size="small" />
@@ -121,9 +121,27 @@
                                         <el-input v-model.number="scope.row.module_end" type="number" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.finishedCode')">
+                                <el-table-column :label="t('baseData.puzzlesBase.finishedCode')" width="150">
                                     <template #default="scope">
                                         <el-input v-model="scope.row.finished_code" size="small" />
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('baseData.boxType.boxType')">
+                                    <template #default="scope">
+                                        <el-select v-model="scope.row.boxtype" size="small" clearable filterable
+                                            :placeholder="t('baseData.boxType.selectBoxType')">
+                                            <el-option v-for="item in boxTypeList" :key="item.id"
+                                                :label="item.boxtype" :value="item.boxtype" />
+                                        </el-select>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('baseData.boxType.caseNo')">
+                                    <template #default="scope">
+                                        <el-select v-model="scope.row.caseno" size="small" clearable filterable
+                                            :placeholder="t('baseData.boxType.inputCaseNo')">
+                                            <el-option v-for="item in boxTypeList.filter((b: any) => b.boxtype === scope.row.boxtype)" :key="item.id"
+                                                :label="item.caseno" :value="item.caseno" />
+                                        </el-select>
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.name')" prop="name">
@@ -194,7 +212,7 @@
                                         <span>{{ scope.$index + 1 }}</span>
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.pcbCode')" prop="pcb_code">
+                                <el-table-column :label="t('baseData.puzzlesBase.pcbCode')" prop="pcb_code" width="150">
                                     <template #default="scope">
                                         <el-autocomplete v-model="scope.row.pcb_code" :fetch-suggestions="remoteMethod"
                                             @select="(item: any) => change1(item, scope.$index)" size="small" />
@@ -206,7 +224,7 @@
                                             size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.moduleStart')" prop="module_start" width="120">
+                                <el-table-column :label="t('baseData.puzzlesBase.moduleStart')" prop="module_start" width="150">
                                     <template #default="scope">
                                         <el-input v-model.number="scope.row.module_start" type="number" size="small" />
                                     </template>
@@ -216,9 +234,27 @@
                                         <el-input v-model.number="scope.row.module_end" type="number" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.finishedCode')" prop="finished_code">
+                                <el-table-column :label="t('baseData.puzzlesBase.finishedCode')" prop="finished_code" width="150">
                                     <template #default="scope">
                                         <el-input v-model="scope.row.finished_code" size="small" />
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('baseData.boxType.boxType')">
+                                    <template #default="scope">
+                                        <el-select v-model="scope.row.boxtype" size="small" clearable filterable
+                                            :placeholder="t('baseData.boxType.selectBoxType')">
+                                            <el-option v-for="item in boxTypeList" :key="item.id"
+                                                :label="item.boxtype" :value="item.boxtype" />
+                                        </el-select>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('baseData.boxType.caseNo')">
+                                    <template #default="scope">
+                                        <el-select v-model="scope.row.caseno" size="small" clearable filterable
+                                            :placeholder="t('baseData.boxType.inputCaseNo')">
+                                            <el-option v-for="item in boxTypeList.filter((b: any) => b.boxtype === scope.row.boxtype)" :key="item.id"
+                                                :label="item.caseno" :value="item.caseno" />
+                                        </el-select>
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.name')" prop="name">
@@ -249,14 +285,16 @@
 
 <script setup lang="ts">
 import {
-  findPanelizationList,
+  FindPanelizationList,
   DeletePanelizationList,
-  findPnDetail,
-  addPanelizationdetail,
+  FindPnDetail,
+  AddPanelizationDetail,
   UpdatePanelizationDetail,
-  findPartNumberData,
-  UpdatePanelizationList
-} from '@/api/baseData'
+  FindPartNumberData,
+  UpdatePanelizationList,
+  SyncSaiYiPanelization
+} from '@/api/baseData/puzzlesBase'
+import { QueryBoxTypeList } from '@/api/baseData/boxType'
 import { ref, reactive, nextTick, onMounted, onBeforeMount, onBeforeUnmount } from 'vue'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -281,6 +319,7 @@ const formRef = ref()
 const editFormRef = ref()
 const options = ref<any[]>([])
 const tableMasterRef = ref()
+const boxTypeList = ref<any[]>([])
 
 const getForm = ref({
     PageIndex: 1,
@@ -299,6 +338,8 @@ const form = ref({
         version: '',
         softwareVersion: '',
         PCBMaterial: '',
+        boxtype: '',
+        caseno: '',
         cr_user: '',
         cr_time: ''
     },
@@ -312,7 +353,9 @@ const form = ref({
             model: '',
             pcb_code: '',
             module_start: 0,
-            module_end: 0
+            module_end: 0,
+            boxtype: '',
+            caseno: ''
         }
     ]
 })
@@ -325,6 +368,8 @@ const editForm = ref({
     version: '',
     softwareVersion: '',
     PCBMaterial: '',
+    boxtype: '',
+    caseno: '',
     cr_user: '',
     cr_time: ''
 })
@@ -344,8 +389,9 @@ const rules = {
 }
 
 const getData = () => {
-      findPanelizationList(getForm.value).then((res:any) => {
+      FindPanelizationList(getForm.value).then((res:any) => {
         if (res.Success) {
+            
           tableData.value = res.Data.list.map((item: any) => ({
             ...item,
             Ud_dt: dayjs(item.Ud_dt).format('YYYY-MM-DD HH:mm:ss')
@@ -356,6 +402,14 @@ const getData = () => {
           total.value = 0
         }
       })
+}
+
+const getBoxTypeList = () => {
+    QueryBoxTypeList({ boxtype: '', caseno: '' }).then((res: any) => {
+        if (res.Success && res.Data) {
+            boxTypeList.value = res.Data
+        }
+    })
 }
 
 const getSearchData = () => {
@@ -371,6 +425,7 @@ const clearData = () => {
 }
 
 const openAdd = () => {
+    getBoxTypeList()
     dialogVisible.value = true
 }
 
@@ -380,7 +435,7 @@ const change = (val: any, index: number) => {
 }
 
 const remoteMethod = (query: string, cb: any) => {
-      findPartNumberData(query).then((res:any) => {
+      FindPartNumberData(query).then((res:any) => {
         if (res.Success) {
           if (res.Data === null || res.Data.length === 0) {
             ElNotification({
@@ -419,7 +474,9 @@ const removeBoardItem = (index: number) => {
             model: '',
             pcb_code: '',
             module_start: 0,
-            module_end: 0
+            module_end: 0,
+            boxtype: '',
+            caseno: ''
         })
     }
 }
@@ -434,8 +491,41 @@ const addSmallBoard = () => {
         model: '',
         pcb_code: '',
         module_start: 0,
-        module_end: 0
+        module_end: 0,
+        boxtype: '',
+        caseno: ''
     })
+}
+
+const handleSyncSaiYi = (row: any) => {
+    ElMessageBox.confirm(
+        t('baseData.puzzlesBase.syncSaiYiConfirm', { pn: row.PN, name: row.name }),
+        t('publicText.tip'),
+        {
+            confirmButtonText: t('publicText.confirm'),
+            cancelButtonText: t('publicText.cancel'),
+            type: 'warning'
+        }
+    )
+        .then(() => {
+            SyncSaiYiPanelization({ pn: row.PN }).then((res: any) => {
+                if (res.Success) {
+                    ElNotification({
+                        type: 'success',
+                        title: t('publicText.tip'),
+                        message: res.Msg
+                    })
+                    getData()
+                } else {
+                    ElNotification({
+                        type: 'error',
+                        title: t('publicText.tip'),
+                        message: res.Msg
+                    })
+                }
+            })
+        })
+        .catch(() => {})
 }
 
 const handleDelete = (row: any) => {
@@ -489,7 +579,7 @@ const onSubmit = () => {
                 item.cr_user = userStore.getUserInfo
                 item.cr_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
             })
-            addPanelizationdetail({ list: form.value.list, Detail: filteredDetail }).then((res:any) => {
+            AddPanelizationDetail({ list: form.value.list, Detail: filteredDetail }).then((res:any) => {
                 if (res.Success) {
                     ElNotification({
                         type: 'success',
@@ -527,6 +617,8 @@ const restForm = () => {
         version: '',
         softwareVersion: '',
         PCBMaterial: '',
+        boxtype: '',
+        caseno: '',
         cr_user: '',
         cr_time: ''
     }
@@ -540,7 +632,9 @@ const restForm = () => {
             model: '',
             pcb_code: '',
             module_start: 0,
-            module_end: 0
+            module_end: 0,
+            boxtype: '',
+            caseno: ''
         }
     ]
 }
@@ -552,6 +646,7 @@ const addCancel = () => {
 }
 
 const handleEdit = (row: any) => {
+    getBoxTypeList()
     upDateForm.pnl_code = row.PN
     editForm.value.pn = row.PN
     editForm.value.model = row.pn_spec
@@ -561,7 +656,7 @@ const handleEdit = (row: any) => {
     editForm.value.softwareVersion = row.softwareVersion
     editForm.value.PCBMaterial = row.PCBMaterial
 
-      findPnDetail(row.PN).then((res: any) => {
+      FindPnDetail(row.PN).then((res: any) => {
         if (res.Data == null || res.Data.length === 0) {
           smallBoardTable.value = [
             {
@@ -572,7 +667,9 @@ const handleEdit = (row: any) => {
               model: '',
               pcb_code: '',
               module_start: 0,
-              module_end: 0
+              module_end: 0,
+              boxtype: '',
+              caseno: ''
             }
           ]
         } else {
@@ -611,7 +708,9 @@ const handleDetailEdit = () => {
         model: '',
         pcb_code: '',
         module_start: 0,
-        module_end: 0
+        module_end: 0,
+        boxtype: '',
+        caseno: ''
     })
 }
 
@@ -629,7 +728,9 @@ const handleDetailDelete = (row: any) => {
             model: '',
             pcb_code: '',
             module_start: 0,
-            module_end: 0
+            module_end: 0,
+            boxtype: '',
+            caseno: ''
         })
     }
 }

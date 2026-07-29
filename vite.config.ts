@@ -52,6 +52,17 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/baseDataApi/, '') 
       },
+      // 辅机设置
+      '/smtSetApi': {
+        target: 'http://172.20.99.21:5082',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/smtSetApi/, '') 
+      },
+       "/moistureApi": {
+        target: "http://172.16.28.106:12024",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/moistureApi/, '') 
+      },
       '/smtApi': {
         target: 'http://192.168.1.237:12026',
         changeOrigin: true,

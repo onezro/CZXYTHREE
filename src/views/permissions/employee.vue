@@ -15,7 +15,7 @@
           </el-tooltip>
         </div>
       </template>
-      <el-scrollbar class="h-[calc(100vh-160px)]">
+      <el-scrollbar class="h-[calc(100vh-180px)]">
         <el-tree style="max-width: 600px" highlight-current :data="organTree" :expand-on-click-node="false" :props="{
           children: 'children',
           label: 'OrganizationName',
@@ -25,7 +25,9 @@
 
     <el-card shadow="always" :body-style="{ padding: '8px 8px 0 8px' }" class="flex-1">
       <div class="mb-2 flex justify-between">
-        <div></div>
+        <div>
+          <el-button type="primary" @click="handleAdd()" size="small">添加员工</el-button>
+        </div>
         <div>
           <el-input v-model="searchName" clearable placeholder="请输入">
             <template #append>
@@ -42,9 +44,21 @@
         </el-table-column>
         <el-table-column label="职称" prop="title" :min-width="flexColumnWidth('职称', 'title')">
         </el-table-column>
-        <el-table-column label="组织" prop="OrganizationName" :min-width="170">
+        <el-table-column label="角色" prop="OrganizationName" :min-width="280">
+          <template #default="scope">
+            <el-tag
+              v-for="(item, index) in scope.row.RoleName"
+              :key="index"
+              effect="plain"
+              size="small"
+            >
+              {{ item }}
+            </el-tag>
+          </template>
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="120" align="center">
+        <el-table-column label="最后登录时间" prop="LastLoginTime" width="150">
+        </el-table-column>
+        <el-table-column fixed="right" label="操作" width="240" align="center">
           <template #default="scope">
             <el-tooltip content="编辑" placement="top">
               <el-button type="primary" icon="EditPen" size="small" @click="handleEdit(scope.row)" />
@@ -52,11 +66,17 @@
             <el-tooltip content="密码重置" placement="top">
               <el-button type="danger" icon="RefreshLeft" size="small" @click="handleRest(scope.row)" />
             </el-tooltip>
+            <el-tooltip content="删除" placement="top">
+              <el-button type="danger" icon="Delete" size="small" @click="handleDelete(scope.row)" />
+            </el-tooltip>
+            <el-tooltip content="历史登录记录" placement="top">
+              <el-button icon="Clock" size="small" type="success" @click="handleHistory(scope.row)" />
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
       <div class="mt-2">
-        <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+        <el-pagination background :size="'small'" @size-change="handleSizeChange" @current-change="handleCurrentChange"
           :current-page="currentPage" :page-size="pageSize" :page-sizes="[30, 50, 100, 150, 200]"
           layout="total,sizes, prev, pager, next, jumper" :total="tableData1.length">
         </el-pagination>
@@ -135,6 +155,32 @@
         </span>
       </template>
     </el-dialog>
+
+    <el-dialog :append-to-body="true" :close-on-click-modal="false" title="添加员工" v-model="addPwdVisible" width="400px"
+      @close="addPwdCancel()">
+      <el-form :model="addForm" ref="addFormRef" label-width="auto">
+        <el-form-item label="工号" prop="employeeName">
+          <el-input v-model="addForm.employeeName" clearable></el-input>
+        </el-form-item>
+        <el-form-item label="员工姓名" prop="FullName">
+          <el-input v-model="addForm.FullName" clearable></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="addPwdCancel()">取消</el-button>
+          <el-button type="primary" @click="addSubmit()">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <el-dialog :append-to-body="true" :close-on-click-modal="false" title="历史登录记录" v-model="historyVisible" width="800px">
+      <el-table size="small" :data="historyData" border :height="400" stripe>
+        <el-table-column label="序号" type="index" width="60" align="center"></el-table-column>
+        <el-table-column label="工号" prop="EmployeeName"></el-table-column>
+        <el-table-column label="登录时间" prop="LoginTime"></el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -150,7 +196,10 @@ import {
   deleteEmployee,
   addEmployee,
   getOrganization,
-  ResetPwd,
+  OpcenterEmployeeSync,
+  ResetEmpPwd,
+  AddEmployee,
+  findEmpLoginLog
 } from "@/api/permiss";
 import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
 import {
@@ -242,10 +291,19 @@ const organTree = ref<OrganTree[]>([]);
 const isLoding = ref("");
 const restVisible = ref(false);
 const reFormRef = ref();
+const addPwdVisible = ref(false);
+const historyVisible = ref(false);
+const addFormRef = ref();
+const historyData = ref<any[]>([]);
 const rePwForm = ref({
   employeeName: "",
   pwd: "",
   confirmPwd: "",
+  FullName:''
+});
+const addForm = ref({
+  employeeName: "",
+  FullName: "",
 });
 const equalToPassword = (rule: any, value: any, callback: any) => {
   if (rePwForm.value.pwd !== value) {
@@ -300,12 +358,13 @@ const noRole = computed(() => {
   const data = optionArr.value.filter(
     (item: any) => !hasRole.value.some((ele) => ele.RoleID == item.value)
   );
+  
   return data;
 });
 
 const getData = () => {
-  getEmployee().then((data: any) => {
-    dataPrecc(data.Data);
+  getEmployee().then((res: any) => {
+    dataPrecc(res.Data);
   });
 };
 
@@ -359,7 +418,7 @@ const getRoleMeun = () => {
     // const dataText = JSON.parse(data.content);
     optionArr.value =data.Data.map((item: any) => {
       return {
-        value: item.id,
+        value: item.ID,
         lable: item.RoleName,
       };
     });
@@ -386,19 +445,19 @@ const editSubmit = () => {
 };
 
 const getHasRole = () => {
-  findEmployeeRoles(form.value.employeeName).then((data: any) => {
-    if (data.Success) {
+  findEmployeeRoles(form.value.employeeName).then((res: any) => {
+    if (res.Success) {
       //  console.log(data);
-      if(data.content==null){
+      if(res.Data==null){
         hasRole.value=[]
         return
       }
-      hasRole.value =data.Data;
-
+      hasRole.value =res.Data;
+      
     } else {
       ElNotification({
         title: "提示",
-        message: data.msg,
+        message: res.msg,
         type: "error",
       });
     }
@@ -420,10 +479,12 @@ const dataPrecc = (data: any) => {
         employeeName: beforeData[i].EmployeeName,
         fullName: beforeData[i].FullName,
         title: beforeData[i].title,
+        email: beforeData[i].email,
         OrganizationName: beforeData[i].OrganizationName,
         OrganizationID: beforeData[i].OrganizationID,
         RoleName:
           beforeData[i].RoleName == null ? [] : [beforeData[i].RoleName],
+        LastLoginTime: beforeData[i].LastLoginTime,
       });
       tempArr.push(beforeData[i].EmployeeId);
     } else {
@@ -441,7 +502,7 @@ const dataPrecc = (data: any) => {
   }
   // console.log(afterData);
   afterData.sort((a, b) => {
-    return a.employeeName - b.employeeName;
+    return a.employeeName.localeCompare(b.employeeName);
   });
   // console.log(afterData);
   tableData.value = afterData;
@@ -449,8 +510,6 @@ const dataPrecc = (data: any) => {
 };
 
 const handleEdit = (row: any) => {
-  console.log(row);
-
   roleName.value = row.fullName;
   // form.value.roleId = row.RoleId;
   form.value.employeeName = row.employeeName;
@@ -486,12 +545,13 @@ const onSubmit = () => {
 
     addEmployeeRole(form.value).then((res:any) => {
       // getData();
-      if(res.success){
+      if(res.Success){
         ElNotification({
             title: "提示",
-            message: res.msg,
+            message: res.Message,
             type: "success",
           });
+            getData();
       }
       addVisible.value = false;
       formRef.value.resetFields();
@@ -509,9 +569,9 @@ const handleClose = (tag: any) => {
       deletefirstRole({
         EmpId: form.value.employeeName,
         RoleId: tag.RoleID,
-      }).then((data: any) => {
+      }).then((res: any) => {
         // console.log(data);
-        if ((data.code = 100200)) {
+        if ((res.Success)) {
           getHasRole();
           // getData();
           ElNotification({
@@ -519,6 +579,7 @@ const handleClose = (tag: any) => {
             message: "删除成功",
             type: "success",
           });
+          getData()
         } else {
           ElNotification({
             title: "提示",
@@ -538,9 +599,58 @@ const handleClose = (tag: any) => {
 };
 
 const handleRest = (row: any) => {
-  // console.log(row);
   rePwForm.value.employeeName = row.employeeName;
+    rePwForm.value.FullName=row.fullName
   restVisible.value = true;
+};
+const handleAdd = () => {
+  addPwdVisible.value = true;
+};
+const addPwdCancel = () => {
+  addPwdVisible.value = false;
+  addFormRef.value?.resetFields();
+};
+const addSubmit = () => {
+  addFormRef.value.validate((valid: any) => {
+    if (valid) {
+      let data = {
+        EmployeeName: addForm.value.employeeName,
+        FullName: addForm.value.FullName,
+        CreateBy: userStore.getUserInfo || "",
+        IsOnline: "Y",
+      };
+      OpcenterEmployeeSync(data).then((res: any) => {
+        if (res.Success) {
+          ElNotification({
+            title: "提示信息",
+            message: "添加成功",
+            type: "success",
+          });
+        } else {
+          ElNotification.error({
+            title: "提示信息",
+            message: res.Message || "添加失败",
+          });
+        }
+        getData();
+        addPwdVisible.value = false;
+      });
+    }
+  });
+};
+const handleHistory = (row: any) => {
+  historyVisible.value = true;
+  findEmpLoginLog(row.employeeName)
+    .then((data: any) => {
+      if (data.Success) {
+        historyData.value = data.Data || [];
+      } else {
+        historyData.value = [];
+      }
+    })
+    .catch(() => {
+      historyData.value = [];
+    });
 };
 const upDateCancel = () => {
   restVisible.value = false;
@@ -549,13 +659,16 @@ const upDateCancel = () => {
 const upDateSubmit = () => {
   reFormRef.value.validate((valid: any) => {
     if (valid) {
+     
       let data = {
         employeeName: rePwForm.value.employeeName,
         pwd: rePwForm.value.pwd,
+        FullName:rePwForm.value.FullName
       };
-      ResetPwd(data).then((res: any) => {
+      
+      ResetEmpPwd(data).then((res: any) => {
         // console.log(data)
-        if (res.code == 100200) {
+        if (res.Success) {
           ElNotification({
             title: "重置成功",
             // message: "取消操作",
@@ -583,22 +696,23 @@ const handleDelete = (row: any) => {
     type: "warning",
   })
     .then(() => {
-      deleteEmployee(row.employeeId).then((data: any) => {
-        if (data.Success) {
-          // console.log()
-          // getHasRole();
+      OpcenterEmployeeSync({
+        EmployeeName: row.employeeName,
+        FullName: row.fullName,
+        CreateBy: userStore.getUserInfo || "",
+        IsOnline: "N",
+      }).then((res: any) => {
+        if (res.Success) {
           getData();
-          //  console.log(data);
           ElNotification({
-            title: "删除成功",
-            // message: "取消操作",
+            title: "提示信息",
+            message: "删除成功",
             type: "success",
           });
         } else {
-          ElNotification({
-            title: "删除失败",
-            // message: "取消操作",
-            type: "error",
+          ElNotification.error({
+            title: "提示信息",
+            message: res.Message || "删除失败",
           });
         }
       });
@@ -608,11 +722,6 @@ const handleDelete = (row: any) => {
         type: "info",
         message: "取消操作",
       });
-      //   ElNotification({
-      //     title: "取消操作",
-      //     // message: "取消操作",
-      //     type: "info",
-      //   });
     });
 };
 const handleSizeChange = (val: any) => {
@@ -624,7 +733,7 @@ const handleCurrentChange = (val: any) => {
 };
 const getScreenHeight = () => {
   nextTick(() => {
-    tableHeight.value = window.innerHeight - 196;
+    tableHeight.value = window.innerHeight - 185;
   });
 };
 const getMaxLength = (arr: any) => {

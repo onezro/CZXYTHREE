@@ -85,13 +85,13 @@
                             </el-button>
                         </div> -->
                         <el-table :data="recordReportList" ref="recordTableRef" border :height="tableHeight" stripe size="small" v-loading="recordLoading">
-                            <el-table-column type="index" :label="t('publicText.index')" width="55" align="center">
+                            <el-table-column type="index" :label="t('publicText.index')" width="55" align="center" fixed="left">
                                 <template #default="{ $index }">
                                     {{ $index + 1 + (recordQuery.PageIndex - 1) * recordQuery.PageSize }}
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="TaskCode" :label="t('esd.task.taskCode')" :min-width="getColumnWidth('TaskCode')" />
-                            <el-table-column prop="FormName" :label="t('esd.checklist.formName')" :min-width="getColumnWidth('FormName')" />
+                            <el-table-column prop="TaskCode" :label="t('esd.task.taskCode')" :min-width="getColumnWidth('TaskCode')" fixed="left" />
+                            <el-table-column prop="FormName" :label="t('esd.checklist.formName')" :min-width="getColumnWidth('FormName')" fixed="left" />
                             <el-table-column prop="FormCode" :label="t('esd.checklist.formCode')" :min-width="getColumnWidth('FormCode')" />
                             <el-table-column prop="EsdType" :label="t('esd.checklist.esdType')" :min-width="getColumnWidth('EsdType')" />
                             <el-table-column prop="EsdTypeCode" :label="t('esd.task.esdTypeCode')" :min-width="getColumnWidth('EsdTypeCode')" />
