@@ -106,3 +106,12 @@ export function AutoDispatchTask(data: any) {
     data,
   });
 }
+
+// 下发周期计划
+export function DispatchTaskPlan(data: any) {
+  return request({
+    url: `/api/esd/DispatchTaskPlan`,
+    method: "post",
+    data,
+  });
+}

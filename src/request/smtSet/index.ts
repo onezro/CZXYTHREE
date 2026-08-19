@@ -32,7 +32,7 @@ const hideLoading = () => {
 };
 // 基地址
 const service = axios.create({
-  baseURL: '/smdProApi',
+  baseURL: '/deviceApi',
    timeout: 0
   // 5秒超时
   // timeout: 1000 * 60,
@@ -103,7 +103,7 @@ service.interceptors.response.use(
     //成功的返回
     if (response.status === 200) {
 
-      if (response.data.success ) {
+      if (response.data.code == 100200 || !response.data.code) {
         // router.push({path: '/login'});
         return response.data;
       } else if (response.data.code == 100300) {
@@ -116,7 +116,7 @@ service.interceptors.response.use(
       else {
         ElNotification({
           title: "提示信息",
-          message: response.data.msg,
+          message: response.data.Message,
           type: "error",
         });
       }

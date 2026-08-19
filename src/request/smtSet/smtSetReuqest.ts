@@ -32,7 +32,7 @@ const hideLoading = () => {
 };
 // 基地址
 const service = axios.create({
-  baseURL: '/smtSetApi',
+  baseURL: '/deviceApi',
    timeout: 0
   // 5秒超时
   // timeout: 1000 * 60,
@@ -103,11 +103,15 @@ service.interceptors.response.use(
     //成功的返回
     if (response.status === 200) {
 
-      if (response.data.Status=='OK' ) {
+      if (response.data.code == 100200 || !response.data.code) {
         // router.push({path: '/login'});
-        // console.log(response.data);
-        
         return response.data;
+      } else if (response.data.code == 100300) {
+        return response.data;
+      }
+      else if (response.data.code === 401) {
+        removeToken()
+        router.push('/login');
       }
       else {
         ElNotification({

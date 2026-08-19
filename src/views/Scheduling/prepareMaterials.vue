@@ -50,7 +50,7 @@
             <!-- 备料单列表 -->
             <el-table ref="tableMasterRef" :data="tableData" size="small" :style="{ width: '100%' }"
                 :height="tableHeight" :tooltip-effect="'dark'" border fit @selection-change="handleSelectionChange"
-                @row-click="fetchDetail" highlight-current-row>
+                @row-click="fetchDetail" highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="selection" width="55" align="center" />
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
@@ -106,7 +106,7 @@
                 pageObj.currentPage * pageObj.pageSize,
             )
                 " size="small" :style="{ width: '100%' }" :height="tableHeight2" :tooltip-effect="'dark'" border fit
-                ref="tableDetailRef">
+                ref="tableDetailRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{
@@ -134,7 +134,12 @@
                 <el-table-column :label="t('Scheduling.PrepareMaterials.RequestNo')" prop="RequestNo"
                     :min-width="getColumnWidth2('RequestNo')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.RemainingQty')" prop="RemainingQty"
-                    :min-width="getColumnWidth2('RemainingQty')" />
+                    :min-width="getColumnWidth2('RemainingQty')" align="center">
+                    <template #default="scope">
+                        <el-tag v-if="scope.row.RemainingQty == 0" type="success" size="small">{{ t('Scheduling.PrepareMaterials.Kitted') }}</el-tag>
+                        <span v-else>{{ scope.row.RemainingQty }}</span>
+                    </template>
+                </el-table-column>
                 <el-table-column :label="t('Scheduling.PrepareMaterials.SatisfiedTime')" prop="SatisfiedTime"
                     :min-width="getColumnWidth2('SatisfiedTime')" />
                 <template #empty>
@@ -165,7 +170,7 @@
                         {{ t('publicText.add') }}
                     </el-button>
                 </div>
-                <el-table :data="addForm.MaterialList" border size="small" style="width: 100%" height="300" >
+                <el-table :data="addForm.MaterialList" border size="small" style="width: 100%" height="300" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                     <el-table-column type="index" align="center" :label="t('publicText.index')" width="55" />
                     <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPN')" >
                         <template #default="scope">
@@ -421,6 +426,7 @@ const getStatusText1 = (status: number) => {
             return "";
     }
 };
+
 // 获取备料单明细
 const fetchDetail = (row: any) => {
     QueryMaterialPreparationDetail({ MaterialPreparationNo: row.MaterialPreparationNo }).then((res: any) => {

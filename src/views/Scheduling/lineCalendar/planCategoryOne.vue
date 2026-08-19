@@ -23,14 +23,14 @@
                     }}</el-button>
                 </div> -->
             </div>
-            <el-row :gutter="20">
+            <el-row :gutter="10">
                 <el-col :span="8">
                     <el-table :data="tableData.slice(
                         (pageObj.currentPage - 1) * pageObj.pageSize,
                         pageObj.currentPage * pageObj.pageSize,
                     )
                         " size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight" :tooltip-effect="'dark'"
-                        border fit highlight-current-row @row-click="handleLevelOneRowClick">
+                        border fit highlight-current-row @row-click="handleLevelOneRowClick" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                         <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                             <template #default="scope">
                                 <span>{{
@@ -90,7 +90,7 @@
                         </div>
                     </div>
                     <el-table :data="levelTwoList" size="small" ref="eltableRef" :style="{ width: '100%' }"
-                        :height="tableHeight" :tooltip-effect="'dark'" border fit highlight-current-row>
+                        :height="tableHeight" :tooltip-effect="'dark'" border fit highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                         <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                             <template #default="scope">
                                 <span>{{

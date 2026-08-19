@@ -18,19 +18,19 @@
               <span>{{ scope.$index + 1 + (currentPage - 1) * getText.pageSize }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="Wo" :label="t('wmsInMain.reportWork.wo')" :min-width="getColumnWidth('Wo')">
+          <el-table-column prop="wo" :label="t('wmsInMain.reportWork.wo')" :min-width="getColumnWidth('wo')">
           </el-table-column>
-          <el-table-column prop="Containerid" :label="t('wmsInMain.reportWork.containerId')"
-            :min-width="getColumnWidth('Containerid')"> </el-table-column>
-          <el-table-column prop="Pn" :label="t('wmsInMain.reportWork.pn')" :min-width="getColumnWidth('Pn')" />
-          <el-table-column prop="Qty" :label="t('wmsInMain.reportWork.qty')" :min-width="getColumnWidth('Qty')">
+          <el-table-column prop="containerid" :label="t('wmsInMain.reportWork.containerId')"
+            :min-width="getColumnWidth('containerid')"> </el-table-column>
+          <el-table-column prop="pn" :label="t('wmsInMain.reportWork.pn')" :min-width="getColumnWidth('pn')" />
+          <el-table-column prop="qty" :label="t('wmsInMain.reportWork.qty')" :min-width="getColumnWidth('qty')">
           </el-table-column>
-          <el-table-column prop="CheckResult" :label="t('wmsInMain.reportWork.result')"
-            :min-width="getColumnWidth('CheckResult')"> </el-table-column>
-          <el-table-column prop="ReportUser" :label="t('wmsInMain.reportWork.reportUser')"
-            :min-width="getColumnWidth('ReportUser')"> </el-table-column>
-          <el-table-column prop="ReportTime" sortable :label="t('wmsInMain.reportWork.reportTime')"
-            :min-width="getColumnWidth('ReportTime')">
+          <el-table-column prop="checkresult" :label="t('wmsInMain.reportWork.result')"
+            :min-width="getColumnWidth('checkresult')"> </el-table-column>
+          <el-table-column prop="reportuser" :label="t('wmsInMain.reportWork.reportUser')"
+            :min-width="getColumnWidth('reportuser')"> </el-table-column>
+          <el-table-column prop="reporttime" sortable :label="t('wmsInMain.reportWork.reportTime')"
+            :min-width="getColumnWidth('reporttime')">
           </el-table-column>
         </el-table>
         <div class="block" style="margin-top: 8px">

@@ -112,3 +112,36 @@ export function findPartNumberData(data:any) {
         }
     });
 }
+
+// 激光雕刻模式
+export function QueryLaserModeList(data: any) {
+    return request({
+        url: "/api/LaserMode/QueryLaserModeList",
+        method: "post",
+        data,
+    });
+}
+
+export function AddLaserMode(data: any) {
+    return request({
+        url: "/api/LaserMode/AddLaserMode",
+        method: "post",
+        data,
+    });
+}
+
+export function UpdateLaserMode(data: any) {
+    return request({
+        url: "/api/LaserMode/UpdateLaserMode",
+        method: "post",
+        data,
+    });
+}
+
+export function DeleteLaserMode(data: any) {
+    return request({
+        url: "/api/LaserMode/DeleteLaserMode",
+        method: "post",
+        data,
+    });
+}

@@ -10,14 +10,14 @@
             :placeholder="$t('deviceManage.fixtureEntry.searchPlaceholder')" @keyup.enter.native="searchData"
             @clear="clearData" size="small">
             <template #append>
-              <el-button type="primary" :icon="Search" @click="searchData" />
+              <el-button type="primary" icon="Search" @click="searchData" />
             </template>
           </el-input>
         </div>
       </div>
 
-      <el-table ref="tableRef" :data="paginatedData" border :height="tableHeight" style="width: 100%" size="small"
-        stripe highlight-current-row tooltip-effect="dark">
+      <el-table ref="tableRef" :data="tableData" border :height="tableHeight" style="width: 100%" size="small" stripe
+        highlight-current-row tooltip-effect="dark" v-loading="loading">
         <el-table-column type="index" :label="$t('publicText.index')" width="55" align="center" fixed="left">
           <template #default="{ $index }">
             {{ $index + 1 + (currentPage - 1) * pageSize }}
@@ -56,18 +56,17 @@
         <el-table-column fixed="right" :label="$t('publicText.operation')" width="240" align="center">
           <template #default="{ row }">
             <el-tooltip :content="$t('publicText.edit')" placement="top">
-              <el-button type="primary" :icon="Edit" size="small" :disabled="row.Stts === -1"
-                @click="handleEdit(row)" />
+              <el-button type="primary" icon="Edit" size="small" :disabled="row.Stts === -1" @click="handleEdit(row)" />
             </el-tooltip>
             <el-tooltip :content="$t('deviceManage.fixtureEntry.scrap')" placement="top">
-              <el-button type="warning" :icon="Delete" size="small" :disabled="row.Stts === -1"
+              <el-button type="warning" icon="DocumentDelete" size="small" :disabled="row.Stts === -1"
                 @click="handleScrap(row)" />
             </el-tooltip>
             <el-tooltip :content="$t('publicText.delete')" placement="top">
-              <el-button type="danger" :icon="Delete" size="small" @click="handleDelete(row)" />
+              <el-button type="danger" icon="Delete" size="small" @click="handleDelete(row)" />
             </el-tooltip>
             <el-tooltip :content="$t('publicText.detail')" placement="top">
-              <el-button type="success" :icon="Document" size="small" :disabled="row.Stts === -1"
+              <el-button type="success" icon="Document" size="small" :disabled="row.Stts === -1"
                 @click="handleDetail(row)" />
             </el-tooltip>
           </template>
@@ -80,7 +79,7 @@
       <div style="margin-top: 8px">
         <el-pagination align="center" background size="small" @size-change="handleSizeChange"
           @current-change="handleCurrentChange" :current-page="currentPage" :page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next" :total="filteredData.length" />
+          :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next" :total="total" />
       </div>
     </el-card>
 
@@ -95,10 +94,10 @@
         <el-form-item :label="$t('deviceManage.fixtureEntry.toolType')" prop="compname">
           <el-select-v2 v-model="addForm.compname" filterable style="width: 350px" :options="typeList" :props="props"
             :placeholder="$t('deviceManage.fixtureEntry.toolTypePlaceholder')" clearable @change="handleTypeChange">
-           
-            <template #default="{ item  }">
-              <el-tooltip :content="getCategoryText(item .Category)" placement="top">
-                <span>{{ item .ToolsMold }}</span>
+
+            <template #default="{ item }">
+              <el-tooltip :content="getCategoryText(item.Category)" placement="top">
+                <span>{{ item.ToolsMold }}</span>
               </el-tooltip>
             </template>
           </el-select-v2>
@@ -111,7 +110,7 @@
         </el-form-item>
         <el-form-item :label="$t('deviceManage.fixtureEntry.expireDate')" prop="expirationDate">
           <el-date-picker v-model="addForm.expirationDate" style="width: 350px" type="date"
-            :placeholder="$t('publicText.selectDate')" format="yyyy-MM-dd" value-format="yyyy-MM-dd" />
+            :placeholder="$t('publicText.selectDate')" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -147,7 +146,7 @@
         </el-form-item>
         <el-form-item :label="$t('deviceManage.fixtureEntry.expireDate')" prop="expirationDate">
           <el-date-picker v-model="editForm.expirationDate" style="width: 350px" type="date"
-            :placeholder="$t('publicText.selectDate')" format="yyyy-MM-dd" value-format="yyyy-MM-dd" />
+            :placeholder="$t('publicText.selectDate')" format="YYYY-MM-DD" value-format="YYYY-MM-DD" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -191,10 +190,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onBeforeMount, onMounted, onBeforeUnmount, nextTick } from "vue";
+// computed 仍用于 tableColumns 和 columnWidths
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Search, Edit, Delete, Document } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
-import { queryToolsMold, queryToolsID, insertToolsID, updateToolsID, deleteToolsID, scrapToolsID, QueryAssetToolsID } from "@/api/deviceManage/fixture";
+import { queryToolsMold, queryToolsID, insertToolsID, updateToolsID, deleteToolsID, scrapToolsID, queryAssetToolsID } from "@/api/deviceManage/fixture";
 import dayjs from "dayjs";
 import { calculateColumnsWidth } from "@/utils/tableminWidth";
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -209,20 +208,13 @@ const props = {
 }
 const tableRef = ref();
 const tableData = ref<any[]>([]);
-const filteredData = ref<any[]>([]);
 const loading = ref(false);
 const submitLoading = ref(false);
 const tableHeight = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(50);
 const searchName = ref("");
-
-// 分页数据
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return filteredData.value.slice(start, end);
-});
+const total = ref(0);
 
 // 类型列表（工治具类别）
 const typeList = ref<any[]>([]);
@@ -249,7 +241,7 @@ const tableColumns = computed(() => {
 });
 
 const columnWidths = computed(() => {
-  return calculateColumnsWidth(tableColumns.value, filteredData.value, { padding: 25, fontSize: 13 });
+  return calculateColumnsWidth(tableColumns.value, tableData.value, { padding: 25, fontSize: 13 });
 });
 
 const getColumnWidth = (prop: string) => columnWidths.value[prop] || "auto";
@@ -341,32 +333,59 @@ const getTypeList = async () => {
 const getIDData = async () => {
   loading.value = true;
   const params = {
-    operationType: "Q",
-    compid: "*",
-    compname: "",
-    remark: "",
-    user: "",
-    expirationDate: "",
-    selectType: ["1", "2"],
+    PageIndex: currentPage.value,
+    PageSize: pageSize.value,
+    SearchText: searchName.value.trim(),
+    SearchModel: {
+      OperationType: "Q",
+      compid: "",
+      compname: "",
+      remark: "",
+      user: "",
+      ExpirationDate: "",
+      SS_Date: "",
+      SS_User: "",
+      SS_Content: "",
+      SS_UpdateDate: "",
+      SelectType: ["1", "2"],
+      ExpireLong: "",
+      ExpireUnit: "",
+    },
+    StartTime: "",
+    EndTime: "",
   };
   try {
     const res: any = await queryToolsID(params);
     if (res.Success) {
-      const rawData = res.Data || [];
+      let rawData: any[] = [];
+      if (Array.isArray(res.Data)) {
+        rawData = res.Data;
+        total.value = res.Data.length;
+      } else if (res.Data && Array.isArray(res.Data.rows)) {
+        rawData = res.Data.rows;
+        total.value = res.Data.total || res.Data.rows.length;
+      } else if (res.Data && Array.isArray(res.Data.list)) {
+        rawData = res.Data.list;
+        total.value = res.Data.total || res.Data.list.length;
+      } else {
+        rawData = [];
+        total.value = 0;
+      }
       tableData.value = rawData.map((item: any) => ({
         ...item,
         ExpireDate: item.ExpireDate ? dayjs(item.ExpireDate).format("YYYY-MM-DD") : "",
         Ud_dt: item.Ud_dt ? dayjs(item.Ud_dt).format("YYYY-MM-DD HH:mm:ss") : "",
       }));
-      filteredData.value = [...tableData.value];
       // 修复分页边界：如果当前页无数据且不是第一页，回退一页
-      if (filteredData.value.length === 0 && currentPage.value > 1) {
+      if (tableData.value.length === 0 && currentPage.value > 1) {
         currentPage.value--;
+        getIDData();
+        return;
       }
     } else {
       ElMessage.error(res.Msg || t("message.queryFailure"));
       tableData.value = [];
-      filteredData.value = [];
+      total.value = 0;
     }
   } catch (error) {
     console.error("请求数据失败:", error);
@@ -378,23 +397,14 @@ const getIDData = async () => {
 
 // 搜索
 const searchData = () => {
-  if (!searchName.value.trim()) {
-    filteredData.value = [...tableData.value];
-  } else {
-    const keyword = searchName.value.toLowerCase();
-    filteredData.value = tableData.value.filter(
-      (item) =>
-        (item.Tool && item.Tool.toLowerCase().includes(keyword)) ||
-        (item.Model && item.Model.toLowerCase().includes(keyword))
-    );
-  }
   currentPage.value = 1;
+  getIDData();
 };
 
 const clearData = () => {
   searchName.value = "";
-  filteredData.value = [...tableData.value];
   currentPage.value = 1;
+  getIDData();
 };
 
 // 新增
@@ -484,7 +494,7 @@ const editSubmit = async () => {
 const handleDetail = async (row: any) => {
 
   try {
-    const res: any = await QueryAssetToolsID({ operationType: "QD", compid: row.Tool });
+    const res: any = await queryAssetToolsID({ operationType: "QD", compid: row.Tool });
 
     if (res.Success) {
       const data = res.Data[0] || {};
@@ -528,7 +538,7 @@ const handleDelete = (row: any) => {
         const res: any = await deleteToolsID(data);
         if (res.Success) {
           ElMessage.success(t("message.deleteSuccess"));
-          if (filteredData.value.length === 1 && currentPage.value > 1) currentPage.value--;
+          if (tableData.value.length === 1 && currentPage.value > 1) currentPage.value--;
           await getIDData();
         } else {
           ElMessage.error(res.Msg || t("message.deleteFailure"));
@@ -565,7 +575,7 @@ const handleScrap = (row: any) => {
         const res: any = await scrapToolsID(data);
         if (res.Success) {
           ElMessage.success(t("deviceManage.fixtureEntry.scrapSuccess"));
-          if (filteredData.value.length === 1 && currentPage.value > 1) currentPage.value--;
+          if (tableData.value.length === 1 && currentPage.value > 1) currentPage.value--;
           await getIDData();
         } else {
           ElMessage.error(res.Msg || t("deviceManage.fixtureEntry.scrapFailure"));
@@ -627,9 +637,11 @@ const isExpired = (dateStr: string) => {
 const handleSizeChange = (val: number) => {
   pageSize.value = val;
   currentPage.value = 1;
+  getIDData();
 };
 const handleCurrentChange = (val: number) => {
   currentPage.value = val;
+  getIDData();
 };
 
 // 表格高度自适应

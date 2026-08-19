@@ -93,6 +93,8 @@ export function CancelMaterialRequest(data:any) {
         data
     });
 }
+
+//手动提交赛意备料计划
 export function ManualSubmitSaiYiMaterialRequest(data:any) {
     return request({
         url: "/api/MaterialPreparation/ManualSubmitSaiYiMaterialRequest",
@@ -100,6 +102,18 @@ export function ManualSubmitSaiYiMaterialRequest(data:any) {
         data
     });
 }
+
+
+//手动提交赛意备料计划
+export function ManualSubmitWorkOrderSupplementSaiYiMaterialRequest(data:any) {
+    return request({
+        url: "/api/MaterialPreparation/ManualSubmitWorkOrderSupplementSaiYiMaterialRequest",
+        method: "post",
+        data
+    });
+}
+
+
 //添加补料备料
 export function AddSupplementMaterialPreparation(data:any) {
     return request({

@@ -198,10 +198,10 @@ const submitForm = async () => {
     const currentUser = userStore.getUserInfo || 'system';
     let res: any;
     if (isEdit.value) {
-      res = await UpdateCheckContent({ Id: formData.Id, CheckContent: formData.CheckContent, UserName: currentUser });
+      res = await UpdateCheckContent({ Id: formData.Id, CheckContent: formData.CheckContent, CheckMethod: formData.CheckMethod, UserName: currentUser });
       if (res.Success) ElMessage.success(t('message.editSuccess'));
     } else {
-      res = await AddCheckContent({ CheckContent: formData.CheckContent, UserName: currentUser });
+      res = await AddCheckContent({ CheckContent: formData.CheckContent, CheckMethod: formData.CheckMethod, UserName: currentUser });
       if (res.Success) ElMessage.success(t('message.addSuccess'));
     }
     if (res?.Success) {

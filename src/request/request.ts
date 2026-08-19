@@ -98,14 +98,14 @@ service.interceptors.response.use(
 
     //成功的返回
     if (response.status === 200) {
-
       if (response.data.code == 100200 || !response.data.code) {
         // router.push({path: '/login'});
         return response.data;
       } else if (response.data.code == 100300) {
         return response.data;
       }
-      else if (response.data.code === 401) {
+    
+      else if (response.data.code === 401||response.data.ErrorCode === 401) {
         removeToken()
         router.push('/login');
       }

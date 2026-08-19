@@ -29,7 +29,7 @@
             </el-form>
             <el-table :data="tableData
                 " size="small" :style="{ width: '100%' }" :height="tableHeight" :tooltip-effect="'dark'" border fit
-                @selection-change="handleSelectionChange">
+                @selection-change="handleSelectionChange" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="selection" width="55" align="center" />
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
@@ -38,8 +38,6 @@
                         }}</span>
                     </template>
                 </el-table-column>
-                <!-- <el-table-column :label="t('Scheduling.ProductSched.ProductOrder')" fixed prop=""
-                    :min-width="getColumnWidth1('ProductOrder')" /> -->
                 <el-table-column :label="t('Scheduling.ProductSched.MesOrder')" fixed prop="wo"
                     :min-width="getColumnWidth1('wo')" />
                 <el-table-column :label="t('Scheduling.ProductSched.TBSide')" prop="orderName"

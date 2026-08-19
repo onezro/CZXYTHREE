@@ -24,7 +24,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/controlApi': { 
-        target: 'http://172.20.99.47:8055',
+        target: 'http://172.16.28.85:12022',//http://172.20.99.47:8055
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/controlApi/, '') 
       },
@@ -43,25 +43,30 @@ export default defineConfig({
         changeOrigin: true
       },
       '/smdProApi': {
-        target: 'http://172.20.99.21:9980',
+        target: 'http://172.16.28.85:12022',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/smdProApi/, '') 
       },
       '/baseDataApi': {
-        target: 'http://172.20.99.21:5998',
+        target: 'http://172.16.28.85:12022',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/baseDataApi/, '') 
       },
       // 辅机设置
       '/smtSetApi': {
-        target: 'http://172.20.99.21:5082',
+        target: 'http://172.16.28.85:12022',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/smtSetApi/, '') 
       },
        "/moistureApi": {
-        target: "http://172.16.28.106:12024",
+        target: "http://172.16.28.85:12024",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/moistureApi/, '') 
+      },
+      '/TaskSettingsApi': {
+        target: 'http://172.16.28.85:12025',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/TaskSettingsApi/, '') 
       },
       '/smtApi': {
         target: 'http://192.168.1.237:12026',

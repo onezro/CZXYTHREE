@@ -36,7 +36,7 @@
       </div>
 
       <el-table size="small" :data="tableData1.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-        " border :height="tableHeight" stripe>
+        " border :height="tableHeight" stripe  :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column label="序号" type="index" width="60" align="center"></el-table-column>
         <el-table-column label="工号" prop="employeeName" min-width="100">
         </el-table-column>
@@ -177,7 +177,7 @@
     <el-dialog :append-to-body="true" :close-on-click-modal="false" title="历史登录记录" v-model="historyVisible" width="800px">
       <el-table size="small" :data="historyData" border :height="400" stripe>
         <el-table-column label="序号" type="index" width="60" align="center"></el-table-column>
-        <el-table-column label="工号" prop="EmployeeName"></el-table-column>
+        <!-- <el-table-column label="工号" prop="EmployeeName"></el-table-column> -->
         <el-table-column label="登录时间" prop="LoginTime"></el-table-column>
       </el-table>
     </el-dialog>

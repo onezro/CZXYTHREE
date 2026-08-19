@@ -17,7 +17,7 @@
         </el-form-item>
       </el-form>
       <el-table ref="tableRef" :data="pagedTableData" :height="tableHeight" border stripe size="small"
-        style="width: 100%">
+        style="width: 100%" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column prop="ProductName" :label="t('smtset.pcbonlineTime.product')"
           :min-width="getColumnWidth('ProductName')" />
         <el-table-column prop="LineName" :label="t('smtset.pcbonlineTime.line')"
@@ -186,9 +186,9 @@ const getAll = () => {
 
   XYL_OEE_ProductCycle({ operationType: "QA" })
     .then((res: any) => {
-      if (res.Status === "OK") {
+      if (res.Success) {
         ElMessage.success(t("smtset.pcbonlineTime.initSuccess"));
-        itemList.value = res.DataList || [];
+        itemList.value = res.Data || [];
       } else {
         ElMessage.error(res.Message);
       }
@@ -203,10 +203,10 @@ const getAll = () => {
 const getNowData = () => {
   XYL_OEE_ProductCycle({ ...form, operationType: "Q" })
     .then((res: any) => {
-      if (res.Status === "OK") {
+      if (res.Success) {
         delectShow.value = true;
         currentPage.value = 1;
-        tableData.value = res.DataList || [];
+        tableData.value = res.Data || [];
       } else {
         ElMessage.error(res.Message);
         tableData.value = [];
@@ -224,9 +224,9 @@ const getHistoryData = () => {
   delectShow.value = false;
   XYL_OEE_ProductCycle({ ...form, operationType: "QH" })
     .then((res: any) => {
-      if (res.Status === "OK") {
+      if (res.Success) {
         currentPage.value = 1;
-        tableData.value = res.DataList || [];
+        tableData.value = res.Data || [];
       } else {
         ElMessage.error(res.Message);
         tableData.value = [];
@@ -244,7 +244,7 @@ const addData = () => {
   XYL_OEE_ProductCycle({ ...addForm, operationType: "I" })
     .then((res: any) => {
       if (typeof res !== "string") {
-        if (res.Status === "OK") {
+        if (res.Success) {
           ElMessage.success(t("smtset.pcbonlineTime.addSuccess"));
           getNowData();
           addVisible.value = false;
@@ -264,7 +264,7 @@ const addData = () => {
 const changeData = () => {
   XYL_OEE_ProductCycle({ ...changeForm, operationType: "U" })
     .then((res: any) => {
-      if (res.Status === "OK") {
+      if (res.Success) {
         ElMessage.success(t("smtset.pcbonlineTime.editSuccess"));
         dialogVisible.value = false;
         getNowData();
@@ -298,7 +298,7 @@ const handleDelete = (row: any) => {
     operationType: "D",
   })
     .then((res: any) => {
-      if (res.Status === "OK") {
+      if (res.Success) {
         ElMessage.success(t("smtset.pcbonlineTime.deleteSuccess"));
         if (delectShow.value) {
           getNowData();

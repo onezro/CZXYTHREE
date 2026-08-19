@@ -6,13 +6,13 @@
       </div>
       <div class="w-full">
         <el-table size="small" :data="tableData" stripe border fit :height="tableHeight" row-key="ID"
-          :tree-props="{ children: 'childMenu' }">
+          :tree-props="{ children: 'childMenu' }"  :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
 
           <el-table-column prop="title" label="标题"> </el-table-column>
           <el-table-column prop="icon" label="图标" align="center" width="60">
             <template #default="scope">
-              <el-icon :size="20" v-if="scope.row.icon">
-                <component :is="scope.row.icon" />
+              <el-icon :size="20" v-if="getIconComponent(scope.row.icon)">
+                <component :is="getIconComponent(scope.row.icon)" />
               </el-icon>
             </template>
           </el-table-column>
@@ -85,7 +85,36 @@
           <!-- <el-input v-model="form.MenuType" placeholder="类型"></el-input> -->
         </el-form-item>
         <el-form-item label="菜单名称" prop="title"><el-input v-model="form.title" placeholder="请输入" /></el-form-item>
-        <el-form-item label="图标" prop="icon"><el-input v-model="form.icon" placeholder="请输入图标" /></el-form-item>
+        <el-form-item label="图标" prop="icon">
+          <el-popover placement="bottom-start" :width="300" trigger="click" v-model:visible="iconPopoverVisible">
+            <template #reference>
+              <el-input v-model="form.icon" placeholder="请选择图标" readonly style="width: 240px; cursor: pointer">
+                <template #prefix>
+                  <el-icon v-if="getIconComponent(form.icon)" :size="16">
+                    <component :is="getIconComponent(form.icon)" />
+                  </el-icon>
+                </template>
+              </el-input>
+            </template>
+            <div class="icon-picker">
+              <el-input v-model="iconSearchKeyword" placeholder="搜索图标" size="small" clearable class="mb-2" />
+              <div class="icon-grid">
+                <div
+                  v-for="name in filteredIcons"
+                  :key="name"
+                  class="icon-item"
+                  :class="{ active: form.icon === name }"
+                  @click="selectIcon(name, 'add')"
+                  :title="name"
+                >
+                  <el-icon :size="18">
+                    <component :is="getIconComponent(name)" />
+                  </el-icon>
+                </div>
+              </div>
+            </div>
+          </el-popover>
+        </el-form-item>
         <el-form-item label="路径" prop="path"><el-input v-model="form.path" placeholder="请输入PATH路径" /></el-form-item>
         <el-form-item label="name" prop="MenuName"><el-input v-model="form.MenuName"
             placeholder="请输入路由名称name" /></el-form-item>
@@ -134,7 +163,34 @@
           <el-input v-model="editForm.MenuName" placeholder="name"></el-input>
         </el-form-item>
         <el-form-item label="图标" prop="icon">
-          <el-input v-model="editForm.icon" placeholder="图标"></el-input>
+          <el-popover placement="bottom-start" :width="300" trigger="click" v-model:visible="editIconPopoverVisible">
+            <template #reference>
+              <el-input v-model="editForm.icon" placeholder="请选择图标" readonly style="width: 240px; cursor: pointer">
+                <template #prefix>
+                  <el-icon v-if="getIconComponent(editForm.icon)" :size="16">
+                    <component :is="getIconComponent(editForm.icon)" />
+                  </el-icon>
+                </template>
+              </el-input>
+            </template>
+            <div class="icon-picker">
+              <el-input v-model="iconSearchKeyword" placeholder="搜索图标" size="small" clearable class="mb-2" />
+              <div class="icon-grid">
+                <div
+                  v-for="name in filteredIcons"
+                  :key="name"
+                  class="icon-item"
+                  :class="{ active: editForm.icon === name }"
+                  @click="selectIcon(name, 'edit')"
+                  :title="name"
+                >
+                  <el-icon :size="18">
+                    <component :is="getIconComponent(name)" />
+                  </el-icon>
+                </div>
+              </div>
+            </div>
+          </el-popover>
         </el-form-item>
         <el-form-item label="重定向" prop="redirect"><el-input v-model="editForm.redirect"
             placeholder="请输入" /></el-form-item>
@@ -177,7 +233,34 @@
           <el-input v-model="copyform.MenuName" placeholder="组件名称"></el-input>
         </el-form-item>
         <el-form-item label="图标" prop="icon">
-          <el-input v-model="copyform.icon" placeholder="图标"></el-input>
+          <el-popover placement="bottom-start" :width="300" trigger="click" v-model:visible="copyIconPopoverVisible">
+            <template #reference>
+              <el-input v-model="copyform.icon" placeholder="请选择图标" readonly style="width: 240px; cursor: pointer">
+                <template #prefix>
+                  <el-icon v-if="getIconComponent(copyform.icon)" :size="16">
+                    <component :is="getIconComponent(copyform.icon)" />
+                  </el-icon>
+                </template>
+              </el-input>
+            </template>
+            <div class="icon-picker">
+              <el-input v-model="iconSearchKeyword" placeholder="搜索图标" size="small" clearable class="mb-2" />
+              <div class="icon-grid">
+                <div
+                  v-for="name in filteredIcons"
+                  :key="name"
+                  class="icon-item"
+                  :class="{ active: copyform.icon === name }"
+                  @click="selectIcon(name, 'copy')"
+                  :title="name"
+                >
+                  <el-icon :size="18">
+                    <component :is="getIconComponent(name)" />
+                  </el-icon>
+                </div>
+              </div>
+            </div>
+          </el-popover>
         </el-form-item>
         <el-form-item label="重定向" prop="redirect"><el-input v-model="copyform.redirect"
             placeholder="请输入" /></el-form-item>
@@ -196,9 +279,12 @@
 
 <script setup lang="ts">
 import { ElMessage, ElMessageBox, ElTree } from "element-plus";
+import * as AntIcons from "@ant-design/icons-vue";
+import * as ElIcons from "@element-plus/icons-vue";
 
 import { useUserStoreWithOut } from '@/stores/modules/user'
 import { getFirstMeun, addMeun, deleteMeun, updateMeun } from "@/api/permiss";
+import { commonIcons } from "@/utils/iconList";
 import {
   ref,
   unref,
@@ -208,6 +294,7 @@ import {
   watch,
   onMounted,
   onBeforeUnmount,
+  computed,
 } from "vue";
 const userStore = useUserStoreWithOut()
 const tableData = ref([]);
@@ -295,6 +382,39 @@ const list = reactive([{
   value: 'PC',
   label: 'PC'
 }])
+
+// ========== Ant Design 图标选择器 ==========
+const iconSearchKeyword = ref('');
+
+const filteredIcons = computed(() => {
+  if (!iconSearchKeyword.value) return commonIcons;
+  const kw = iconSearchKeyword.value.toLowerCase();
+  return commonIcons.filter(name => name.toLowerCase().includes(kw));
+});
+
+const getIconComponent = (iconName: string) => {
+  if (!iconName) return null;
+  // 优先查找 Ant Design 图标，回退到 Element Plus 图标（兼容已有数据）
+  return (AntIcons as any)[iconName] || (ElIcons as any)[iconName] || null;
+};
+
+const iconPopoverVisible = ref(false);
+const editIconPopoverVisible = ref(false);
+const copyIconPopoverVisible = ref(false);
+
+const selectIcon = (name: string, target: 'add' | 'edit' | 'copy') => {
+  if (target === 'add') {
+    form.value.icon = name;
+    iconPopoverVisible.value = false;
+  } else if (target === 'edit') {
+    editForm.icon = name;
+    editIconPopoverVisible.value = false;
+  } else if (target === 'copy') {
+    copyform.value.icon = name;
+    copyIconPopoverVisible.value = false;
+  }
+  iconSearchKeyword.value = '';
+};
 onBeforeMount(() => {
   getScreenHeight();
 });
@@ -342,7 +462,7 @@ const handleNodeClick = (data: any) => {
 };
 const onSubmit = () => {
   // console.log(form);
-  addMeun(form.value).then((res) => {
+  addMeun(form.value).then((res: any) => {
     // console.log(res.data);
     getData();
     addVisible.value = false;
@@ -364,7 +484,7 @@ const copyCancel = () => {
 }
 const copySubmit = () => {
   // console.log(copyform.value);
-  addMeun(copyform.value).then((res) => {
+  addMeun(copyform.value).then((res: any) => {
     // console.log(res.data);
     getData();
     copyVisible.value = false;
@@ -413,7 +533,7 @@ const handleDelete = (row: any) => {
       // row.sonNum!=null? dataDispose(row):false
       // console.log(arrID.value);
       arrID.value.forEach((item) => {
-        deleteMeun(item).then(({ data }) => {
+        deleteMeun(item).then((res:any) => {
           // console.log(data);
           arrID.value = arrID.value.filter((ID) => ID != item);
           // console.log(this.arrID);
@@ -434,7 +554,7 @@ const editCancel = () => {
   editVisible.value = false;
 };
 const editSubmit = () => {
-  updateMeun(editForm).then((res) => {
+  updateMeun(editForm).then((res:any) => {
     // console.log(res);
     editVisible.value = false;
     getData();
@@ -505,7 +625,37 @@ const getScreenHeight = () => {
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.icon-picker {
+  max-height: 320px;
+  overflow-y: auto;
+  .mb-2 {
+    margin-bottom: 8px;
+  }
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+  }
+  .icon-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover {
+      background-color: var(--el-color-primary-light-9);
+    }
+    &.active {
+      background-color: var(--el-color-primary);
+      color: #fff;
+    }
+  }
+}
+</style>
 <style scoped>
 .el-pagination {
   justify-content: center;

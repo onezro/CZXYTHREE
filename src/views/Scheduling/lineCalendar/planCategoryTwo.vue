@@ -29,7 +29,7 @@
                 pageObj.currentPage * pageObj.pageSize,
             )
                 " size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit highlight-current-row>
+                :tooltip-effect="'dark'" border fit highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{

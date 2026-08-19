@@ -7,9 +7,9 @@
       <div class="w-[4.8rem]" v-for="item in tabRouters">
         <div class="text-center text-xs cursor-pointer pt-3 pb-3 hover:bg-[#005A79]"
           :class="{ isActive: isActive(item.path) }" @click="tabClick(isOnlyChildren(item))">
-          <el-icon :size="24" color="#ffffff">
+          <span class="tab-menu-icon" :style="{ fontSize: '26px', color: '#ffffff' }">
             <component :is="isOnlyChildren(item).meta?.icon" />
-          </el-icon>
+          </span>
           <!-- <a-icon :type="'DesktopOutlined'" :style="{ fontSize: '27px', color: '#fff'}" /> -->
           <!-- <a-space :style="{ fontSize: '27px', color: '#fff'}">
     <home-outlined  :style="{ fontSize: '27px', color: '#fff'}"/>
@@ -470,5 +470,14 @@ export default defineComponent({
 
 .rotate-icon {
   transform: rotate(180deg);
+}
+
+.tab-menu-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: middle;
+  margin-bottom: 2px;
 }
 </style>

@@ -1,6 +1,7 @@
 import request from "@/request/deviceRequest"
 
-//查询工具模具
+// ==================== 工治具类型（ToolsMold）====================
+//查询工治具类型
 export function queryToolsMold(data:any) {
   return request({
     url: "/api/Repair/ToolsMold/Query",
@@ -8,7 +9,7 @@ export function queryToolsMold(data:any) {
     data
   });
 }
-//新增工具模具
+//新增工治具类型
 export function insertToolsMold(data:any) {
   return request({
     url: "/api/Repair/ToolsMold/Insert",
@@ -16,7 +17,7 @@ export function insertToolsMold(data:any) {
     data
   });
 }
-//更新工具模具
+//更新工治具类型
 export function updateToolsMold(data:any) {
   return request({
     url: "/api/Repair/ToolsMold/Update",
@@ -24,7 +25,7 @@ export function updateToolsMold(data:any) {
     data
   });
 }
-//删除工具模具
+//删除工治具类型
 export function deleteToolsMold(data:any) {
   return request({
     url: "/api/Repair/ToolsMold/Delete",
@@ -33,15 +34,8 @@ export function deleteToolsMold(data:any) {
   });
 }
 
-//
-export function moldControl(data:any) {
-  return request({
-    url: "/XingYuAPI/XY_WMS_Tools_MoldControl",
-    method: "post",
-    data,
-  });
-}
-//查询工具ID
+// ==================== 工治具台账（ToolsID）====================
+//查询工治具台账
 export function queryToolsID(data:any) {
   return request({
     url: "/api/Repair/ToolsID/Query",
@@ -49,7 +43,15 @@ export function queryToolsID(data:any) {
     data
   });
 }
-//新增工具ID
+//查询工治具资产
+export function queryAssetToolsID(data:any) {
+  return request({
+    url: "/api/Repair/ToolsID/QueryAsset",
+    method: "post",
+    data
+  });
+}
+//新增工治具台账
 export function insertToolsID(data:any) {
   return request({
     url: "/api/Repair/ToolsID/Insert",
@@ -57,7 +59,7 @@ export function insertToolsID(data:any) {
     data,
   });
 }
-//更新工具ID
+//更新工治具台账
 export function updateToolsID(data:any) {
   return request({
     url: "/api/Repair/ToolsID/Update",
@@ -65,7 +67,7 @@ export function updateToolsID(data:any) {
     data,
   });
 }
-//删除工具ID
+//删除工治具台账
 export function deleteToolsID(data:any) {
   return request({
     url: "/api/Repair/ToolsID/Delete",
@@ -73,8 +75,7 @@ export function deleteToolsID(data:any) {
     data,
   });
 }
-
-//报废工具ID
+//报废工治具台账
 export function scrapToolsID(data:any) {
   return request({
     url: "/api/Repair/ToolsID/Scrap",
@@ -83,16 +84,8 @@ export function scrapToolsID(data:any) {
   });
 }
 
- export function QueryAssetToolsID(data:any) {
-  return request({
-    url: "/api/Repair/ToolsID/QueryAsset",
-    method: "post",
-    data
-  });
- }
-
-
-//查询工具领用单
+// ==================== 工治具领用单（ToolsOrder）====================
+//查询工治具领用单
 export function queryToolsOrder(data:any) {
   return request({
     url: "/api/Repair/ToolsOrder/Query",
@@ -101,32 +94,8 @@ export function queryToolsOrder(data:any) {
   });
 }
 
-//新增工具领用单
-export function insertToolsSpec(data:any) {
-  return request({
-    url: "/api/Repair/ToolsSpec/Insert",
-    method: "post",
-    data,
-  });
-}
-
-//更新工具领用单
-export function updateToolsSpec(data:any) {
-  return request({
-    url: "/api/Repair/ToolsSpec/Update",
-    method: "post",
-    data,
-  });
-}
-//删除工具领用单
-export function deleteToolsSpec(data:any) {
-  return request({
-    url: "/api/Repair/ToolsSpec/Delete",
-    method: "post",
-    data,
-  });
-} 
-//查询工具领用单详情
+// ==================== 产品消耗（ToolsSpec）====================
+//查询产品消耗
 export function queryToolsSpec(data:any) {
   return request({
     url: "/api/Repair/ToolsSpec/Query",
@@ -134,19 +103,35 @@ export function queryToolsSpec(data:any) {
     data
   });
 }
-//工具领用单导入控制
-export function specImportControl(data:any) {
+//新增产品消耗
+export function insertToolsSpec(data:any) {
+  return request({
+    url: "/api/Repair/ToolsSpec/Insert",
+    method: "post",
+    data,
+  });
+}
+//更新产品消耗
+export function updateToolsSpec(data:any) {
+  return request({
+    url: "/api/Repair/ToolsSpec/Update",
+    method: "post",
+    data,
+  });
+}
+//删除产品消耗
+export function deleteToolsSpec(data:any) {
+  return request({
+    url: "/api/Repair/ToolsSpec/Delete",
+    method: "post",
+    data,
+  });
+}
+//导入产品消耗
+export function importToolsSpec(data:any) {
   return request({
     url: "/api/Repair/ToolsSpec/Import",
     method: "post",
     data,
   });
 }
-
-// export function orderControl (data:any) {
-//   return request({
-//     url: "/XingYuAPI/XY_WMS_Tools_IDControl",
-//     method: "post",
-//     data,
-//   });
-// }

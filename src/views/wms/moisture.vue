@@ -1,7 +1,7 @@
 <template>
   <div class="p-2">
     <el-card :body-style="{ padding: '8px' }">
-        <div class="m-2">
+        <div class="mb-1">
       <el-input
         :placeholder="t('wms.moisture.id')"
         v-model="reelID"
@@ -19,11 +19,11 @@
       :data="tableData.slice((currentPage - 1) * pageSize, currentPage * pageSize)"
       :height="tableHeight"
       border
-
+       :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }"
       style="width: 100%"
       size="small"
     >
-      <el-table-column :label="t('wms.moisture.index')" width="55">
+      <el-table-column :label="t('wms.moisture.index')" width="55" align="center">
         <template #default="scope">
           <span>{{ scope.$index + 1 + (currentPage - 1) * pageSize }}</span>
         </template>
@@ -104,8 +104,8 @@ const searchData = () => {
     mcId: 4,
     type: "inquiry",
   }).then((res: any) => {
-    if (res.Status == "OK") {
-      tableData.value = res.Details;
+    if (res.Success) {
+      tableData.value = res.Data;
     } else {
       tableData.value = [];
     }

@@ -81,6 +81,10 @@
         <el-dialog :title="t('publicText.add')" v-model="addVisible" width="500px" :close-on-click-modal="false"
             @closed="handleAddDialogClosed">
             <el-form ref="addFormRef" :model="addForm" :rules="formRules" label-width="auto">
+                <el-form-item :label="$t('AGV.workstation.workstationID')" prop="workstationID">
+                    <el-input v-model="addForm.workstationID"
+                        :placeholder="$t('AGV.workstation.inputWorkstationID')" clearable />
+                </el-form-item>
                 <el-form-item :label="$t('AGV.workstation.name')" prop="name">
                     <el-input v-model="addForm.name"
                         :placeholder="$t('AGV.workstation.inputName')" clearable />
@@ -172,6 +176,7 @@ const pageObj = reactive({
 });
 
 const addForm = reactive({
+    workstationID: "",
     name: "",
     area: "",
     remark: "",
@@ -190,6 +195,13 @@ const addFormRef = ref();
 const editFormRef = ref();
 
 const formRules = reactive({
+    workstationID: [
+        {
+            required: true,
+            message: t("message.pleaseInput") + t("AGV.workstation.workstationID"),
+            trigger: "blur",
+        },
+    ],
     name: [
         {
             required: true,
@@ -259,6 +271,7 @@ const handleCurrentChange = (val: number) => {
 };
 
 const openAdd = () => {
+    addForm.workstationID = "";
     addForm.name = "";
     addForm.area = "";
     addForm.remark = "";
@@ -274,6 +287,7 @@ const submitAdd = () => {
         if (valid) {
             submitLoading.value = true;
             const params = {
+                workstationID: addForm.workstationID,
                 name: addForm.name,
                 area: addForm.area,
                 remark: addForm.remark,

@@ -215,8 +215,8 @@ const lineList = [
 ]
 
 const typeList = [
-  { lable: '首检', value: 'FI' }, { lable: '巡检', value: 'RI' },
-  { lable: '设备点检', value: 'EI' }, { lable: '工艺参数点检', value: 'WI' }
+   { lable: '开班检（首检）', value: 'FI' }, { lable: '巡检', value: 'RI' },
+  { lable: '设备点检', value: 'EI' }, { lable: '末检', value: 'SI' }, { lable: '工艺参数点检', value: 'WI' }
 ]
 
 const inquire = ref('times')

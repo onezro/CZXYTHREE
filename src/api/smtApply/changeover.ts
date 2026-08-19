@@ -7,6 +7,14 @@ export function GetSMTValorLine(data:any) {
         data,
     });
 }
+//获取ICT线体信息
+export function GetICTValorLine(data:any) {
+    return request({
+        url: "/api/ChangeOver/GetICTValorLine",
+        method: "post",
+        data,
+    });
+}
 //获取工单列表
 export function GetSMTValorChangeLineWoList(data:any) {
     return request({

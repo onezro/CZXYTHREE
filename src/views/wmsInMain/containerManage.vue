@@ -23,24 +23,24 @@
                 }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="Containerid" :label="t('wmsInMain.containerManage.containerId')"
-            :min-width="getColumnWidth('Containerid')">
+          <el-table-column prop="containerid" :label="t('wmsInMain.containerManage.containerId')"
+            :min-width="getColumnWidth('containerid')">
           </el-table-column>
-          <el-table-column prop="ContainerName" :label="t('wmsInMain.containerManage.containerName')"
-            :min-width="getColumnWidth('ContainerName')">
+          <el-table-column prop="containername" :label="t('wmsInMain.containerManage.containerName')"
+            :min-width="getColumnWidth('containername')">
           </el-table-column>
-          <el-table-column prop="Spec" :label="t('wmsInMain.containerManage.spec')" :min-width="getColumnWidth('Spec')">
+          <el-table-column prop="spec" :label="t('wmsInMain.containerManage.spec')" :min-width="getColumnWidth('spec')">
           </el-table-column>
-          <el-table-column prop="Capacity" :label="t('wmsInMain.containerManage.maxCapacity')"
-            :min-width="getColumnWidth('Capacity')">
+          <el-table-column prop="capacity" :label="t('wmsInMain.containerManage.maxCapacity')"
+            :min-width="getColumnWidth('capacity')">
           </el-table-column>
-          <el-table-column prop="ProduceType" :label="t('wmsInMain.containerManage.produceType')"
-            :min-width="getColumnWidth('ProduceType')">
+          <el-table-column prop="producetype" :label="t('wmsInMain.containerManage.produceType')"
+            :min-width="getColumnWidth('producetype')">
           </el-table-column>
-          <el-table-column prop="MaxuseNum" :label="t('wmsInMain.containerManage.maxUseNum')"
-            :min-width="getColumnWidth('MaxuseNum')">
+          <el-table-column prop="maxusenum" :label="t('wmsInMain.containerManage.maxUseNum')"
+            :min-width="getColumnWidth('maxusenum')">
           </el-table-column>
-          <el-table-column prop="ExFactoryDate" :label="t('wmsInMain.containerManage.exFactoryDate')" width="180">
+          <el-table-column prop="exfactorydate" :label="t('wmsInMain.containerManage.exFactoryDate')" width="180">
           </el-table-column>
           <el-table-column fixed="right" :label="t('publicText.operation')" width="200" align="center">
             <template #default="scope">
@@ -54,9 +54,9 @@
           </el-table-column>
         </el-table>
         <div class="block" style="margin-top: 8px">
-          <el-pagination size="small" background align="center" @size-change="handleSizeChange" @current-change="handleCurrentChange"
-            :current-page="currentPage" :page-size="getlistText.pageSize" :page-sizes="[5, 10, 20, 50, 100]"
-            layout="total,sizes, prev, pager, next" :total="total">
+          <el-pagination size="small" background align="center" @size-change="handleSizeChange"
+            @current-change="handleCurrentChange" :current-page="currentPage" :page-size="getlistText.pageSize"
+            :page-sizes="[5, 10, 20, 50, 100]" layout="total,sizes, prev, pager, next" :total="total">
           </el-pagination>
         </div>
       </div>
@@ -70,8 +70,8 @@
           <el-input :disabled="show" v-model="form.containerid"
             :placeholder="t('wmsInMain.containerManage.containerId')"></el-input>
         </el-form-item>
-        <el-form-item :label="t('wmsInMain.containerManage.containerName')" prop="containerName">
-          <el-input v-model="form.containerName" :placeholder="t('wmsInMain.containerManage.containerName')"></el-input>
+        <el-form-item :label="t('wmsInMain.containerManage.containerName')" prop="containername">
+          <el-input v-model="form.containername" :placeholder="t('wmsInMain.containerManage.containerName')"></el-input>
         </el-form-item>
         <el-form-item :label="t('wmsInMain.containerManage.spec')" prop="spec">
           <el-input type="textarea" v-model="form.spec" :placeholder="t('wmsInMain.containerManage.spec')"></el-input>
@@ -79,19 +79,19 @@
         <el-form-item :label="t('wmsInMain.containerManage.maxCapacity')" prop="capacity">
           <el-input v-model="form.capacity" :placeholder="t('wmsInMain.containerManage.maxCapacity')"></el-input>
         </el-form-item>
-        <el-form-item :label="t('wmsInMain.containerManage.produceType')" prop="produceType">
-          <el-select v-model="form.produceType" :placeholder="t('wmsInMain.containerManage.produceType')">
+        <el-form-item :label="t('wmsInMain.containerManage.produceType')" prop="producetype">
+          <el-select v-model="form.producetype" :placeholder="t('wmsInMain.containerManage.produceType')">
             <el-option v-for="item in lineList" :key="item.lineType" :label="item.lineType"
               :value="item.lineType"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item :label="t('wmsInMain.containerManage.maxUseNum')" prop="maxuseNum">
-          <el-input v-model="form.maxuseNum" :placeholder="t('wmsInMain.containerManage.maxUseNum')"></el-input>
+        <el-form-item :label="t('wmsInMain.containerManage.maxUseNum')" prop="maxusenum">
+          <el-input v-model="form.maxusenum" :placeholder="t('wmsInMain.containerManage.maxUseNum')"></el-input>
         </el-form-item>
         <el-form-item :label="t('wmsInMain.containerManage.exFactoryDate')" prop="exFactoryDate">
           <el-date-picker type="datetime" :placeholder="t('wmsInMain.containerManage.selectDate')"
             format="YYYY-MM-DD HH:mm:ss" value-format="YYYY-MM-DD HH:mm:ss"
-            v-model="form.exFactoryDate"></el-date-picker>
+            v-model="form.exfactorydate"></el-date-picker>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -131,8 +131,9 @@
         </el-table-column>
       </el-table>
       <div class="block" style="margin-top: 8px">
-        <el-pagination size="small" align="center" @current-change="hosityhandleCurrentChange" :current-page="hositycurrentPage"
-          :page-size="hositypageSize" layout="total, prev, pager, next" :total="hosity.length">
+        <el-pagination size="small" align="center" @current-change="hosityhandleCurrentChange"
+          :current-page="hositycurrentPage" :page-size="hositypageSize" layout="total, prev, pager, next"
+          :total="hosity.length">
         </el-pagination>
       </div>
     </el-dialog>
@@ -177,21 +178,26 @@ const lineList = [{ lineType: "SMT" }, { lineType: "组装" }];
 
 const form = reactive({
   containerid: "",
-  containerName: "",
+  containername: "",
   spec: "",
   pn: "",
   qty: 0,
-  cellNo: "",
+  cellno: "",
+  remarks: "",
   capacity: "",
   stts: 0,
-  produceType: "",
-  maxuseNum: "",
-  usedNum: 0,
-  updateTime: "",
-  updateUser: "",
-  createTime: "",
-  createUser: "",
-  exFactoryDate: "",
+  Wo: "",
+  Side: "",
+  Lock_no: "",
+  producetype: "",
+  maxusenum: 0,
+  usednum: 0,
+  updatetime: "",
+  updateuser: "",
+  createtime: "",
+  createuser: "",
+  exfactorydate: "",
+  checkresult: "",
 });
 
 const tableData = ref<any[]>([]);
@@ -253,6 +259,7 @@ const getData = () => {
   queryPageContainer(getlistText)
     .then((res: any) => {
       const a = JSON.parse(res.Data);
+      console.log(a);
       total.value = a.Total;
       tableData.value = a.list || [];
     })
@@ -285,15 +292,15 @@ const openAdd = () => {
 const onSubmit = () => {
   formRef.value?.validate((valid: boolean) => {
     if (valid) {
-      if (!form.createTime) {
-        form.createTime = dayjs().format("YYYY-MM-DD HH:mm:ss");
-        form.createUser = userStore.getUserInfo || "";
+      if (!form.createtime) {
+        form.createtime = dayjs().format("YYYY-MM-DD HH:mm:ss");
+        form.createuser = userStore.getUserInfo || "";
       }
-      form.updateUser = userStore.getUserInfo || "";
-      form.updateTime = dayjs().format("YYYY-MM-DD HH:mm:ss");
+      form.updateuser = userStore.getUserInfo || "";
+      form.updatetime = dayjs().format("YYYY-MM-DD HH:mm:ss");
 
       saveContainer(form)
-        .then((res:any) => {
+        .then((res: any) => {
           if (res.Success) {
             dialogVisible.value = false;
             show.value = false;
@@ -331,7 +338,7 @@ const handleEdit = (index: number, row: any) => {
 const handleHistory = (index: number, row: any) => {
   dialogTableVisible.value = true;
   hosity.value = [];
-  getHistoy(row.Containerid).then((res:any) => {
+  getHistoy(row.Containerid).then((res: any) => {
     const a = JSON.parse(res.Data);
     hosity.value = a.list || [];
   });
@@ -452,6 +459,6 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .el-pagination {
-    justify-content: center;
+  justify-content: center;
 }
 </style>

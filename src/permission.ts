@@ -7,7 +7,7 @@ import { useNProgress } from "@/hooks/useNProgress";
 import { usePermissionStoreWithOut } from "@/stores/modules/permission";
 import { NO_REDIRECT_WHITE_LIST } from "@/constants";
 import { useUserStoreWithOut } from "@/stores/modules/user";
-import { getMenu, getInfo, getMenuOPUI, getWorksMenuOPUI } from "@/api/permiss/index";
+import { getMenu, getInfo, getMenuOPUI, getWorksMenuOPUI } from "@/api/permiss";
 // import { asyncRouterMap, constantRouterMap } from '@/router'
 import { updateParentMenus } from "@/utils/routerAata";
 import { setMenu } from "@/utils/dataMenu";

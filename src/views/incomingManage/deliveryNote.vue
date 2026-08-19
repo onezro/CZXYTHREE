@@ -41,7 +41,7 @@
 
             <!-- 主表列表 -->
             <el-table :data="tableData" ref="eltableRef" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit highlight-current-row>
+                :tooltip-effect="'dark'" border fit highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{ scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1 }}</span>
@@ -88,6 +88,15 @@
                     <template #default="{ row }">
                         <el-tag :type="row.ReviewStatus === 1 ? 'success' : 'info'" size="small">
                             {{ row.ReviewStatus === 1 ? t('publicText.completed') : t('publicText.notStarted') }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column :label="t('incomingManage.deliveryNote.reviewResult')" prop="ReviewResult" width="110"
+                    align="center">
+                    <template #default="{ row }">
+                        <el-tag v-if="row.ReviewResult !== null && row.ReviewResult !== undefined"
+                            :type="getReviewResultType(row.ReviewResult)" size="small">
+                            {{ getReviewResultText(row.ReviewResult) }}
                         </el-tag>
                     </template>
                 </el-table-column>
@@ -363,6 +372,19 @@ const getResultText = (result: number) => {
 const getResultType = (result: number) => {
     if (result === 0) return "info";
     if (result === 1) return "success";
+    return "danger";
+};
+
+const getReviewResultText = (result: number | null) => {
+    if (result === null || result === undefined) return "";
+    if (result === 0) return t("incomingManage.deliveryReview.concessionAccept");
+    if (result === 1) return t("incomingManage.deliveryReview.pickAccept");
+    return t("incomingManage.deliveryReview.returnGoods");
+};
+const getReviewResultType = (result: number | null) => {
+    if (result === null || result === undefined) return "info";
+    if (result === 0) return "warning";
+    if (result === 1) return "primary";
     return "danger";
 };
 

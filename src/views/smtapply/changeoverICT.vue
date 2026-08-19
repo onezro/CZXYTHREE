@@ -340,7 +340,7 @@ import { ref, reactive, computed, onMounted } from "vue";
 
 import {
     GetSMTValorChangeLineWoList,
-    GetSMTValorLine,
+    GetICTValorLine,
     GetValorChangeLineWoNew,
     GetSMTValorLineEquipMent,
     GetValorChangeLineWoEquipStatus,
@@ -383,44 +383,7 @@ const lineList = ref<any[]>([]);
 const workOrderList = ref<any[]>([]);
 
 const lineData = ref<any[]>([
-    {
-        Equipid: 1,
-        EquipName: "Laser",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
-    {
-        Equipid: 2,
-        EquipName: "Printer",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
-    {
-        Equipid: 3,
-        EquipName: "SPI",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
-    {
-        Equipid: 4,
-        EquipName: "Mounter",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
-    {
-        Equipid: 5,
-        EquipName: "M-AOI",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
-    // { Equipid: 6, EquipName: "Reflow", equipment: "0", orbit: "0" },
-    // { Equipid: 7, EquipName: "S-AOI", equipment: "0", orbit: "0" },
-    // { Equipid: 8, EquipName: "ICT", equipment: "0", orbit: "0" },
+   
 ]);
 
 const checkedDevices = ref<any[]>([]);
@@ -454,7 +417,7 @@ const isFormValid = computed(() => {
     );
 });
 onMounted(() => {
-    const savedLineName = localStorage.getItem("lineName");
+    const savedLineName = localStorage.getItem("ICTLineName");
     if (savedLineName) {
         lineName.value = savedLineName;
         form.value.LineName = savedLineName;
@@ -561,7 +524,7 @@ const getOrderList = async () => {
 };
 
 const getLineList = async () => {
-    GetSMTValorLine({}).then((res: any) => {
+    GetICTValorLine({}).then((res: any) => {
         lineList.value = res.Data;
     });
 };
@@ -764,7 +727,7 @@ const handleSideChoice = (type: any) => {
 const handleLineSetting = async () => {
     clearAll();
     form.value.LineName = lineName.value;
-    localStorage.setItem("lineName", lineName.value);
+    localStorage.setItem("ICTLineName", lineName.value);
     lineChangeVisible.value = false;
     getSMTValorLineEquipMentData();
 };

@@ -10,8 +10,8 @@
       </el-input>
     </div>
     <el-table ref="tableRef" :data="tableData"
-      :height="tableHeight" border style="width: 100%" size="small">
-      <el-table-column :label="t('wms.moisture2.index')" width="55" fixed>
+      :height="tableHeight" border style="width: 100%" size="small"  :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+      <el-table-column :label="t('wms.moisture2.index')" width="55" fixed  align="center">
         <template #default="scope">
           <span>{{ scope.$index + 1 + (getForm.PageIndex - 1) * getForm.PageSize }}</span>
         </template>

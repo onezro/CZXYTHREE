@@ -10,7 +10,7 @@
         </div>
       </div>
       <el-table size="small" :data="tableData1.slice((currentPage - 1) * pageSize, currentPage * pageSize)
-        " border :height="tableHeight" stripe>
+        " border :height="tableHeight" stripe  :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column label="序号" type="index" width="60" align="center"></el-table-column>
         <el-table-column label="角色名称" prop="RoleName" > </el-table-column>
         <el-table-column label="描述" prop="RoleDesc"> </el-table-column>

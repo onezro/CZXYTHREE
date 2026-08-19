@@ -19,7 +19,7 @@
 
             <div class="table_container">
                 <el-table :data="tableData" :height="tableHeight" border size="small" style="width: 100%" stripe
-                    highlight-current-row>
+                    highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                     <el-table-column :label="t('publicText.index')" width="55" align="center" type="index" />
                     <el-table-column prop="ProductName" :label="t('smtapply.smdPro.productName')" min-width="120" />
                     <el-table-column prop="MjsId" :label="t('smtapply.smdPro.mjsId')" min-width="120" />
@@ -122,8 +122,7 @@ const getData = () => {
 
     GetMjsList(getlistText)
         .then((res: any) => {
-            const parsed = JSON.parse(res.data)
-            console.log(parsed);
+            const parsed = res.Data
 
             total.value = parsed.Total
             tableData.value = parsed.MjsList || []
@@ -182,13 +181,13 @@ const onSubmit = () => {
 
         apiCall
             .then((res: any) => {
-                if (res.code === 1) {
-                    ElMessage.success(res.msg || t('message.addSuccess'))
+                if (res.Success) {
+                    ElMessage.success(res.Message || t('message.addSuccess'))
                     dialogVisible.value = false
                     resetForm()
                     getData()
                 } else {
-                    ElMessage.error(res.msg || t('message.addFailure'))
+                    ElMessage.error(res.Message || t('message.addFailure'))
                 }
             })
             .catch(() => {

@@ -11,7 +11,7 @@
                     <el-form-item :label="t('baseData.smtMachineParam.mcType')" prop="MCTYPE" class="mb-2">
                         <el-select v-model="searchForm.MCTYPE" clearable filterable
                             :placeholder="t('baseData.smtMachineParam.selectMcType')" style="width: 180px">
-                            <el-option v-for="item in machineTypeList" :key="item.ID"
+                            <el-option v-for="item in distinctMachineTypeList" :key="item.MCTYPE"
                                 :label="item.MCTYPE" :value="item.MCTYPE" />
                         </el-select>
                     </el-form-item>
@@ -30,17 +30,17 @@
                 </div>
             </div>
             <el-table ref="eltableRef" :data="pagedData" size="small" border fit highlight-current-row
-                :height="tableHeight" style="width: 100%" :tooltip-effect="'dark'">
+                :height="tableHeight" style="width: 100%" :tooltip-effect="'dark'" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="55">
                     <template #default="scope">
                         <span>{{ scope.$index + (pageObj.currentPage - 1) * pageObj.pageSize + 1 }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="MCID" :label="t('baseData.smtMachineParam.mcId')" width="100" align="center" />
+                <el-table-column prop="MCID" :label="t('baseData.smtMachineParam.mcId')" width="100" align="center" fixed/>
                 <el-table-column prop="MCTYPE" :label="t('baseData.smtMachineParam.mcType')"
-                    :min-width="getColumnWidth('MCTYPE')" />
+                    :min-width="getColumnWidth('MCTYPE')" fixed/>
                 <el-table-column prop="Variable" :label="t('baseData.smtMachineParam.variable')"
-                    :min-width="getColumnWidth('Variable')" />
+                    :min-width="getColumnWidth('Variable')" fixed/>
                 <el-table-column prop="Value" :label="t('baseData.smtMachineParam.value')"
                     :min-width="getColumnWidth('Value')" />
                 <el-table-column prop="Description" :label="t('baseData.smtMachineParam.description')"
@@ -85,13 +85,13 @@
                 <el-form-item :label="t('baseData.smtMachineParam.mcType')" prop="MCTYPE">
                     <el-select v-model="addForm.MCTYPE" :placeholder="t('baseData.smtMachineParam.selectMcType')"
                         @change="handleAddMcTypeChange">
-                        <el-option v-for="item in machineTypeList" :key="item.ID"
+                        <el-option v-for="item in distinctMachineTypeList" :key="item.MCTYPE"
                             :label="item.MCTYPE" :value="item.MCTYPE" />
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="t('baseData.smtMachineParam.variable')" prop="Variable">
                     <el-select v-model="addForm.Variable" :placeholder="t('baseData.smtMachineParam.selectVariable')"
-                        @change="handleAddVariableChange">
+                        @change="handleAddVariableChange" filterable>
                         <el-option v-for="item in addFilteredVariableList" :key="item.Variable"
                             :label="item.Variable" :value="item.Variable" />
                     </el-select>
@@ -100,7 +100,7 @@
                     <el-input v-model="addForm.Value" :placeholder="t('baseData.smtMachineParam.inputValue')" />
                 </el-form-item>
                 <el-form-item :label="t('baseData.smtMachineParam.description')" prop="Description">
-                    <el-input v-model="addForm.Description" disabled />
+                    <el-input v-model="addForm.Description" disabled type="textarea"  rows="3"/>
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -121,7 +121,7 @@
                 <el-form-item :label="t('baseData.smtMachineParam.mcType')" prop="MCTYPE">
                     <el-select v-model="editForm.MCTYPE" :placeholder="t('baseData.smtMachineParam.selectMcType')"
                         disabled>
-                        <el-option v-for="item in machineTypeList" :key="item.ID"
+                        <el-option v-for="item in distinctMachineTypeList" :key="item.MCTYPE"
                             :label="item.MCTYPE" :value="item.MCTYPE" />
                     </el-select>
                 </el-form-item>
@@ -136,7 +136,7 @@
                     <el-input v-model="editForm.Value" :placeholder="t('baseData.smtMachineParam.inputValue')" />
                 </el-form-item>
                 <el-form-item :label="t('baseData.smtMachineParam.description')" prop="Description">
-                    <el-input v-model="editForm.Description" disabled />
+                    <el-input v-model="editForm.Description" disabled type="textarea" rows="3" />
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -245,6 +245,16 @@ const addFilteredVariableList = computed(() => {
 const editFilteredVariableList = computed(() => {
     if (!editForm.MCTYPE) return [];
     return machineTypeList.value.filter((item: any) => item.MCTYPE === editForm.MCTYPE);
+});
+
+const distinctMachineTypeList = computed(() => {
+    const map = new Map();
+    machineTypeList.value.forEach((item: any) => {
+        if (!map.has(item.MCTYPE)) {
+            map.set(item.MCTYPE, item);
+        }
+    });
+    return Array.from(map.values());
 });
 
 const { getColumnWidth } = useTableColumnWidth(eltableRef, allData, {

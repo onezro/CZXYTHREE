@@ -22,7 +22,7 @@
         </el-form-item>
       </el-form>
 
-      <el-table :data="tableData" ref="tableRef" border :height="tableHeight" stripe size="small" v-loading="loading">
+      <el-table :data="tableData" ref="tableRef" border :height="tableHeight" stripe size="small":header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column type="index" :label="t('publicText.index')" width="55" align="center" />
         <el-table-column prop="Line" :label="t('Scheduling.abnormalMove.lineName')" :min-width="getColumnWidth('Line')" />
         <el-table-column prop="Pn" :label="t('Scheduling.abnormalMove.pn')" :min-width="getColumnWidth('Pn')" />

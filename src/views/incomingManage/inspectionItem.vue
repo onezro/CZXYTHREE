@@ -17,7 +17,7 @@
                 </div>
             </div>
             <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit>
+                :tooltip-effect="'dark'" border fit :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{

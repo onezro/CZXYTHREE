@@ -8,7 +8,7 @@
                         <el-select v-model="searchForm.pointID" clearable filterable
                             :placeholder="$t('AGV.MillStation.selectPoint')" style="width: 250px">
                             <el-option v-for="item in pointNames" :key="item.pointID"
-                                :label="item.pointID + '-' + item.pointName" :value="item.pointID" />
+                                :label="item.pointName + '-' + item.pointID " :value="item.pointID" />
                         </el-select>
                     </el-form-item>
                     <el-form-item class="mb-2">
@@ -92,7 +92,7 @@
                     <el-select v-model="addForm.pointID" clearable filterable
                         :placeholder="$t('AGV.MillStation.selectPoint')">
                         <el-option v-for="item in pointNames" :key="item.pointID"
-                            :label="item.pointID + '-' + item.pointName" :value="item.pointID" />
+                            :label="item.pointName" :value="item.pointID" />
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="$t('AGV.MillStation.pointName')" prop="pointname">
@@ -124,7 +124,7 @@
                 <el-form-item :label="$t('AGV.MillStation.pointID')" prop="pointID">
                     <el-select v-model="editForm.pointID" disabled>
                         <el-option v-for="item in pointNames" :key="item.pointID"
-                            :label="item.pointID + '-' + item.pointName" :value="item.pointID" />
+                            :label="item.pointName" :value="item.pointID" />
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="$t('AGV.MillStation.pointName')" prop="pointname">
@@ -234,13 +234,7 @@ const formRules = reactive({
             required: true,
             message: t("message.pleaseInput") + t("AGV.MillStation.minQty"),
             trigger: "blur",
-        },
-        {
-            type: "number",
-            min: 0,
-            message: t("AGV.MillStation.minQty") + t("message.mustBeNonNegative"),
-            trigger: "blur",
-        },
+        }
     ],
 });
 
@@ -263,7 +257,6 @@ const getPointNames = () => {
 };
 
 const getData = () => {
-    loading.value = true;
     const params = {
         pointID: searchForm.pointID || "",
     };
@@ -290,9 +283,7 @@ const getData = () => {
             tableData.value = [];
             total.value = 0;
         })
-        .finally(() => {
-            loading.value = false;
-        });
+       
 };
 
 const handlePageChange = () => {

@@ -11,7 +11,7 @@
             <div class="text-xl font-bold">{{ calendarTitle }}</div>
           </div>
           <div class="flex gap-2">
-            <el-select v-model="calendarLine" placeholder="请选择产线" style="width: 150px" :clearble="false"
+            <el-select v-model="calendarLine" placeholder="请选择产线" style="width: 200px" filterable
               @change="changeLine">
               <el-option v-for="l in lineData" :label="l.Description" :value="l.MfgLineName" />
             </el-select>
@@ -36,7 +36,7 @@
     <el-drawer v-model="drawer" title="新增日程计划" direction="rtl" size="400" @close="handleClose">
       <el-form ref="formRef" :model="formData" label-width="auto">
         <el-form-item label="产线" prop="WorkLineName">
-          <el-select v-model="formData.WorkLineName" placeholder="请选择产线" :clearble="false" style="width: 220px">
+          <el-select v-model="formData.WorkLineName" placeholder="请选择产线" multiple :clearble="false" style="width: 220px" collapse-tags collapse-tags-tooltip>
             <el-option v-for="l in lineData" :label="l.Description" :value="l.MfgLineName" />
           </el-select>
         </el-form-item>
@@ -60,25 +60,21 @@
 
         <el-divider content-position="center">白班</el-divider>
         <el-form-item label="开始时间" prop="formData.classtime[0].ClassStartTime">
-          <el-time-select v-model="formData.classtime[0].ClassStartTime" style="width: 220px" start="07:00" step="00:15"
-            end="12:00" format="HH:mm:ss" />
-          <!-- <el-time-picker v-model="formData.classtime[0].ClassStartTime" value-format="HH:mm:ss" /> -->
+          <el-time-select v-model="formData.classtime[0].ClassStartTime" style="width: 220px" start="08:00" step="00:30"
+            end="14:00" format="HH:mm:ss" />
         </el-form-item>
         <el-form-item label="结束时间" prop="formData.classtime[0].ClassEndTime">
-          <el-time-select v-model="formData.classtime[0].ClassEndTime" style="width: 220px" start="15:00" step="00:15"
-            end="24:00" format="HH:mm:ss" />
-          <!-- <el-time-picker v-model="formData.classtime[0].ClassEndTime" value-format="HH:mm:ss" /> -->
+          <el-time-select v-model="formData.classtime[0].ClassEndTime" style="width: 220px" start="16:00" step="00:30"
+            end="20:30" format="HH:mm:ss" />
         </el-form-item>
-        <el-divider ontent-position="center">夜班</el-divider>
+        <el-divider content-position="center">夜班</el-divider>
         <el-form-item label="开始时间" prop="formData.classtime[1].ClassStartTime">
-          <el-time-select v-model="formData.classtime[1].ClassStartTime" style="width: 220px" start="17:00" step="00:15"
-            end="24:00" format="HH:mm:ss" />
-          <!-- <el-time-picker v-model="formData.classtime[1].ClassStartTime" value-format="HH:mm:ss" /> -->
+          <el-time-select v-model="formData.classtime[1].ClassStartTime" style="width: 220px" start="19:00" step="00:30"
+            end="21:00" format="HH:mm:ss" />
         </el-form-item>
         <el-form-item label="结束时间" prop="formData.classtime[1].ClassEndTime">
-          <el-time-select v-model="formData.classtime[1].ClassEndTime" style="width: 220px" start="05:00" step="00:15"
-            end="12:00" format="HH:mm:ss" />
-          <!-- <el-time-picker v-model="formData.classtime[1].ClassEndTime" value-format="HH:mm:ss" /> -->
+          <el-time-select v-model="formData.classtime[1].ClassEndTime" style="width: 220px" start="06:00" step="00:30"
+            end="09:00" format="HH:mm:ss" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -116,7 +112,7 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="产线" prop="WorkLine">
-          <el-select v-model="planForm.WorkLine" placeholder="请选择产线" :clearble="false" style="width: 220px">
+          <el-select v-model="planForm.WorkLine" placeholder="请选择产线" multiple :clearble="false" style="width: 220px" collapse-tags collapse-tags-tooltip>
             <el-option v-for="l in lineData" :label="l.Description" :value="l.MfgLineName" />
           </el-select>
         </el-form-item>
@@ -174,7 +170,7 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="产线" prop="WorkLine">
-          <el-select v-model="editForm.WorkLine" placeholder="请选择产线" :clearble="false" style="width: 220px" disabled>
+          <el-select v-model="editForm.WorkLine" placeholder="请选择产线" multiple :clearble="false" style="width: 220px" disabled collapse-tags collapse-tags-tooltip>
             <el-option v-for="l in lineData" :label="l.Description" :value="l.MfgLineName" />
           </el-select>
         </el-form-item>
@@ -236,7 +232,7 @@ const Tcalendar = ref();
 const viewType = ref("timeGridWeek");
 const calendarApi = ref();
 const calendarTitle = ref("");
-const calendarLine = ref("M08-SMT-Line-01");
+const calendarLine = ref("");
 interface GetForm {
   WorkLineName: Array<any>;
   SelectStartDate: string;
@@ -299,7 +295,7 @@ interface Classtime {
   ClassEndTime: string;
 }
 interface FormData {
-  WorkLineName: string;
+  WorkLineName: string[];
   StartDate: string;
   LongDate: string | number;
   ClassType: string;
@@ -310,7 +306,7 @@ interface FormData {
 }
 
 const formData = ref<FormData>({
-  WorkLineName: "",
+  WorkLineName: [],
   StartDate: "",
   LongDate: "",
   ClassType: "白班",
@@ -320,12 +316,12 @@ const formData = ref<FormData>({
     {
       ClassType: "白班",
       ClassStartTime: "08:00:00",
-      ClassEndTime: "",
+      ClassEndTime: "20:00:00",
     },
     {
       ClassType: "夜班",
-      ClassStartTime: "",
-      ClassEndTime: "",
+      ClassStartTime: "20:00:00",
+      ClassEndTime: "08:00:00",
     },
   ],
   UserNo: userStore.getUserInfo,
@@ -333,7 +329,7 @@ const formData = ref<FormData>({
 const formRef = ref();
 const planFormRef = ref();
 const planForm = ref({
-  WorkLine: "",
+  WorkLine: [] as string[],
   PlanName: "",
   PlanDate: "",
   StartTime: "",
@@ -351,7 +347,7 @@ const levelName = ref("");
 const planVisible = ref(false)
 const editForm = ref<any>({
   PlanId: "",
-  WorkLine: "",
+  WorkLine: [] as string[],
   PlanName: "",
   PlanDate: "",
   StartTime: "",
@@ -373,10 +369,9 @@ const eventClickData = (val: any) => {
     //   "hours"
     // );
     SelectCalendarPlan({ PlanId: data.Calendar_PlanId }).then((res: any) => {
-      console.log(res);
       editForm.value = {
         PlanId: data.Calendar_PlanId,
-        WorkLine: res.Data[0].CalendarHead_ProductLine,
+        WorkLine: res.Data[0].CalendarHead_ProductLine ? [res.Data[0].CalendarHead_ProductLine] : [],
         PlanName: data.Calendar_Name,
         PlanDate: res.Data[0].CalendarPlan_SelectDate,
         StartTime: res.Data[0].CalendarPlan_SelectTime,
@@ -387,7 +382,6 @@ const eventClickData = (val: any) => {
         PlanDescription: res.Data[0].CalendarPlan_Description,
         UserNo: userStore.getUserInfo,
       }
-
     })
     GetWorkLineCalendarSelectTypeLevelOne({
       SelectType: "",
@@ -415,7 +409,7 @@ const deletePlan = () => {
           });
           editForm.value = {
             PlanId: "",
-            WorkLine: "",
+            WorkLine: [] as string[],
             PlanName: "",
             PlanDate: "",
             StartTime: "",
@@ -432,10 +426,6 @@ const deletePlan = () => {
       })
     })
     .catch(() => {
-      // ElMessage({
-      //   type: "info",
-      //   message: "取消操作",
-      // });
       ElNotification({
         title: "提示信息",
         message: "取消操作",
@@ -453,7 +443,7 @@ const editPlan = () => {
       });
       editForm.value = {
         PlanId: "",
-        WorkLine: "",
+        WorkLine: [] as string[],
         PlanName: "",
         PlanDate: "",
         StartTime: "",
@@ -613,30 +603,22 @@ const getLineData = () => {
   GetMESWorkLineNews({ WorkLineName: "" }).then((res: any) => {
     lineData.value = res.Data;
     calendarLine.value = res.Data[0].MfgLineName;
-    // console.log(res.Data[0].MfgLineName);
-    getForm.value.WorkLineName[0] = res.Data[0].MfgLineName;
+    getForm.value.WorkLineName = [calendarLine.value];
     getData();
   });
 };
-const changeLine = (val: any) => {
-  getForm.value.WorkLineName[0] = calendarLine.value;
+const changeLine = (val: string) => {
+  getForm.value.WorkLineName = [val];
   changeTerm();
 };
 const openAdd = () => {
-  formData.value.WorkLineName = calendarLine.value;
+  formData.value.WorkLineName = calendarLine.value ? [calendarLine.value] : [];
   formData.value.StartDate = dayjs(new Date()).format("YYYY-MM-DD");
-  const today = new Date(formData.value.StartDate);
-  // formData.value.LongDate = dayjs(`${today.getFullYear()}-12-31`).diff(
-  //   formData.value.StartDate,
-  //   "day"
-  // );
-  formData.value.LongDate = 365
-  console.log(formData.value);
+  formData.value.LongDate = 365;
   drawer.value = true;
 };
 //添加主日程
 const onSubmit = () => {
-  // console.log(formData.value);
   AddUpdateHostCalendar(formData.value).then((res: any) => {
     if (res.Success) {
       ElNotification({
@@ -646,25 +628,25 @@ const onSubmit = () => {
       });
       formRef.value.resetFields();
       getData();
-      formData.value.classtime[0].ClassStartTime = "";
-      formData.value.classtime[1].ClassStartTime = "";
-      formData.value.classtime[0].ClassEndTime = "";
-      formData.value.classtime[1].ClassEndTime = "";
+      formData.value.classtime[0].ClassStartTime = "08:00:00";
+      formData.value.classtime[0].ClassEndTime = "20:00:00";
+      formData.value.classtime[1].ClassStartTime = "20:00:00";
+      formData.value.classtime[1].ClassEndTime = "08:00:00";
       drawer.value = false;
     }
   });
 };
 const handleClose = () => {
   drawer.value = false;
-  formData.value.classtime[0].ClassStartTime = "";
-  formData.value.classtime[1].ClassStartTime = "";
-  formData.value.classtime[0].ClassEndTime = "";
-  formData.value.classtime[1].ClassEndTime = "";
+  formData.value.classtime[0].ClassStartTime = "08:00:00";
+  formData.value.classtime[0].ClassEndTime = "20:00:00";
+  formData.value.classtime[1].ClassStartTime = "20:00:00";
+  formData.value.classtime[1].ClassEndTime = "08:00:00";
   formRef.value.resetFields();
 };
 
 const openShith = () => {
-  planForm.value.WorkLine = calendarLine.value;
+  planForm.value.WorkLine = calendarLine.value ? [calendarLine.value] : [];
   planForm.value.WorkStatus = "其他"
   planForm.value.PlanDate = dayjs(new Date()).format("YYYY-MM-DD");
   GetWorkLineCalendarSelectTypeLevelOne({

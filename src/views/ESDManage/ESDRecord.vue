@@ -46,8 +46,9 @@
                         :placeholder="t('esd.exception.rectifyStatusPlaceholder')" clearable style="width: 150px"
                         size="small">
                         <el-option :label="t('esd.exception.statusPending')" :value="0" />
-                        <el-option :label="t('esd.exception.statusRectified')" :value="1" />
-                        <el-option :label="t('esd.exception.statusRechecked')" :value="2" />
+                        <el-option :label="t('esd.exception.statusRectifying')" :value="1" />
+                        <el-option :label="t('esd.exception.statusRecheckPending')" :value="2" />
+                        <el-option :label="t('esd.exception.statusClosed')" :value="3" />
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="t('esd.exception.inspectTime')" class="mb-2">
@@ -98,14 +99,14 @@
                 </el-table-column>
                 <el-table-column :label="t('publicText.operation')" fixed="right" width="160" align="center">
                     <template #default="{ row }">
-                        <el-button size="small" type="warning" @click="openRectify(row)"
-                            :disabled="row.RectifyStatus !== 0">
-                            {{ t('esd.exception.rectify') }}
-                        </el-button>
-                        <el-button size="small" type="success" @click="openRecheck(row)"
-                            :disabled="row.RectifyStatus === 0">
-                            {{ t('esd.exception.recheck') }}
-                        </el-button>
+                        <el-tooltip :content="t('esd.exception.rectify')" placement="top">
+                            <el-button size="small" type="warning" @click="openRectify(row)"
+                                :disabled="row.RectifyStatus !== 0" icon="Edit" />
+                        </el-tooltip>
+                        <el-tooltip :content="t('esd.exception.recheck')" placement="top">
+                            <el-button size="small" type="success" @click="openRecheck(row)"
+                                :disabled="row.RectifyStatus !== 2" icon="View" />
+                        </el-tooltip>
                     </template>
                 </el-table-column>
                 <template #empty>
@@ -251,17 +252,19 @@ const recheckLoading = ref(false);
 const statusLabel = (status: number) => {
     const map: Record<number, string> = {
         0: t('esd.exception.statusPending'),
-        1: t('esd.exception.statusRectified'),
-        2: t('esd.exception.statusRechecked'),
+        1: t('esd.exception.statusRectifying'),
+        2: t('esd.exception.statusRecheckPending'),
+        3: t('esd.exception.statusClosed'),
     };
-    return map[status] || status;
+    return map[status] ?? status;
 };
 
 const statusTagType = (status: number) => {
     const map: Record<number, string> = {
         0: 'danger',
         1: 'warning',
-        2: 'success',
+        2: 'primary',
+        3: 'info',
     };
     return map[status] || 'info';
 };
@@ -343,27 +346,44 @@ const openRectify = (row: any) => {
 };
 
 const submitRectify = async () => {
-    await rectifyFormRef.value.validate();
-    rectifyLoading.value = true;
     try {
-        const currentUser = userStore.getUserInfo || 'system';
-        const params = {
-            ...rectifyForm,
-            UserName: currentUser,
-        };
-        const res: any = await RectifyExceptionRecord(params);
-        if (res.Success) {
-            ElMessage.success(t('message.rectifySuccess'));
-            rectifyDialogVisible.value = false;
-            getData();
-        } else {
-            ElMessage.error(res.Message || t('message.rectifyFailure'));
+        await rectifyFormRef.value.validate();
+        ElMessageBox.confirm(
+            t('esd.exception.confirmRectify'),
+            t('publicText.tip'),
+            {
+                confirmButtonText: t('publicText.confirm'),
+                cancelButtonText: t('publicText.cancel'),
+                type: 'warning',
+            }
+        );
+        rectifyLoading.value = true;
+        try {
+            const currentUser = userStore.getUserInfo || 'system';
+            const params = {
+                ExceptionId: rectifyForm.ExceptionId,
+                ResponsibleDept: rectifyForm.ResponsibleDept,
+                RectifyUser: rectifyForm.RectifyUser,
+                RectifyContent: rectifyForm.RectifyContent,
+                LockProduction: rectifyForm.LockProduction,
+                UserName: currentUser,
+            };
+            const res: any = await RectifyExceptionRecord(params);
+            if (res.Success) {
+                ElMessage.success(t('esd.exception.rectifySuccess'));
+                rectifyDialogVisible.value = false;
+                getData();
+            } else {
+                ElMessage.error(res.Message || t('esd.exception.rectifyFailure'));
+            }
+        } catch (error) {
+            console.error('整改失败:', error);
+            ElMessage.error(t('esd.exception.rectifyFailure'));
+        } finally {
+            rectifyLoading.value = false;
         }
-    } catch (error) {
-        console.error('整改失败:', error);
-        ElMessage.error(t('message.rectifyFailure'));
-    } finally {
-        rectifyLoading.value = false;
+    } catch {
+        // 表单校验失败或取消确认
     }
 };
 
@@ -380,27 +400,47 @@ const openRecheck = (row: any) => {
 };
 
 const submitRecheck = async () => {
-    await recheckFormRef.value.validate();
-    recheckLoading.value = true;
     try {
-        const currentUser = userStore.getUserInfo || 'system';
-        const params = {
-            ...recheckForm,
-            UserName: currentUser,
-        };
-        const res: any = await RecheckExceptionRecord(params);
-        if (res.Success) {
-            ElMessage.success(t('message.recheckSuccess'));
-            recheckDialogVisible.value = false;
-            getData();
-        } else {
-            ElMessage.error(res.Message || t('message.recheckFailure'));
+        await recheckFormRef.value.validate();
+        ElMessageBox.confirm(
+            t('esd.exception.confirmRecheck'),
+            t('publicText.tip'),
+            {
+                confirmButtonText: t('publicText.confirm'),
+                cancelButtonText: t('publicText.cancel'),
+                type: 'warning',
+            }
+        );
+        recheckLoading.value = true;
+        try {
+            const currentUser = userStore.getUserInfo || 'system';
+            const params = {
+                ExceptionId: recheckForm.ExceptionId,
+                RecheckUser: recheckForm.RecheckUser,
+                RecheckResult: recheckForm.RecheckResult,
+                UserName: currentUser,
+            };
+            const res: any = await RecheckExceptionRecord(params);
+            if (res.Success) {
+                const result = recheckForm.RecheckResult?.trim();
+                if (result === 'OK') {
+                    ElMessage.success(t('esd.exception.recheckClose'));
+                } else {
+                    ElMessage.success(t('esd.exception.recheckRectifyAgain'));
+                }
+                recheckDialogVisible.value = false;
+                getData();
+            } else {
+                ElMessage.error(res.Message || t('esd.exception.recheckFailure'));
+            }
+        } catch (error) {
+            console.error('复检失败:', error);
+            ElMessage.error(t('esd.exception.recheckFailure'));
+        } finally {
+            recheckLoading.value = false;
         }
-    } catch (error) {
-        console.error('复检失败:', error);
-        ElMessage.error(t('message.recheckFailure'));
-    } finally {
-        recheckLoading.value = false;
+    } catch {
+        // 表单校验失败或取消确认
     }
 };
 

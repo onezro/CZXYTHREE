@@ -99,12 +99,32 @@ service.interceptors.response.use(
 
     //成功的返回
     if (response.status === 200) {
-      if (response.data.Code == 100200) {
+      // token过期：后端返回 { Success: "false", ErrorCode: "401" }
+      // 注意 Success/ErrorCode 可能是字符串或布尔/数字，均需兼容
+      if (
+        (response.data.Success === false ||
+          response.data.Success === "false") &&
+        response.data.ErrorCode == 401
+      ) {
+        hideLoading();
+        removeToken();
+        // 避免在登录页重复跳转，且并发多个401时只提示一次
+        // 携带 redirect，使登录后能回到原页面（与 permission.ts 守卫跳转保持一致）
+        if (router.currentRoute.value.path !== "/login") {
+          ElMessage.warning("登录状态已过期，请重新登录");
+          router.push({
+            path: "/login",
+            query: { redirect: router.currentRoute.value.fullPath },
+          });
+        }
+        return Promise.reject(response.data);
+      }
+      if (response.data.code == 100200 || !response.data.code) {
         // router.push({path: '/login'});
         return response.data;
-      } else if (response.data.Code == 100300) {
+      } else if (response.data.code == 100300) {
         return response.data;
-      } else if (response.data.Code === 401) {
+      } else if (response.data.code == 401||response.data.ErrorCode == 401) {
         removeToken();
         router.push("/login");
       } else {
@@ -119,7 +139,13 @@ service.interceptors.response.use(
   (error) => {
     hideLoading();
     removeToken();
-    router.push("/login");
+    // 携带 redirect 并避免在登录页重复跳转
+    if (router.currentRoute.value.path !== "/login") {
+      router.push({
+        path: "/login",
+        query: { redirect: router.currentRoute.value.fullPath },
+      });
+    }
     // ElMessageBox.alert(error, "提示信息", {
     //   confirmButtonText: "确定",
     // });

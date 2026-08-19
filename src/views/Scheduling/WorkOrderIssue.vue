@@ -13,18 +13,18 @@
         <el-form-item class="mb-2">
           <el-button type="primary" @click="queryReturnMaterials">{{ t('publicText.query') }}</el-button>
         </el-form-item>
-        <el-form-item class="mb-2">
+        <!-- <el-form-item class="mb-2">
           <el-button type="warning" @click="initRecords">{{ t('Scheduling.WorkOrderIssue.initRecords') }}</el-button>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item class="mb-2">
           <el-button type="success" @click="handleIssue">{{ t('Scheduling.WorkOrderIssue.issueMaterials') }}</el-button>
         </el-form-item>
       </el-form>
       <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
-        :tooltip-effect="'dark'" border fit ref="eltableRef">
+        :tooltip-effect="'dark'" border fit ref="eltableRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
           <template #default="scope">
-            <span>{{ scope.$index + 1 }}</span>
+            <span>{{ (getForm.PageIndex - 1) * getForm.PageSize + scope.$index + 1 }}</span>
           </template>
         </el-table-column>
         <el-table-column :label="t('Scheduling.WorkOrderIssue.workOrder')" prop="work_order"
@@ -73,8 +73,8 @@
 
 <script setup lang="ts">
 import { QueryReturnMaterials, InitRecordsFromReceive, IssueMaterials } from "@/api/Scheduling/WorkOrderIssue";
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
-import { ref, reactive, computed, nextTick, onMounted, onBeforeMount, onBeforeUnmount } from "vue";
+import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
+import { ref, reactive, nextTick, onMounted, onBeforeMount, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox, ElLoading } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useI18n } from "vue-i18n";
@@ -85,6 +85,11 @@ const eltableRef = ref();
 const tableHeight = ref(0);
 const tableData = ref<any[]>([]);
 const total = ref(0);
+
+const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {
+  excludeLabels: [t('publicText.index')],
+  excludeTypes: ['index']
+});
 
 const getForm = reactive({
   PageIndex: 1,
@@ -110,27 +115,23 @@ const queryReturnMaterials = () => {
     ElMessage.warning(t("Scheduling.WorkOrderIssue.pleaseInputGroupOrder"));
     return;
   }
-  const loading = ElLoading.service({
-    lock: true,
-    text: "Loading...",
-    background: "rgba(0, 0, 0, 0.2)",
-  });
+
   QueryReturnMaterials({
     group_order: getForm.group_order,
     reel_id: getForm.reel_id,
   })
-    .then(({ data }: any) => {
-      if (data.Success && data.Data) {
-        tableData.value = data.Data;
-        total.value = data.Data.length;
+    .then((res: any) => {
+      if (res.Success && res.Data) {
+        tableData.value = res.Data;
+        total.value = res.Data.length;
       } else {
         tableData.value = [];
         total.value = 0;
       }
-      loading.close();
+      
     })
     .catch(() => {
-      loading.close();
+      
     });
 };
 
@@ -139,25 +140,21 @@ const initRecords = () => {
     ElMessage.warning(t("Scheduling.WorkOrderIssue.pleaseInputGroupOrder"));
     return;
   }
-  const loading = ElLoading.service({
-    lock: true,
-    text: "Loading...",
-    background: "rgba(0, 0, 0, 0.2)",
-  });
+
   InitRecordsFromReceive({
     group_order: getForm.group_order,
   })
-    .then(({ data }: any) => {
-      if (data.Success) {
+    .then((res: any) => {
+      if (res.Success) {
         ElMessage.success(t("publicText.success"));
         queryReturnMaterials();
       } else {
-        ElMessage.error(data.Message || t("publicText.failure"));
+        ElMessage.error(res.Message || t("publicText.failure"));
       }
-      loading.close();
+    
     })
     .catch(() => {
-      loading.close();
+     
     });
 };
 
@@ -182,68 +179,42 @@ const handleIssue = () => {
 };
 
 const issueMaterials = () => {
-  const loading = ElLoading.service({
-    lock: true,
-    text: "Loading...",
-    background: "rgba(0, 0, 0, 0.2)",
-  });
+
   IssueMaterials({
     group_order: getForm.group_order,
     operator_name: userStore.getUserInfo || "",
     published_bom_status: "",
     confirm_all_pointed: true,
   })
-    .then(({ data }: any) => {
-      if (data.Success) {
-        ElMessage.success(data.Message || t("publicText.success"));
+    .then((res: any) => {
+      if (res.Success) {
+        ElMessage.success(res.Message || t("publicText.success"));
         queryReturnMaterials();
       } else {
-        ElMessage.error(data.Message || t("publicText.failure"));
+        ElMessage.error(res.Message || t("publicText.failure"));
       }
-      loading.close();
+      
     })
     .catch(() => {
-      loading.close();
+    
     });
 };
 
 const handleSizeChange = (val: number) => {
   getForm.PageSize = val;
   getForm.PageIndex = 1;
+  queryReturnMaterials();
 };
 
 const handleCurrentChange = (val: number) => {
   getForm.PageIndex = val;
+  queryReturnMaterials();
 };
 
 const getScreenHeight = () => {
   nextTick(() => {
     tableHeight.value = window.innerHeight - 180;
   });
-};
-
-const columnWidths = computed(() => {
-  if (!eltableRef.value) return {};
-  let columns: any = [];
-  columns = eltableRef.value.columns
-    .map((item: any) => {
-      return {
-        prop: item.property,
-        label: item.label,
-      };
-    })
-    .filter(
-      (item: any) =>
-        item.label !== t("publicText.index")
-    );
-  return calculateColumnsWidth(columns, tableData.value, {
-    padding: 25,
-    fontSize: 13,
-  });
-});
-
-const getColumnWidth = (prop: string) => {
-  return columnWidths.value[prop] || "auto";
 };
 </script>
 

@@ -124,6 +124,7 @@
                             <el-table-column :label="t('publicText.operation')" fixed="right" width="260"
                                 align="center">
                                 <template #default="{ row }">
+                                   
                                     <el-button size="small" type="warning" @click="viewTaskDetail(row.TaskCode)" icon="Tickets"></el-button>
                                     <el-button size="small" type="primary" @click="openEditTask(row)" icon="Edit" />
                                     <el-button size="small" type="info" @click="handleScrapTask(row)"
@@ -479,11 +480,16 @@
                                     </el-tag>
                                 </template>
                             </el-table-column>
-                            <el-table-column :label="t('publicText.operation')" fixed="right" width="80" align="center">
+                            <el-table-column :label="t('publicText.operation')" fixed="right" width="200" align="center">
                                 <template #default="{ row }">
-                                    <el-button size="small" type="primary" @click="openAuditPlan(row)"
-                                        :disabled="row.AuditStatus !== 0">{{ t('esd.task.audit') }}</el-button>
-                                    <!-- 审核通过/驳回可能两个按钮，简化为一个弹窗选择 -->
+                                    <el-tooltip :content="t('esd.task.audit')" placement="top">
+                                        <el-button size="small" type="primary" @click="openAuditPlan(row)"
+                                            :disabled="row.AuditStatus !== 0" icon="Edit" />
+                                    </el-tooltip>
+                                    <el-tooltip :content="t('esd.task.dispatchPlan')" placement="top">
+                                        <el-button size="small" type="success" @click="handleDispatchPlan(row)"
+                                            :disabled="!canDispatch(row)" icon="Promotion" />
+                                    </el-tooltip>
                                 </template>
                             </el-table-column>
                         </el-table>
@@ -726,7 +732,8 @@ import {
     DeleteTask,
     UpdateTask,
     QueryTaskDetail,
-    ScrapTask
+    ScrapTask,
+    DispatchTaskPlan
 } from '@/api/esdManage/ESDCheckTask';
 import {
     QueryEsdObjectList,
@@ -1005,6 +1012,54 @@ const resetPlanSearch = () => {
 };
 const handlePlanSizeChange = (val: number) => { planQuery.PageSize = val; planQuery.PageIndex = 1; getPlanList(); };
 const handlePlanCurrentChange = (val: number) => { planQuery.PageIndex = val; getPlanList(); };
+
+/** 判断计划是否可以下发：审核通过(1) + 有效状态(0) + 生效时间 <= 当前时间 */
+const canDispatch = (row: any) => {
+    const effectiveTime = new Date(row.EffectiveTime).getTime();
+    const now = new Date().getTime();
+    return effectiveTime <= now;
+};
+
+/** 下发周期计划 */
+const handleDispatchPlan = (row: any) => {
+    if (!canDispatch(row)) {
+        ElMessage.warning(t('esd.task.dispatchCondition'));
+        return;
+    }
+    ElMessageBox.confirm(
+        `${t('esd.task.confirmDispatch')}【${row.PlanCode} - ${row.PlanName}】？`,
+        t('publicText.tip'),
+        {
+            confirmButtonText: t('publicText.confirm'),
+            cancelButtonText: t('publicText.cancel'),
+            type: 'warning',
+        }
+    )
+        .then(async () => {
+            submitLoading.value = true;
+            try {
+                const currentUser = userStore.getUserInfo || 'system';
+                const res: any = await DispatchTaskPlan({
+                    PlanId: row.PlanId,
+                    PlanCode: row.PlanCode,
+                    UserName: currentUser,
+                });
+                if (res.Success) {
+                    ElMessage.success(t('esd.task.dispatchSuccess'));
+                    getPlanList();
+                } else {
+                    ElMessage.error(res.Message || t('esd.task.dispatchFailure'));
+                }
+            } catch (error) {
+                ElMessage.error(t('esd.task.dispatchFailure'));
+            } finally {
+                submitLoading.value = false;
+            }
+        })
+        .catch(() => {
+            ElMessage.info(t('publicText.cancel'));
+        });
+};
 
 // ==================== 新增任务 ====================
 const addTaskDialogVisible = ref(false);

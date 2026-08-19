@@ -37,7 +37,7 @@
 
             <!-- 主表列表 -->
             <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit highlight-current-row ref="eltableRef">
+                :tooltip-effect="'dark'" border fit highlight-current-row ref="eltableRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{ scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1 }}</span>

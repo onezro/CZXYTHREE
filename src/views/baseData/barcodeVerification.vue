@@ -3,31 +3,22 @@
     <el-card :body-style="{ padding: '8px' }">
       <div class="mb-2 flex justify-between">
         <div>
-          <el-button type="primary" size="small" @click="openAdd">{{ t('baseData.barcodeVerification.add') }}</el-button>
-          <el-button type="primary" size="small" @click="openHistory">{{ t('baseData.barcodeVerification.verificationQuery') }}</el-button>
+          <el-button type="primary" size="small" @click="openAdd">{{ t('baseData.barcodeVerification.add')
+            }}</el-button>
+          <el-button type="primary" size="small" @click="openHistory">{{
+            t('baseData.barcodeVerification.verificationQuery') }}</el-button>
         </div>
         <div>
-          <el-input
-            v-model="getForm.SearchModel.checkpro_no"
-            :placeholder="t('baseData.barcodeVerification.inputPlaceholder')"
-            style="width: 350px"
-            @keyup.enter="getData()"
-            clearable
-            @clear="clearData"
-          >
+          <el-input v-model="getForm.SearchModel.checkpro_no"
+            :placeholder="t('baseData.barcodeVerification.inputPlaceholder')" style="width: 350px"
+            @keyup.enter="getData()" clearable @clear="clearData">
             <template #append>
               <el-button icon="Search" @click="getData()"></el-button>
             </template>
           </el-input>
         </div>
       </div>
-      <el-table
-        :data="tableData"
-        border
-        :height="tableHeight"
-        size="small"
-        style="width: 100%"
-      >
+      <el-table :data="tableData" border :height="tableHeight" size="small" style="width: 100%" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column :label="t('baseData.barcodeVerification.index')" width="55" align="center">
           <template #default="scope">
             <span>{{ scope.$index + 1 + (getForm.PageIndex - 1) * getForm.PageSize }}</span>
@@ -35,8 +26,10 @@
         </el-table-column>
         <el-table-column prop="checkpro_no" :label="t('baseData.barcodeVerification.checkproNo')" min-width="180">
         </el-table-column>
-        <el-table-column prop="checkpro_sepc" :label="t('baseData.barcodeVerification.checkproSepc')" min-width="200"> </el-table-column>
-        <el-table-column prop="checkpro_date" :label="t('baseData.barcodeVerification.checkproDate')" width="180"> </el-table-column>
+        <el-table-column prop="checkpro_sepc" :label="t('baseData.barcodeVerification.checkproSepc')" min-width="200">
+        </el-table-column>
+        <el-table-column prop="checkpro_date" :label="t('baseData.barcodeVerification.checkproDate')" width="180">
+        </el-table-column>
         <el-table-column prop="checkpro_user" :label="t('baseData.barcodeVerification.checkproUser')" width="145">
         </el-table-column>
         <el-table-column fixed="right" :label="t('baseData.barcodeVerification.operation')" width="130" align="center">
@@ -52,24 +45,16 @@
       </el-table>
 
       <div class="block" style="margin-top: 8px">
-        <el-pagination
-          align="center"
-          size="small"
-          background
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="getForm.PageIndex"
-          :page-size="getForm.PageSize"
-          :page-sizes="[10, 20, 50, 100, 150]"
-          layout="total,sizes, prev, pager, next"
-          :total="total"
-        >
+        <el-pagination align="center" size="small" background @size-change="handleSizeChange"
+          @current-change="handleCurrentChange" :current-page="getForm.PageIndex" :page-size="getForm.PageSize"
+          :page-sizes="[10, 20, 50, 100, 150]" layout="total,sizes, prev, pager, next" :total="total">
         </el-pagination>
       </div>
     </el-card>
 
     <!-- 添加弹窗 -->
-    <el-dialog :title="t('baseData.barcodeVerification.addTitle')" v-model="dialogVisible" width="400px" @close="addCancel()">
+    <el-dialog :title="t('baseData.barcodeVerification.addTitle')" v-model="dialogVisible" width="400px"
+      @close="addCancel()">
       <el-form :model="addForm" ref="formRef" label-width="auto">
         <el-form-item :label="t('baseData.barcodeVerification.checkproNo')" prop="checkpro_no">
           <el-input v-model="addForm.checkpro_no" />
@@ -87,7 +72,8 @@
     </el-dialog>
 
     <!-- 修改弹窗 -->
-    <el-dialog :title="t('baseData.barcodeVerification.editTitle')" v-model="editVisible" width="400px" @close="editCancel()">
+    <el-dialog :title="t('baseData.barcodeVerification.editTitle')" v-model="editVisible" width="400px"
+      @close="editCancel()">
       <el-form :model="editForm" ref="editFormRef" label-width="auto">
         <el-form-item :label="t('baseData.barcodeVerification.checkproNo')" prop="checkpro_no">
           <el-input v-model="editForm.checkpro_no" disabled />
@@ -105,42 +91,36 @@
     </el-dialog>
 
     <!-- 校验查询弹窗 -->
-    <el-dialog :title="t('baseData.barcodeVerification.verificationQuery')" v-model="historyVisible" width="1200px" @close="historyClose">
+    <el-dialog :title="t('baseData.barcodeVerification.verificationQuery')" v-model="historyVisible" width="1200px"
+      @close="historyClose">
       <div class="mb-2">
-        <el-input
-          v-model.trim="historyForm.SearchModel.checkpro_no"
-          :placeholder="t('baseData.barcodeVerification.historySearchPlaceholder')"
-          style="width: 350px"
-          @keyup.enter="getHistoy"
-          clearable
-          @clear="getHistoy"
-        >
+        <el-input v-model.trim="historyForm.SearchModel.checkpro_no"
+          :placeholder="t('baseData.barcodeVerification.historySearchPlaceholder')" style="width: 350px"
+          @keyup.enter="getHistoy" clearable @clear="getHistoy">
           <template #append>
             <el-button icon="Search" @click="getHistoy"></el-button>
           </template>
         </el-input>
       </div>
       <el-table :height="500" :data="historyData" border size="small">
-        <el-table-column prop="factorybar" :label="t('baseData.barcodeVerification.factoryBar')" min-width="150"> </el-table-column>
+        <el-table-column prop="factorybar" :label="t('baseData.barcodeVerification.factoryBar')" min-width="150">
+        </el-table-column>
         <el-table-column prop="xybar" :label="t('baseData.barcodeVerification.xyBar')" width="300"> </el-table-column>
-        <el-table-column prop="checkstatus" :label="t('baseData.barcodeVerification.checkStatus')" width="100"> </el-table-column>
-        <el-table-column prop="checkresult" :label="t('baseData.barcodeVerification.checkResult')" min-width="150"> </el-table-column>
-        <el-table-column prop="checkdate" :label="t('baseData.barcodeVerification.checkDate')" width="180"> </el-table-column>
-        <el-table-column prop="checkuser" :label="t('baseData.barcodeVerification.checkUser')" width="120"> </el-table-column>
+        <el-table-column prop="checkstatus" :label="t('baseData.barcodeVerification.checkStatus')" width="100">
+        </el-table-column>
+        <el-table-column prop="checkresult" :label="t('baseData.barcodeVerification.checkResult')" min-width="150">
+        </el-table-column>
+        <el-table-column prop="checkdate" :label="t('baseData.barcodeVerification.checkDate')" width="180">
+        </el-table-column>
+        <el-table-column prop="checkuser" :label="t('baseData.barcodeVerification.checkUser')" width="120">
+        </el-table-column>
       </el-table>
 
       <div class="block" style="margin-top: 8px">
-        <el-pagination
-          align="center"
-          background
-          @size-change="handleHistorySizeChange"
-          @current-change="handleHistoryCurrentChange"
-          :current-page="historyForm.PageIndex"
-          :page-size="historyForm.PageSize"
-          :page-sizes="[10, 20, 50, 100, 150]"
-          layout="total,sizes, prev, pager, next"
-          :total="totalHistory"
-        >
+        <el-pagination align="center" background @size-change="handleHistorySizeChange"
+          @current-change="handleHistoryCurrentChange" :current-page="historyForm.PageIndex"
+          :page-size="historyForm.PageSize" :page-sizes="[10, 20, 50, 100, 150]" layout="total,sizes, prev, pager, next"
+          :total="totalHistory">
         </el-pagination>
       </div>
     </el-dialog>
@@ -374,5 +354,4 @@ const getScreenHeight = () => {
 .el-pagination {
   justify-content: center;
 }
-
 </style>

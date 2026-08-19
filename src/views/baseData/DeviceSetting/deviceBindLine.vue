@@ -22,7 +22,7 @@
                 </div>
             </div>
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit highlight-current-row >
+                :tooltip-effect="'dark'" border fit highlight-current-row  :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{
@@ -43,12 +43,24 @@
                     :min-width="getColumnWidth('ProductionLine')" />
                
            
-                <el-table-column prop="Operator" :label="$t('deviceSetting.deviceBindLine.operator')" 
+                <el-table-column prop="Operator" :label="$t('deviceSetting.deviceBindLine.operator')"
                     :min-width="getColumnWidth('Operator')" />
-                <el-table-column prop="OperationTime" :label="$t('deviceSetting.deviceBindLine.operationTime')" 
+                <el-table-column prop="OperationTime" :label="$t('deviceSetting.deviceBindLine.operationTime')"
                     :min-width="getColumnWidth('OperationTime')">
                     <template #default="{ row }">
                         {{ formatDate(row.OperationTime) }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="IsDelete" :label="$t('deviceSetting.deviceBindLine.status')"
+                    :min-width="getColumnWidth('IsDelete')" align="center">
+                    <template #default="{ row }">
+                        <el-switch v-model="row.IsDelete"
+                            :active-value="false"
+                            :inactive-value="true"
+                            :active-text="t('publicText.on')"
+                            :inactive-text="t('publicText.off')"
+                            inline-prompt
+                            @change="(val: any) => handleStatusChange(row, val)" />
                     </template>
                 </el-table-column>
                 <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="130" align="center">
@@ -106,6 +118,14 @@
                             :value="item.MfgLineName" />
                     </el-select>
                 </el-form-item>
+                <el-form-item :label="$t('deviceSetting.deviceBindLine.status')" prop="IsDelete">
+                    <el-switch v-model="addForm.IsDelete"
+                        :active-value="false"
+                        :inactive-value="true"
+                        :active-text="t('publicText.on')"
+                        :inactive-text="t('publicText.off')"
+                        inline-prompt />
+                </el-form-item>
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
@@ -145,6 +165,14 @@
                         <el-option v-for="item in lineData" :key="item.MfgLineName" :label="item.MfgLineName"
                             :value="item.MfgLineName" />
                     </el-select>
+                </el-form-item>
+                <el-form-item :label="$t('deviceSetting.deviceBindLine.status')" prop="IsDelete">
+                    <el-switch v-model="editForm.IsDelete"
+                        :active-value="false"
+                        :inactive-value="true"
+                        :active-text="t('publicText.on')"
+                        :inactive-text="t('publicText.off')"
+                        inline-prompt />
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -213,6 +241,7 @@ const addForm = reactive({
     EquipmentModel: "",
     EquipmentId: "",
     ProductionLine: "",
+    IsDelete: false,
 });
 
 const editForm = reactive({
@@ -221,6 +250,7 @@ const editForm = reactive({
     EquipmentModel: "",
     EquipmentId: "",
     ProductionLine: "",
+    IsDelete: false,
 });
 
 const addVisible = ref(false);
@@ -376,6 +406,7 @@ const openAdd = () => {
     addForm.EquipmentModel = "";
     addForm.EquipmentId = "";
     addForm.ProductionLine = "";
+    addForm.IsDelete = false;
     addVisible.value = true;
 };
 
@@ -400,6 +431,7 @@ const submitAdd = () => {
                 EquipmentModel: addForm.EquipmentModel,
                 EquipmentId: addForm.EquipmentId,
                 ProductionLine: addForm.ProductionLine,
+                IsDelete: addForm.IsDelete,
                 Operator: userStore.getUserInfo || "",
             };
             AddEquipmentLineBinding(params)
@@ -430,6 +462,7 @@ const openEdit = (row: any) => {
     editForm.EquipmentModel = row.EquipmentModel;
     editForm.EquipmentId = row.EquipmentId;
     editForm.ProductionLine = row.ProductionLine;
+    editForm.IsDelete = row.IsDelete ?? false;
     editVisible.value = true;
 };
 
@@ -456,6 +489,7 @@ const submitEdit = () => {
                 EquipmentModel: editForm.EquipmentModel,
                 EquipmentId: editForm.EquipmentId,
                 ProductionLine: editForm.ProductionLine,
+                IsDelete: editForm.IsDelete,
                 Operator: userStore.getUserInfo || "",
             };
             UpdateEquipmentLineBinding(params)
@@ -473,6 +507,34 @@ const submitEdit = () => {
                 });
         }
     });
+};
+
+const handleStatusChange = (row: any, val: any) => {
+    const original = row.IsDelete;
+    submitLoading.value = true;
+    UpdateEquipmentLineBinding({
+        LineBindId: row.LineBindId,
+        EquipmentCategory: row.EquipmentCategory,
+        EquipmentModel: row.EquipmentModel,
+        EquipmentId: row.EquipmentId,
+        ProductionLine: row.ProductionLine,
+        IsDelete: val,
+        Operator: userStore.getUserInfo || "",
+    })
+        .then((res: any) => {
+            if (res.Success) {
+                ElMessage.success(t("message.editSuccess"));
+            } else {
+                row.IsDelete = original;
+                ElMessage.error(res.Message || t("message.editFailure"));
+            }
+        })
+        .catch(() => {
+            row.IsDelete = original;
+        })
+        .finally(() => {
+            submitLoading.value = false;
+        });
 };
 
 const handleDelete = (row: any) => {

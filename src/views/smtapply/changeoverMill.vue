@@ -343,41 +343,7 @@ const lineList = ref<any[]>([]);
 const workOrderList = ref<any[]>([]);
 
 const lineData = ref<any[]>([
-    {
-        Equipid: 1,
-        EquipName: "Laser",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
-    {
-        Equipid: 2,
-        EquipName: "Printer",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
-    {
-        Equipid: 3,
-        EquipName: "SPI",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
-    {
-        Equipid: 4,
-        EquipName: "Mounter",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
-    {
-        Equipid: 5,
-        EquipName: "M-AOI",
-        McIdStatus: 1,
-        ConveryNum: 1,
-        conveyorStatusList: [],
-    },
+   
 ]);
 
 const checkedDevices = ref<any[]>([]);

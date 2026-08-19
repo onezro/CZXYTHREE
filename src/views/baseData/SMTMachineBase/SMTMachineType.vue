@@ -23,7 +23,7 @@
                 </div>
             </div>
             <el-table ref="eltableRef" :data="pagedData" size="small" border fit highlight-current-row
-                :height="tableHeight" style="width: 100%" :tooltip-effect="'dark'">
+                :height="tableHeight" style="width: 100%" :tooltip-effect="'dark'" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="55">
                     <template #default="scope">
                         <span>{{ scope.$index + (pageObj.currentPage - 1) * pageObj.pageSize + 1 }}</span>

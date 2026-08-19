@@ -39,7 +39,7 @@
                 </div>
             </div>
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit highlight-current-row>
+                :tooltip-effect="'dark'" border fit highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{
@@ -395,28 +395,7 @@ const handleAddDialogClosed = () => {
 const submitAdd = () => {
     addFormRef.value.validate((valid: boolean) => {
         if (valid) {
-            // 检查线体+产品组合是否已存在
-            const existItem = tableData.value.find(item =>
-                item.LineName === addForm.LineName && item.ProductName === addForm.ProductName
-            );
-            if (existItem) {
-                ElMessageBox.confirm(
-                    t("Scheduling.productCapacity.productExistConfirm", {
-                        lineName: addForm.LineName,
-                        productName: addForm.ProductName
-                    }),
-                    t("publicText.tip"),
-                    {
-                        confirmButtonText: t("publicText.confirm"),
-                        cancelButtonText: t("publicText.cancel"),
-                        type: "warning",
-                    }
-                ).then(() => {
-                    doSave();
-                }).catch(() => { });
-            } else {
-                doSave();
-            }
+            doSave();
         }
     });
 };

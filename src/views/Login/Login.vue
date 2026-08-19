@@ -5,7 +5,7 @@ import {
   getEmpoyeeInfo,
   findEmployeeRoles,
   // GetVersion,
-} from "@/api/permiss/index";
+} from "@/api/permiss";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { getToken, setToken, removeToken } from "@/utils/auth";
 import type { RouteLocationNormalizedLoaded, RouteRecordRaw } from "vue-router";

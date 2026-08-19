@@ -95,10 +95,8 @@ service.interceptors.response.use(
     //成功的返回
     if (response.status === 200) {
 
-      if (response.data.Status=='OK' ) {
+      if (response.data.code == 100200 || !response.data.code) {
         // router.push({path: '/login'});
-        // console.log(response.data);
-        
         return response.data;
       } else if (response.data.code == 100300) {
         return response.data;

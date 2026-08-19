@@ -1,80 +1,92 @@
 <template>
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
-            <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.native.prevent>
-                <el-form-item :label="t('Scheduling.assist.productOrder')" prop="productOrder" class="mb-2">
-                    <el-input v-model="getForm.KittingNo" placeholder="" clearable @clear="getData"
-                        @keyup.enter.native="getData" style="width: 200px" />
+            <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.prevent>
+                <el-form-item :label="t('Scheduling.PrepareMaterials.MaterialPreparationNo')" prop="KittingNo" class="mb-2">
+                    <el-input v-model="getForm.KittingNo" :placeholder="t('Scheduling.CallMaterials.inputKittingNo')" clearable
+                        @clear="searchData" @keyup.enter="searchData" style="width: 200px" />
                 </el-form-item>
-                <el-form-item :label="t('Scheduling.CallMaterials.GroupOrder')" prop="MaterialRequest_WoGroup" class="mb-2">
-                    <el-input v-model="getForm.MaterialRequest_WoGroup" placeholder="" clearable @clear="getData"
-                        @keyup.enter.native="getData" style="width: 200px" />
+                <el-form-item :label="t('Scheduling.CallMaterials.GroupOrder')" prop="WOGroup" class="mb-2">
+                    <el-input v-model="getForm.WOGroup" :placeholder="t('Scheduling.CallMaterials.inputGroupOrder')" clearable
+                        @clear="searchData" @keyup.enter="searchData" style="width: 200px" />
                 </el-form-item>
                 <el-form-item class="mb-2">
-                    <el-button :type="'primary'" @click="getData">{{ t('publicText.query') }}</el-button>
+                    <el-button type="primary" @click="searchData">{{ t('publicText.query') }}</el-button>
                 </el-form-item>
             </el-form>
             <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit ref="eltableRef" @selection-change="handleSelectionChange">
-                <el-table-column type="selection" width="55" align="center" />
-                <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
+                :tooltip-effect="'dark'" border fit ref="eltableRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
                     <template #default="scope">
-                        <span>{{
-                            scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1
-                        }}</span>
+                        <span>{{ scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1 }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.CallMaterials.CallOrder')" fixed prop="MaterialRequest_No"
-                    :min-width="getColumnWidth1('MaterialRequest_No')" />
+                    :min-width="getColumnWidth('MaterialRequest_No')" show-overflow-tooltip />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPreparationNo')" fixed
-                    prop="MaterialRequest_KittingNo" :min-width="getColumnWidth1('MaterialRequest_KittingNo')" />
-                <!-- <el-table-column :label="t('Scheduling.ProductSched.MesOrder')" prop="MaterialRequest_Wo"
-                    :min-width="getColumnWidth1('MaterialRequest_Wo')" /> -->
-
+                    prop="MaterialRequest_KittingNo" :min-width="getColumnWidth('MaterialRequest_KittingNo')" show-overflow-tooltip />
                 <el-table-column :label="t('Scheduling.CallMaterials.GroupOrder')" fixed prop="MaterialRequest_WoGroup"
-                    :min-width="getColumnWidth1('MaterialRequest_WoGroup')" />
-
-                <el-table-column :label="t('Scheduling.CallMaterials.RequestInfo')" prop="RequestInfo"
-                    :min-width="getColumnWidth1('RequestInfo')">
+                    :min-width="getColumnWidth('MaterialRequest_WoGroup')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.CallMaterials.RequestType')" prop="MaterialRequest_Type"
+                    width="100" align="center">
                     <template #default="{ row }">
-                        <el-tag type="primary" v-if="row.RequestInfo === 0">方仓</el-tag>
-                        <el-tag type="success" v-else-if="row.RequestInfo === 1">赛意</el-tag>
+                        <el-tag :type="row.MaterialRequest_Type === 0 ? 'primary' : 'warning'" size="small">
+                            {{ row.MaterialRequest_Type === 0 ? t('Scheduling.CallMaterials.TypeNormal') : t('Scheduling.CallMaterials.TypeSupplement') }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column :label="t('Scheduling.CallMaterials.IsFirst')" prop="IsFirst"
+                    :min-width="getColumnWidth('IsFirst')" align="center">
+                    <template #default="{ row }">
+                        <el-tag :type="row.IsFirst === true ? 'info' : 'success'" size="small" effect="dark">
+                            {{ row.IsFirst === true ? t('Scheduling.CallMaterials.NotFirstSet') : t('Scheduling.CallMaterials.FirstSet') }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column :label="t('Scheduling.CallMaterials.RequestInfo')" prop="RequestInfo"
+                    :min-width="getColumnWidth('RequestInfo')" align="center">
+                    <template #default="{ row }">
+                        <el-tag :type="getRequestInfoType(row.RequestInfo)" size="small">
+                            {{ getRequestInfoText(row.RequestInfo) }}
+                        </el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.ERPDocument.Status')" prop="MaterialRequest_Status"
-                    :min-width="getColumnWidth1('MaterialRequest_Status')">
-
+                    :min-width="getColumnWidth('MaterialRequest_Status')" align="center">
                     <template #default="{ row }">
-                        <el-tag type="info" v-if="row.MaterialRequest_Status === 0">{{
-                            t('Scheduling.CallMaterials.StatusPending') }}</el-tag>
-                        <el-tag type="warning" v-else-if="row.MaterialRequest_Status === 1">{{
-                            t('Scheduling.CallMaterials.StatusIssuing') }}</el-tag>
-                        <el-tag type="success" v-else-if="row.MaterialRequest_Status === 2">{{
-                            t('Scheduling.CallMaterials.StatusCompleted') }}</el-tag>
-                        <el-tag type="danger" v-else-if="row.MaterialRequest_Status === 3">{{
-                            t('Scheduling.CallMaterials.StatusCancelled') }}</el-tag>
+                        <el-tag :type="getStatusType(row.MaterialRequest_Status)" size="small">
+                            {{ getStatusText(row.MaterialRequest_Status) }}
+                        </el-tag>
                     </template>
                 </el-table-column>
-
-                <el-table-column :label="t('Scheduling.ERPDocument.Creator')" prop="MaterialRequest_InsertUser"
-                    :min-width="getColumnWidth1('MaterialRequest_InsertUser')" />
-                <el-table-column :label="t('publicText.operation')" prop="operation" width="200" align="center">
+                <el-table-column :label="t('Scheduling.CallMaterials.InsertUser')" prop="MaterialRequest_InsertUser"
+                    :min-width="getColumnWidth('MaterialRequest_InsertUser')" />
+                <el-table-column :label="t('Scheduling.CallMaterials.InsertDt')" prop="MaterialRequest_InsertDt"
+                    :min-width="getColumnWidth('MaterialRequest_InsertDt')" show-overflow-tooltip>
                     <template #default="{ row }">
-                        <el-tooltip class="item" effect="dark" :content="$t('Scheduling.CallMaterials.Detail')"
-                            placement="top">
+                        {{ formatDate(row.MaterialRequest_InsertDt) }}
+                    </template>
+                </el-table-column>
+                <el-table-column :label="t('Scheduling.CallMaterials.UpdateUser')" prop="MaterialRequest_UpdateUser"
+                    :min-width="getColumnWidth('MaterialRequest_UpdateUser')" />
+                <el-table-column :label="t('Scheduling.CallMaterials.UpdateDt')" prop="MaterialRequest_UpdateDt"
+                    :min-width="getColumnWidth('MaterialRequest_UpdateDt')" show-overflow-tooltip>
+                    <template #default="{ row }">
+                        {{ formatDate(row.MaterialRequest_UpdateDt) }}
+                    </template>
+                </el-table-column>
+                <el-table-column :label="t('Scheduling.CallMaterials.Remark')" prop="MaterialRequest_Remark"
+                    :min-width="getColumnWidth('MaterialRequest_Remark')" show-overflow-tooltip />
+                <el-table-column :label="t('publicText.operation')" prop="operation" width="160" align="center" fixed="right">
+                    <template #default="{ row }">
+                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.Detail')" placement="top">
                             <el-button type="primary" size="small" icon="Tickets" @click="fetchDetail(row)" />
                         </el-tooltip>
-
-                        <el-tooltip class="item" effect="dark" :content="$t('Scheduling.CallMaterials.call')"
-                            placement="top">
+                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.call')" placement="top">
                             <el-button type="warning" size="small" icon="Bell" :disabled="row.RequestInfo !== 1" @click="handleCallMaterial(row)" />
                         </el-tooltip>
-
-                        <!-- <el-button type="warning" size="small" @click="handleChangeStatus(row)">{{
-                            $t('Scheduling.CallMaterials.changeStatus') }}</el-button> -->
-                        <el-tooltip class="item" effect="dark" :content="$t('Scheduling.CallMaterials.Cancel')"
-                            placement="top">
-                            <el-button type="danger" size="small" icon="DocumentDelete" @click="handleCancel(row)" />
+                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.Cancel')" placement="top">
+                            <el-button type="danger" size="small" icon="DocumentDelete" :disabled="row.MaterialRequest_Status === 3 || row.MaterialRequest_Status === 99" @click="handleCancel(row)" />
                         </el-tooltip>
                     </template>
                 </el-table-column>
@@ -94,78 +106,76 @@
         </el-card>
 
         <!-- 详情弹窗 -->
-        <el-dialog :title="t('Scheduling.CallMaterials.Detail')" v-model="detailVisible" width="80%" align-center
-            @close="closeDetail">
-            <el-table :data="detailData.list" size="small" border fit style="width: 100%" height="250">
+        <el-dialog :title="t('Scheduling.CallMaterials.Detail')" v-model="detailVisible" width="90%" align-center
+            @close="closeDetail" :close-on-click-modal="false">
+            <div class="mb-2 font-bold">{{ t('Scheduling.CallMaterials.ListTitle') }}</div>
+            <el-table :data="detailData.list" size="small" border fit style="width: 100%" height="250"
+                ref="detailListRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column prop="MaterialRequestList_No" :label="t('Scheduling.CallMaterials.CallOrder')"
-                    min-width="120" />
+                    :min-width="getListColumnWidth('MaterialRequestList_No')" show-overflow-tooltip />
+                <el-table-column prop="MaterialRequestList_WO" :label="t('Scheduling.CallMaterials.WorkOrder')"
+                    :min-width="getListColumnWidth('MaterialRequestList_WO')" show-overflow-tooltip />
                 <el-table-column prop="MaterialRequestList_PN" :label="t('Scheduling.CallMaterials.PN')"
-                    min-width="120" />
+                    :min-width="getListColumnWidth('MaterialRequestList_PN')" show-overflow-tooltip />
+                <el-table-column prop="name" :label="t('Scheduling.CallMaterials.PNName')"
+                    :min-width="getListColumnWidth('name')" show-overflow-tooltip />
+                <el-table-column prop="pn_spec" :label="t('Scheduling.CallMaterials.PNDesc')"
+                    :min-width="getListColumnWidth('pn_spec')" show-overflow-tooltip />
                 <el-table-column prop="MaterialRequestList_Qty" :label="t('Scheduling.CallMaterials.RequiredQty')"
-                    min-width="100" />
+                    :min-width="getListColumnWidth('MaterialRequestList_Qty')" align="right" />
                 <el-table-column prop="MaterialRequestList_ActiveQty" :label="t('Scheduling.CallMaterials.ActiveQty')"
-                    min-width="120" />
+                    :min-width="getListColumnWidth('MaterialRequestList_ActiveQty')" align="right" />
                 <el-table-column prop="MaterialRequestList_LotNumber" :label="t('Scheduling.CallMaterials.LotNumber')"
-                    min-width="120" />
-            </el-table>
-            <el-table :data="detailData.detail" size="small" border fit style="width: 100%" height="300">
-                <el-table-column prop="MaterialRequestDetail_No" :label="t('Scheduling.CallMaterials.CallOrder')"
-                    min-width="120" />
-                <el-table-column prop="MaterialRequestDetail_ReelId" :label="t('Scheduling.CallMaterials.ReelId')"
-                    min-width="120" />
-                <el-table-column prop="MaterialRequestDetail_PN" :label="t('Scheduling.CallMaterials.PN')"
-                    min-width="120" />
-                <el-table-column prop="MaterialRequestDetail_Qty" :label="t('Scheduling.CallMaterials.Qty')"
-                    min-width="100" />
-                <el-table-column prop="MaterialRequestDetail_CellId" :label="t('Scheduling.CallMaterials.CellId')"
-                    min-width="100" />
-                <el-table-column prop="MaterialRequestDetail_IsMesCell" :label="t('Scheduling.CallMaterials.IsMesCell')"
-                    min-width="100">
+                    :min-width="getListColumnWidth('MaterialRequestList_LotNumber')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.CallMaterials.IsDisabled')" :min-width="getListColumnWidth('MaterialRequestList_IsDisabled')" align="center">
                     <template #default="{ row }">
-                        {{ row.MaterialRequestDetail_IsMesCell === 1 ? t('Scheduling.CallMaterials.FangCang') :
-                            t('Scheduling.CallMaterials.SaiYi') }}
+                        <el-tag :type="getIsDisabledType(row.MaterialRequestList_IsDisabled)" size="small">
+                            {{ getIsDisabledText(row.MaterialRequestList_IsDisabled) }}
+                        </el-tag>
                     </template>
                 </el-table-column>
+                <el-table-column :label="t('Scheduling.CallMaterials.IsOverShoot')" :min-width="getListColumnWidth('MaterialRequestList_isOverShoot')" align="center">
+                    <template #default="{ row }">
+                        <el-tag :type="row.MaterialRequestList_isOverShoot === 1 ? 'danger' : 'info'" size="small">
+                            {{ row.MaterialRequestList_isOverShoot === 1 ? t('publicText.yes') : t('publicText.no') }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="mt-4 mb-2 font-bold">{{ t('Scheduling.CallMaterials.DetailTitle') }}</div>
+            <el-table :data="detailData.detail" size="small" border fit style="width: 100%" height="300"
+                v-loading="detailLoading" ref="detailDetailRef">
+                <!-- <el-table-column prop="MaterialRequestDetail_No" :label="t('Scheduling.CallMaterials.CallOrder')"
+                    :min-width="getDetailColumnWidth('MaterialRequestDetail_No')" show-overflow-tooltip /> -->
+                <el-table-column prop="MaterialRequestDetail_ReelId" :label="t('Scheduling.CallMaterials.ReelId')"
+                    :min-width="getDetailColumnWidth('MaterialRequestDetail_ReelId')" show-overflow-tooltip />
+                <!-- <el-table-column prop="MaterialRequestDetail_Wo" :label="t('Scheduling.CallMaterials.WorkOrder')"
+                    :min-width="getDetailColumnWidth('MaterialRequestDetail_Wo')" show-overflow-tooltip /> -->
+                <el-table-column prop="MaterialRequestDetail_PN" :label="t('Scheduling.CallMaterials.PN')"
+                    :min-width="getDetailColumnWidth('MaterialRequestDetail_PN')" show-overflow-tooltip />
+                <el-table-column prop="MaterialRequestDetail_Qty" :label="t('Scheduling.CallMaterials.Qty')"
+                    :min-width="getDetailColumnWidth('MaterialRequestDetail_Qty')" align="right" />
+                <el-table-column prop="MaterialRequestDetail_CellId" :label="t('Scheduling.CallMaterials.CellId')"
+                    :min-width="getDetailColumnWidth('MaterialRequestDetail_CellId')" show-overflow-tooltip />
                 <el-table-column prop="MaterialRequestDetail_Lotnumber" :label="t('Scheduling.CallMaterials.LotNumber')"
-                    min-width="120" />
+                    :min-width="getDetailColumnWidth('MaterialRequestDetail_Lotnumber')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.CallMaterials.IsMesCell')" :min-width="getDetailColumnWidth('MaterialRequestDetail_IsMesCell')" align="center">
+                    <template #default="{ row }">
+                        <el-tag :type="getRequestInfoType(row.MaterialRequestDetail_IsMesCell)" size="small">
+                            {{ getRequestInfoText(row.MaterialRequestDetail_IsMesCell) }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column :label="t('Scheduling.CallMaterials.SyncMES')" :min-width="getDetailColumnWidth('MaterialRequestDetail_SyncMES')" align="center">
+                    <template #default="{ row }">
+                        <el-tag :type="row.MaterialRequestDetail_SyncMES === 1 ? 'success' : 'info'" size="small">
+                            {{ row.MaterialRequestDetail_SyncMES === 1 ? t('Scheduling.CallMaterials.Synced') : t('Scheduling.CallMaterials.NotSynced') }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
             </el-table>
             <template #footer>
-                <el-button @click="detailVisible = false">{{ $t("publicText.close") }}</el-button>
-            </template>
-        </el-dialog>
-
-        <!-- 修改状态弹窗 -->
-        <el-dialog :title="t('Scheduling.CallMaterials.changeStatus')" v-model="statusDialogVisible" width="30%"
-            @close="closeStatusDialog">
-            <el-form :model="statusForm" label-width="auto">
-                <el-form-item :label="t('Scheduling.CallMaterials.changeStatus')" required>
-                    <el-select v-model="statusForm.Status" clearable>
-                        <el-option v-for="item in statusOptions" :key="item.value" :label="item.label"
-                            :value="item.value" />
-                    </el-select>
-                </el-form-item>
-            </el-form>
-            <template #footer>
-                <el-button @click="statusDialogVisible = false">{{ $t("publicText.cancel") }}</el-button>
-                <el-button type="primary" @click="submitStatusChange" :loading="statusLoading">
-                    {{ $t("publicText.confirm") }}
-                </el-button>
-            </template>
-        </el-dialog>
-
-        <!-- 原未使用的dialog保留，避免影响其他逻辑 -->
-        <el-dialog :title="$t('publicText.add')" v-model="addVisible" width="80%" @close="addCancel">
-            <el-form :model="addForm" ref="addFormRef" label-width="auto" :inline="false"></el-form>
-            <template #footer>
-                <el-button @click="addCancel">{{ $t("publicText.cancel") }}</el-button>
-                <el-button type="primary" @click="addSubmit">{{ $t("publicText.confirm") }}</el-button>
-            </template>
-        </el-dialog>
-        <el-dialog :title="$t('publicText.edit')" v-model="editVisible" width="80%" @close="editCancel">
-            <el-form :model="editForm" ref="editFormRef" label-width="auto" :inline="false"></el-form>
-            <template #footer>
-                <el-button @click="editCancel">{{ $t("publicText.cancel") }}</el-button>
-                <el-button type="primary" @click="editSubmit">{{ $t("publicText.confirm") }}</el-button>
+                <el-button @click="detailVisible = false">{{ t("publicText.close") }}</el-button>
             </template>
         </el-dialog>
     </div>
@@ -176,90 +186,143 @@ import {
     QueryMaterialRequestList,
     QueryMaterialRequestDetail,
     CancelMaterialRequest,
-    UpdateMaterialRequestStatus,
-    ManualSubmitSaiYiMaterialRequest
+    ManualSubmitSaiYiMaterialRequest,
+    ManualSubmitWorkOrderSupplementSaiYiMaterialRequest
 } from "@/api/Scheduling/index"
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import {
     ref,
     reactive,
-    watch,
     computed,
     nextTick,
     onMounted,
-    onBeforeMount,
     onBeforeUnmount,
 } from "vue";
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
-const userStore = useUserStoreWithOut();
+import dayjs from "dayjs";
 import { useI18n } from "vue-i18n";
+
+const userStore = useUserStoreWithOut();
 const { t } = useI18n();
+const eltableRef = ref();
 const tableHeight = ref(0);
-const tableData = ref([]); // 备料单列表
+const loading = ref(false);
+const tableData = ref<any[]>([]);
 const total = ref(0);
-const selectList = ref<any>([]);
 
 const getForm = reactive({
     PageIndex: 1,
     PageSize: 50,
     KittingNo: '',
-    MaterialRequest_WoGroup: '',
-})
+    WOGroup: '',
+});
 
 // 详情弹窗相关
+const detailListRef = ref();
+const detailDetailRef = ref();
 const detailVisible = ref(false);
 const detailLoading = ref(false);
 const detailData = reactive({
-    list: [],
-    detail: []
+    list: [] as any[],
+    detail: [] as any[],
 });
 
-// 状态修改弹窗相关
-const statusDialogVisible = ref(false);
-const statusLoading = ref(false);
-const currentRow = ref<any>(null);
-const statusForm = reactive({
-    Status: null as number | null
+const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {
+    excludeLabels: [t('publicText.index'), t('publicText.operation')]
 });
-const statusOptions = [
-    // { value: 0, label: t('Scheduling.CallMaterials.StatusPending') },    // 待发料
-    { value: 1, label: t('Scheduling.CallMaterials.StatusIssuing') },    // 发料中
-    { value: 2, label: t('Scheduling.CallMaterials.StatusCompleted') },  // 发料完成
-    { value: 3, label: t('Scheduling.CallMaterials.StatusCancelled') }    // 已取消
-];
 
-const addVisible = ref(false)
-const editVisible = ref(false)
-const addForm = ref({})
-const editForm = ref({})
-const eltableRef = ref()
-onBeforeMount(() => {
-    getScreenHeight();
-});
-onMounted(() => {
-    window.addEventListener("resize", getScreenHeight);
-    getData();
-});
-onBeforeUnmount(() => {
-    window.removeEventListener("resize", getScreenHeight);
-});
+const { getColumnWidth: getListColumnWidth } = useTableColumnWidth(detailListRef, computed(() => detailData.list), {});
+
+const { getColumnWidth: getDetailColumnWidth } = useTableColumnWidth(detailDetailRef, computed(() => detailData.detail), {});
+
+const formatDate = (dateStr: string) => {
+    if (!dateStr || dateStr.startsWith("1900-01-01")) return "-";
+    return dayjs(dateStr).format("YYYY-MM-DD HH:mm:ss");
+};
+
+// RequestInfo 映射：0=方舱, 1=赛意, 2=锡膏
+const getRequestInfoText = (info: number) => {
+    switch (info) {
+        case 0: return t('Scheduling.CallMaterials.FangCang');
+        case 1: return t('Scheduling.CallMaterials.SaiYi');
+        case 2: return t('Scheduling.CallMaterials.XiGao');
+        default: return "-";
+    }
+};
+
+const getRequestInfoType = (info: number) => {
+    switch (info) {
+        case 0: return "primary";
+        case 1: return "success";
+        case 2: return "warning";
+        default: return "info";
+    }
+};
+
+// MaterialRequest_Status 映射：0=准备叫料, 1=已叫料, 2=发料中, 99=发料完成, 3=已取消
+const getStatusText = (status: number) => {
+    switch (status) {
+        case 0: return t('Scheduling.CallMaterials.StatusPending');
+        case 1: return t('Scheduling.CallMaterials.StatusCalled');
+        case 2: return t('Scheduling.CallMaterials.StatusIssuing');
+        case 99: return t('Scheduling.CallMaterials.StatusCompleted');
+        case 3: return t('Scheduling.CallMaterials.StatusCancelled');
+        default: return "-";
+    }
+};
+
+const getStatusType = (status: number) => {
+    switch (status) {
+        case 0: return "info";
+        case 1: return "primary";
+        case 2: return "warning";
+        case 99: return "success";
+        case 3: return "danger";
+        default: return "info";
+    }
+};
+
+const getIsDisabledText = (val: number) => {
+    if (val === 0) return t('Scheduling.CallMaterials.Preferred');
+    if (val === 1) return t('Scheduling.CallMaterials.Disabled');
+    return t('Scheduling.CallMaterials.NotUsed');
+};
+
+const getIsDisabledType = (val: number) => {
+    if (val === 0) return "success";
+    if (val === 1) return "danger";
+    return "info";
+};
 
 const getData = () => {
+    loading.value = true;
     QueryMaterialRequestList(getForm).then((res: any) => {
         if (res.Success) {
-            tableData.value = res.Data.rows
-            total.value = res.Data.total
+            tableData.value = res.Data.rows || [];
+            total.value = res.Data.total || 0;
+        } else {
+            tableData.value = [];
+            total.value = 0;
         }
-    })
-}
+    }).catch(() => {
+        tableData.value = [];
+        total.value = 0;
+    }).finally(() => {
+        loading.value = false;
+    });
+};
 
-// 完善详情功能：弹窗展示两个表格
+const searchData = () => {
+    getForm.PageIndex = 1;
+    getData();
+};
+
 const fetchDetail = (row: any) => {
     detailVisible.value = true;
-    // 重置数据
     detailData.list = [];
     detailData.detail = [];
+    detailLoading.value = true;
 
     QueryMaterialRequestDetail({ MaterialRequestNo: row.MaterialRequest_No }).then((res: any) => {
         if (res.Success) {
@@ -278,61 +341,47 @@ const fetchDetail = (row: any) => {
             message: err.message || t('Scheduling.CallMaterials.FetchDetailFailed'),
             type: "error",
         });
-    })
-}
+    }).finally(() => {
+        detailLoading.value = false;
+    });
+};
 
 const closeDetail = () => {
     detailVisible.value = false;
     detailData.list = [];
     detailData.detail = [];
-}
+};
 
-// 完善状态修改功能
-const handleChangeStatus = (row: any) => {
-    currentRow.value = row;
-    statusForm.Status = null;
-    statusDialogVisible.value = true;
-}
-
-const closeStatusDialog = () => {
-    statusDialogVisible.value = false;
-    currentRow.value = null;
-    statusForm.Status = null;
-}
-
-const submitStatusChange = () => {
-    if (statusForm.Status === null || statusForm.Status === undefined) {
-        ElMessage.warning(t('Scheduling.CallMessages.SelectStatusWarning'));
+const handleCallMaterial = (row: any) => {
+    if (row.RequestInfo !== 1) {
+        ElMessage.warning(t('Scheduling.CallMaterials.onlySaiYi'));
         return;
     }
-
-    statusLoading.value = true;
     const params = {
-        MaterialRequestNo: currentRow.value.MaterialRequest_No,
-        Status: statusForm.Status,
-        CreateUser: userStore.getUserInfo,  // 根据实际接口需要，可选
+        MaterialRequestNo: row.MaterialRequest_No,
+        OpUser: userStore.getUserInfo
     };
-
-    UpdateMaterialRequestStatus(params).then((res: any) => {
-        ElNotification({
-            title: t('publicText.tipTitle'),
-            message: res.Message,
-            type: res.Success ? "success" : "error",
+    if(row.MaterialRequest_Type === 1){
+             ManualSubmitWorkOrderSupplementSaiYiMaterialRequest(params).then((res: any) => {
+            ElNotification({
+                title: t('publicText.tipTitle'),
+                message: res.Message,
+                type: res.Success ? "success" : "error",
+            });
+            if (res.Success) getData();
         });
-        if (res.Success) {
-            statusDialogVisible.value = false;
-            getData();  // 刷新列表
-        }
-    }).catch((err) => {
-        ElNotification({
-            title: t('publicText.tipTitle'),
-            message: err.message || t('Scheduling.CallMessages.UpdateStatusFailed'),
-            type: "error",
+    }else{
+        ManualSubmitSaiYiMaterialRequest(params).then((res: any) => {
+            ElNotification({
+                title: t('publicText.tipTitle'),
+                message: res.Message,
+                type: res.Success ? "success" : "error",
+            });
+            if (res.Success) getData();
         });
-    }).finally(() => {
-        statusLoading.value = false;
-    });
-}
+    }
+   
+};
 
 const handleCancel = (row: any) => {
     ElMessageBox.prompt(t('Scheduling.CallMaterials.CancelReason'), t('publicText.confirm'), {
@@ -356,46 +405,16 @@ const handleCancel = (row: any) => {
             });
         }
     }).catch(() => { });
-}
-
-const addCancel = () => { addVisible.value = false }
-const addSubmit = () => { }
-const editCancel = () => { editVisible.value = false }
-const editSubmit = () => { }
-
-const handleCallMaterial = (row?: any) => {
-    const selected = row || selectList.value[0];
-    if (!selected) return;
-
-    if (selected.RequestInfo !== 1) {
-        ElMessage.warning(t('Scheduling.CallMaterials.onlySaiYi'));
-        return;
-    }
-
-    const params = {
-        MaterialRequestNo: selected.MaterialRequest_No,
-        OpUser: userStore.getUserInfo
-    };
-
-    ManualSubmitSaiYiMaterialRequest(params).then((res: any) => {
-        ElNotification({
-            title: t('publicText.tipTitle'),
-            message: res.Message,
-            type: res.Success ? "success" : "error",
-        });
-        if (res.Success) getData();
-    });
-}
-const handleSelectionChange = (val: any[]) => {
-    selectList.value = val;
 };
-const handleSizeChange = (val: any) => {
-    getForm.PageSize = val
-    getData()
+
+const handleSizeChange = (val: number) => {
+    getForm.PageSize = val;
+    getData();
 };
-const handleCurrentChange = (val: any) => {
-    getForm.PageIndex = val
-    getData()
+
+const handleCurrentChange = (val: number) => {
+    getForm.PageIndex = val;
+    getData();
 };
 
 const getScreenHeight = () => {
@@ -404,39 +423,20 @@ const getScreenHeight = () => {
     });
 };
 
-const columnWidths1 = computed(() => {
-    if (!eltableRef.value) return {};
-    let columns: any = [];
-    columns = eltableRef.value.columns
-        .map((item: any) => {
-            return {
-                prop: item.property,
-                label: item.label,
-            };
-        })
-        .filter(
-            (item: any) =>
-                item.label !== t("publicText.index") &&
-                item.label !== t("publicText.operation"),
-        );
-    return calculateColumnsWidth(columns, tableData.value, {
-        padding: 25,
-        fontSize: 13,
-    });
+onMounted(() => {
+    getScreenHeight();
+    window.addEventListener("resize", getScreenHeight);
+    getData();
 });
 
-const getColumnWidth1 = (prop: string) => {
-    return columnWidths1.value[prop] || "auto";
-};
+onBeforeUnmount(() => {
+    window.removeEventListener("resize", getScreenHeight);
+});
 </script>
 
 <style scoped>
 .el-pagination {
     justify-content: center;
-}
-
-.detail-section {
-    margin-bottom: 20px;
 }
 
 .mt-4 {

@@ -11,7 +11,7 @@
           ></el-input>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="getDataText.operationName" :placeholder="t('smtset.queryMissingData.operationName')">
+          <el-select   style="width: 120px;" v-model="getDataText.operationName" :placeholder="t('smtset.queryMissingData.operationName')">
             <el-option
               v-for="item in orderList"
               :key="item.name"
@@ -181,8 +181,8 @@ const getData = () => {
 
   XY_Prod_MissSNs(getDataText)
     .then((res: any) => {
-      if (res.Status === "OK") {
-        missingList.value = res.DataList || [];
+      if (res.Success) {
+        missingList.value = res.Data || [];
       } else {
         missingList.value = [];
       }
@@ -221,11 +221,11 @@ const addData = () => {
     ...addForm,
     startTime: missTime(addForm.startTime),
   }).then((res: any) => {
-    if (res.Status == "OK") {
-      ElMessage.success(res.Status);
+    if (res.Success) {
+      ElMessage.success(res.Message);
       addVisible.value = false;
     } else {
-      ElMessageBox.alert(res.Message, t("smtset.queryMissingData.error"), {
+       ElMessage.error(res.Message, t("smtset.queryMissingData.error"), {
         confirmButtonText: t("smtset.missingDataEntry.confirm"),
       });
     }

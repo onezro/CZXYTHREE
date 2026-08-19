@@ -1,6 +1,6 @@
 import request from "@/request/permissRequest";
 //登录
-export function empolyeeLogin(data) {
+export function empolyeeLogin(data: any) {
     return request({
         url: "/api/employee/login",
         method: "post",
@@ -8,13 +8,13 @@ export function empolyeeLogin(data) {
     });
 }
 //获取用户信息
-export function getEmpoyeeInfo(data) {
+export function getEmpoyeeInfo(data: any) {
     return request({
         url: "/api/employee/findByEmployeeName",
         method: "post",
-        params:{
-            employeeName:data
-        }
+        params: {
+            employeeName: data,
+        },
     });
 }
 export function getInfo() {
@@ -53,7 +53,7 @@ export function getFirstMeun() {
     });
 }
 //获取角色的菜单
-export function getRoleMenuse(data) {
+export function getRoleMenuse(data: any) {
     return request({
         url: "/api/role/getRoleMenus",
         method: "post",
@@ -63,10 +63,8 @@ export function getRoleMenuse(data) {
     });
 }
 
-
-
 //添加菜单
-export function addMeun(data) {
+export function addMeun(data: any) {
     return request({
         url: "/api/menu/add",
         method: "post",
@@ -75,7 +73,7 @@ export function addMeun(data) {
 }
 
 //删除菜单
-export function deleteMeun(data) {
+export function deleteMeun(data: any) {
     return request({
         url: "/api/menu/delete",
         method: "post",
@@ -86,7 +84,7 @@ export function deleteMeun(data) {
 }
 
 //修改菜单
-export function updateMeun(data) {
+export function updateMeun(data: any) {
     return request({
         url: "/api/menu/update",
         method: "post",
@@ -102,8 +100,8 @@ export function getAllRole() {
     });
 }
 
-//
-export function addRole(data) {
+//添加角色
+export function addRole(data: any) {
     return request({
         url: "/api/role/add",
         method: "post",
@@ -111,7 +109,7 @@ export function addRole(data) {
     });
 }
 
-export function getMeunRole(data) {
+export function getMeunRole(data: any) {
     return request({
         url: "/api/role/getRoleMenus",
         method: "post",
@@ -121,14 +119,14 @@ export function getMeunRole(data) {
     });
 }
 
-export function updateRoleMeun(data) {
+export function updateRoleMeun(data: any) {
     return request({
         url: "/api/role/update",
         method: "post",
-        data
+        data,
     });
 }
-export function deleteRole(data) {
+export function deleteRole(data: any) {
     return request({
         url: "/api/role/delete",
         method: "post",
@@ -142,11 +140,10 @@ export function getEmployee() {
     return request({
         url: "/api/employee/findAll",
         method: "post",
-
     });
 }
 //获取用户角色
-export function findEmployeeRoles(data) {
+export function findEmployeeRoles(data: any) {
     return request({
         url: "/api/employeerole/findEmployeeRoles",
         method: "post",
@@ -156,7 +153,7 @@ export function findEmployeeRoles(data) {
     });
 }
 //添加角色
-export function addEmployeeRole(data) {
+export function addEmployeeRole(data: any) {
     return request({
         url: "/api/employeerole/add",
         method: "post",
@@ -164,113 +161,127 @@ export function addEmployeeRole(data) {
     });
 }
 
-export function deletefirstRole(data) {
+export function deletefirstRole(data: any) {
     return request({
         url: "/api/employeerole/deleteRole",
         method: "post",
-        params: data
+        params: data,
     });
 }
 
-export function deleteEmployee(data) {
+export function deleteEmployee(data: any) {
     return request({
-        url: "/api/employee/DeleteEmployee",
+        url: "/api/employeerole/delete",
+        method: "post",
+        params: {
+            empid: data,
+        },
+    });
+}
+
+//用户注册
+export function addEmployee(data: any) {
+    return request({
+        url: "/api/employee/add",
+        method: "post",
+        data,
+    });
+}
+export function updatePassword(data: any) {
+    return request({
+        url: "/api/employee/UpdateEmpPwd",
+        method: "post",
+        params: data,
+    });
+}
+//重置密码
+export function ResetPwd(data: any) {
+    return request({
+        url: "/api/employee/ResetPwd",
+        method: "post",
+        params: data,
+    });
+}
+//重置密码
+export function ResetEmpPwd(data: any) {
+    return request({
+        url: "/api/employee/ResetEmpPwd",
+        method: "post",
+        params: data,
+    });
+}
+//同步用户
+export function OpcenterEmployeeSync(data: any) {
+    return request({
+        url: "/api/employee/OpcenterEmployeeSync",
+        method: "post",
+        data,
+    });
+}
+export function AddEmployee(data: any) {
+    return request({
+        url: "/api/employee/AddEmployee",
+        method: "post",
+        params: data,
+    });
+}
+
+//根据工号查询员工登录历史
+export function findEmpLoginLog(data: any) {
+    return request({
+        url: "/api/employee/findEmpLoginLog",
         method: "post",
         params: {
             employeeName: data,
-        }
+        },
     });
 }
 
-export function getOrganization(){
+//获取组织架构
+export function getOrganization() {
     return request({
         url: "/api/employee/findOrganization",
         method: "post",
     });
 }
 
-//重置密码
-export function ResetPwd(data) {
+//获取版本信息
+export function GetVersion() {
     return request({
-        url: "/api/employee/UpdateEmpPwd",
+        url: "/api/system/GetVersion",
         method: "post",
-        params: data
-    });
-}
-
-export function AddEmployee(data) {
-    return request({
-        url: "/api/employee/AddEmployee",
-        method: "post",
-        params: data
-    });
-}
-
-//根据工号查询员工登录历史
-export function findEmpLoginLog(data) {
-    return request({
-        url: "/api/employee/findEmpLoginLog",
-        method: "post",
-        params: {
-            employeeName:data
-        }
     });
 }
 
 //获取角色的用户
-export function getEmployeesByRole(data) {
+export function getEmployeesByRole(data: any) {
     return request({
         url: "/api/role/getEmployeesByRole",
         method: "post",
         params: {
-            roleid:data
-        }
+            roleid: data,
+        },
     });
 }
 
 //获取角色未绑定的用户列表
-export function getUnassignEmployeesByRole(roleid,name) {
+export function getUnassignEmployeesByRole(roleid: any, name: any) {
     return request({
         url: "/api/role/getUnassignEmployeesByRole",
         method: "post",
         params: {
             roleid,
-            name
-        }
+            name,
+        },
     });
 }
 
 //修改角色的用户列表
-export function updateEmployeesByRole(data) {
+export function updateEmployeesByRole(data: any) {
     return request({
         url: "/api/role/updateEmployeesByRole",
         method: "post",
-        data
-    });
-}
-//添加用户
-export function OpcenterEmployeeSync(data) {
-    return request({
-        url: "/api/employee/OpcenterEmployeeSync",
-        method: "post",
-        data
-    });
-}
-
-//修改密码
-export function UpdateEmpPwd(data) {
-    return request({
-        url: "/api/employee/UpdateEmpPwd",
-        method: "post",
-        params: data
-    });
-}
-//重置密码
-export function ResetEmpPwd(data) {
-    return request({
-        url: "/api/employee/ResetEmpPwd",
-        method: "post",
-        params: data
+        data,
     });
 }
 
@@ -279,6 +290,6 @@ export function QueryOperationLog(data: any) {
     return request({
         url: "/api/APIRequestLogs/QueryPage",
         method: "post",
-        data
+        data,
     });
 }

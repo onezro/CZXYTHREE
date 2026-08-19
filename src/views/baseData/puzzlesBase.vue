@@ -2,8 +2,10 @@
     <div class=" p-2">
         <el-card :body-style="{ padding: '8px' }">
             <div class="mb-2 flex justify-between">
+
               
-                <div>
+                  <el-button type="primary" size="small" @click="openAdd">{{ t('publicText.add') }}</el-button>
+                    <div>
                     <el-input v-model="searchText" size="small" :placeholder="t('baseData.puzzlesBase.searchPlaceholder')" style="width: 350px"
                         clearable @keyup.enter="getSearchData" @clear="clearData">
                         <template #append>
@@ -11,9 +13,8 @@
                         </template>
                     </el-input>
                 </div>
-                  <el-button type="primary" size="small" @click="openAdd">{{ t('publicText.add') }}</el-button>
             </div>
-            <el-table ref="tableMasterRef" :data="tableData" border :height="tableHeight" size="small" style="width: 100%">
+            <el-table ref="tableMasterRef" :data="tableData" border :height="tableHeight" size="small" style="width: 100%"  :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column :label="t('publicText.index')" width="55" align="center" fixed="left">
                     <template #default="scope">
                         <span>{{ scope.$index + 1 + (getForm.PageIndex - 1) * getForm.PageSize }}</span>
@@ -126,22 +127,28 @@
                                         <el-input v-model="scope.row.finished_code" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.boxType.boxType')">
+                                <el-table-column :label="t('baseData.boxType.boxType')" width="120">
                                     <template #default="scope">
                                         <el-select v-model="scope.row.boxtype" size="small" clearable filterable
-                                            :placeholder="t('baseData.boxType.selectBoxType')">
-                                            <el-option v-for="item in boxTypeList" :key="item.id"
-                                                :label="item.boxtype" :value="item.boxtype" />
+                                            >
+                                            <el-option v-for="item in boxTypeOptions" :key="item.value"
+                                                :label="item.label" :value="item.value" />
                                         </el-select>
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.boxType.caseNo')">
+                                <el-table-column :label="t('baseData.boxType.caseNo')" width="120">
                                     <template #default="scope">
                                         <el-select v-model="scope.row.caseno" size="small" clearable filterable
-                                            :placeholder="t('baseData.boxType.inputCaseNo')">
-                                            <el-option v-for="item in boxTypeList.filter((b: any) => b.boxtype === scope.row.boxtype)" :key="item.id"
-                                                :label="item.caseno" :value="item.caseno" />
+                                            >
+                                            <el-option v-for="item in boxInfoList" :key="item.box_code"
+                                                :label="item.box_code" :value="item.box_code" />
                                         </el-select>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('baseData.puzzlesBase.caseNoProductNum')" width="120">
+                                    <template #default="scope">
+                                        <el-input v-model.number="scope.row.casenoproductnum" type="number"
+                                            size="small" />
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.name')" prop="name">
@@ -239,22 +246,28 @@
                                         <el-input v-model="scope.row.finished_code" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.boxType.boxType')">
+                                <el-table-column :label="t('baseData.boxType.boxType')" width="120">
                                     <template #default="scope">
                                         <el-select v-model="scope.row.boxtype" size="small" clearable filterable
-                                            :placeholder="t('baseData.boxType.selectBoxType')">
-                                            <el-option v-for="item in boxTypeList" :key="item.id"
-                                                :label="item.boxtype" :value="item.boxtype" />
+                                           >
+                                            <el-option v-for="item in boxTypeOptions" :key="item.value"
+                                                :label="item.label" :value="item.value" />
                                         </el-select>
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.boxType.caseNo')">
+                                <el-table-column :label="t('baseData.boxType.caseNo')" width="120">
                                     <template #default="scope">
                                         <el-select v-model="scope.row.caseno" size="small" clearable filterable
-                                            :placeholder="t('baseData.boxType.inputCaseNo')">
-                                            <el-option v-for="item in boxTypeList.filter((b: any) => b.boxtype === scope.row.boxtype)" :key="item.id"
-                                                :label="item.caseno" :value="item.caseno" />
+                                           >
+                                            <el-option v-for="item in boxInfoList" :key="item.box_code"
+                                                :label="item.box_code" :value="item.box_code" />
                                         </el-select>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('baseData.puzzlesBase.caseNoProductNum')" width="120">
+                                    <template #default="scope">
+                                        <el-input v-model.number="scope.row.casenoproductnum" type="number"
+                                            size="small" />
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.name')" prop="name">
@@ -262,7 +275,7 @@
                                 <el-table-column :label="t('baseData.puzzlesBase.spec')" prop="model" width="200" show-overflow-tooltip>
 
                                 </el-table-column>
-                                <el-table-column :label="t('publicText.operation')" width="120">
+                                <el-table-column :label="t('publicText.operation')" width="120" fixed="right">
                                     <template #default="scope">
                                         <el-button type="danger" size="small" icon="Delete"
                                             @click="handleDetailDelete(scope.row)" />
@@ -294,7 +307,7 @@ import {
   UpdatePanelizationList,
   SyncSaiYiPanelization
 } from '@/api/baseData/puzzlesBase'
-import { QueryBoxTypeList } from '@/api/baseData/boxType'
+import { QueryBoxInfoList } from '@/api/baseData/boxBase'
 import { ref, reactive, nextTick, onMounted, onBeforeMount, onBeforeUnmount } from 'vue'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -319,7 +332,14 @@ const formRef = ref()
 const editFormRef = ref()
 const options = ref<any[]>([])
 const tableMasterRef = ref()
-const boxTypeList = ref<any[]>([])
+const boxInfoList = ref<any[]>([])
+
+// 盒箱类型固定三种：L左 R右 C共用
+const boxTypeOptions = [
+    { value: 'L', label: 'L-左' },
+    { value: 'R', label: 'R-右' },
+    { value: 'C', label: 'C-共用' }
+]
 
 const getForm = ref({
     PageIndex: 1,
@@ -355,7 +375,8 @@ const form = ref({
             module_start: 0,
             module_end: 0,
             boxtype: '',
-            caseno: ''
+            caseno: '',
+            casenoproductnum: 0
         }
     ]
 })
@@ -404,10 +425,12 @@ const getData = () => {
       })
 }
 
-const getBoxTypeList = () => {
-    QueryBoxTypeList({ boxtype: '', caseno: '' }).then((res: any) => {
+const getBoxInfoList = () => {
+    QueryBoxInfoList({ box_code: '', box_name: '', pageIndex: 1, pageSize: 9999 }).then((res: any) => {
         if (res.Success && res.Data) {
-            boxTypeList.value = res.Data
+            boxInfoList.value = res.Data
+        } else {
+            boxInfoList.value = []
         }
     })
 }
@@ -425,7 +448,7 @@ const clearData = () => {
 }
 
 const openAdd = () => {
-    getBoxTypeList()
+    getBoxInfoList()
     dialogVisible.value = true
 }
 
@@ -476,7 +499,8 @@ const removeBoardItem = (index: number) => {
             module_start: 0,
             module_end: 0,
             boxtype: '',
-            caseno: ''
+            caseno: '',
+            casenoproductnum: 0
         })
     }
 }
@@ -493,7 +517,8 @@ const addSmallBoard = () => {
         module_start: 0,
         module_end: 0,
         boxtype: '',
-        caseno: ''
+        caseno: '',
+        casenoproductnum: 0
     })
 }
 
@@ -513,14 +538,14 @@ const handleSyncSaiYi = (row: any) => {
                     ElNotification({
                         type: 'success',
                         title: t('publicText.tip'),
-                        message: res.Msg
+                        message: res.Message
                     })
                     getData()
                 } else {
                     ElNotification({
                         type: 'error',
                         title: t('publicText.tip'),
-                        message: res.Msg
+                        message: res.Message
                     })
                 }
             })
@@ -634,7 +659,8 @@ const restForm = () => {
             module_start: 0,
             module_end: 0,
             boxtype: '',
-            caseno: ''
+            caseno: '',
+            casenoproductnum: 0
         }
     ]
 }
@@ -646,7 +672,7 @@ const addCancel = () => {
 }
 
 const handleEdit = (row: any) => {
-    getBoxTypeList()
+    getBoxInfoList()
     upDateForm.pnl_code = row.PN
     editForm.value.pn = row.PN
     editForm.value.model = row.pn_spec
@@ -669,7 +695,8 @@ const handleEdit = (row: any) => {
               module_start: 0,
               module_end: 0,
               boxtype: '',
-              caseno: ''
+              caseno: '',
+              casenoproductnum: 0
             }
           ]
         } else {
@@ -710,7 +737,8 @@ const handleDetailEdit = () => {
         module_start: 0,
         module_end: 0,
         boxtype: '',
-        caseno: ''
+        caseno: '',
+        casenoproductnum: 0
     })
 }
 
@@ -730,7 +758,8 @@ const handleDetailDelete = (row: any) => {
             module_start: 0,
             module_end: 0,
             boxtype: '',
-            caseno: ''
+            caseno: '',
+            casenoproductnum: 0
         })
     }
 }

@@ -11,7 +11,7 @@ export function dryComponentControl(data:any) {
 
 export function QueryProductMSDData(data:any) {
     return request1({
-        url: "/api/ReportQuery/QueryProductMSDData",
+        url: "/api/ProductMSD/QueryProductMSDData",
         method: "post",
         data,
     });

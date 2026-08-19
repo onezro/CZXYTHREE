@@ -10,24 +10,30 @@
                 </el-input>
             </div>
 
-            <el-table :data="tableData" border :height="tableHeight" style="width: 100%" stripe size="small"
-                tooltip-effect="light">
-                <el-table-column type="index" width="50" :label="t('publicText.index')" align="center">
+            <el-table :data="tableData" ref="tableRef" border :height="tableHeight" style="width: 100%" stripe size="small"
+                tooltip-effect="light"  :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                <el-table-column type="index" width="50" :label="t('publicText.index')" align="center" fixed="left"> 
                     <template #default="{ $index }">
                         {{ $index + 1 + (getForm.PageIndex - 1) * getForm.PageSize }}
                     </template>
                 </el-table-column>
 
-                <el-table-column prop="baddata_no" :label="t('deviceManage.onlineScrap.scrapAuditNo')" />
-                <el-table-column prop="baddata_pcbid" :label="t('deviceManage.onlineScrap.productSN')" />
-                <el-table-column prop="mfgordername" :label="t('deviceManage.onlineScrap.workOrderNo')" />
-                <el-table-column prop="baddata_produtside" :label="t('deviceManage.onlineScrap.side')" />
-                <el-table-column prop="productname" :label="t('deviceManage.onlineScrap.productCode')" />
-                <el-table-column prop="baddata_productname" :label="t('deviceManage.onlineScrap.productName')" />
+                <el-table-column prop="baddata_no" :label="t('deviceManage.onlineScrap.scrapAuditNo')"
+                    :min-width="getColumnWidth('baddata_no')" show-overflow-tooltip fixed="left" />
+                <el-table-column prop="baddata_pcbid" :label="t('deviceManage.onlineScrap.productSN')"
+                    :min-width="getColumnWidth('baddata_pcbid')" show-overflow-tooltip fixed="left" />
+                <el-table-column prop="mfgordername" :label="t('deviceManage.onlineScrap.workOrderNo')"
+                    :min-width="getColumnWidth('mfgordername')" show-overflow-tooltip />
+                <el-table-column prop="baddata_produtside" :label="t('deviceManage.onlineScrap.side')"
+                    :min-width="getColumnWidth('baddata_produtside')" align="center" />
+                <el-table-column prop="productname" :label="t('deviceManage.onlineScrap.productCode')"
+                    :min-width="getColumnWidth('productname')" show-overflow-tooltip />
+                <el-table-column prop="baddata_productname" :label="t('deviceManage.onlineScrap.productName')"
+                    :min-width="getColumnWidth('baddata_productname')" show-overflow-tooltip />
                 <el-table-column prop="baddata_productdsc" :label="t('deviceManage.onlineScrap.productDesc')"
-                    show-overflow-tooltip />
+                    :min-width="getColumnWidth('baddata_productdsc')" show-overflow-tooltip />
 
-                <el-table-column :label="t('publicText.operation')" width="100" align="center">
+                <el-table-column :label="t('publicText.operation')" width="80" align="center" fixed="right">
                     <template #default="{ row }">
                         <el-button type="primary" :icon="Document" size="small" @click.stop="handleEdit(row)" />
                     </template>
@@ -114,6 +120,7 @@ import { ElMessage } from 'element-plus'
 import { Search, Document } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { useUserStoreWithOut } from '@/stores/modules/user'
+import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import {
     QueryXYL_BadProductInformationScrap,
     QueryXYL_BadProductInformationFromByNo,
@@ -165,9 +172,14 @@ const tableData = ref<TableRow[]>([])
 const tableData1 = ref<BadDetailItem[]>([])
 const total = ref(0)
 const tableHeight = ref(0)
+const tableRef = ref()
 const dialogVisible = ref(false)
 const titleNum = ref('')
 const remark = ref('')
+
+const { getColumnWidth } = useTableColumnWidth(tableRef, tableData, {
+    excludeLabels: [t("publicText.index"), t("publicText.operation")],
+});
 
 const getForm = reactive<GetForm>({
     PageIndex: 1,

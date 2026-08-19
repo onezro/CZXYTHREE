@@ -29,7 +29,6 @@ declare module '@/views/permissions/menu.vue'
 declare module 'element-plus/dist/locale/zh-cn.mjs'
 declare module '@/stores/modules/tagsView'
 declare module '@/typing'
-declare module '@/api/permiss.ts'
 declare module '../../public/config.ts'
 declare module 'af-table-column'
 declare module './useProps'
@@ -40,3 +39,4 @@ declare module "@/utils/useDraw"
 declare module "screenfull"
 declare module "@/request/permissRequest"
 declare module 'vue-qr'
+declare module '@/request/baseDataRequest/index'
