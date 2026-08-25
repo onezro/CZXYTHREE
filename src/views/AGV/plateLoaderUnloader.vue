@@ -31,7 +31,8 @@
             </div>
 
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
-                border fit highlight-current-row v-loading="loading">
+                border fit highlight-current-row v-loading="loading"
+                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{ scope.$index + pageObj.pageSize * (pageObj.currentPage - 1) + 1 }}</span>

@@ -17,7 +17,8 @@
       </div>
 
       <el-table ref="tableRef" :data="tableData" border :height="tableHeight" style="width: 100%" size="small" stripe
-        highlight-current-row tooltip-effect="dark" v-loading="loading">
+        highlight-current-row tooltip-effect="dark" v-loading="loading"
+        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column type="index" :label="$t('publicText.index')" width="55" align="center" fixed="left">
           <template #default="{ $index }">
             {{ $index + 1 + (currentPage - 1) * pageSize }}
@@ -195,7 +196,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { useI18n } from "vue-i18n";
 import { queryToolsMold, queryToolsID, insertToolsID, updateToolsID, deleteToolsID, scrapToolsID, queryAssetToolsID } from "@/api/deviceManage/fixture";
 import dayjs from "dayjs";
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 
 const { t } = useI18n();
@@ -232,19 +233,9 @@ const getCategoryText = (value: string) => {
 };
 
 // ---------- 动态列宽 ----------
-const tableColumns = computed(() => {
-  if (!tableRef.value) return [];
-  const columns = tableRef.value.columns
-    .map((item: any) => ({ prop: item.property, label: item.label }))
-    .filter((item: any) => item.label !== t("publicText.index") && item.label !== t("publicText.operation"));
-  return columns;
+const { getColumnWidth } = useTableColumnWidth(tableRef, tableData, {
+  excludeLabels: [t("publicText.index"), t("publicText.operation")],
 });
-
-const columnWidths = computed(() => {
-  return calculateColumnsWidth(tableColumns.value, tableData.value, { padding: 25, fontSize: 13 });
-});
-
-const getColumnWidth = (prop: string) => columnWidths.value[prop] || "auto";
 
 // ---------- 新增表单 ----------
 const addVisible = ref(false);

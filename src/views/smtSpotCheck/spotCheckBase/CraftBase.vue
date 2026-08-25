@@ -27,10 +27,23 @@
                     <el-table ref="treeTableRef" size="small" :data="displayTreeData" stripe border fit
                         :height="tableHeight" row-key="id"
                         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }" highlight-current-row
-                        @row-click="handleRowClick">
+                        @row-click="handleRowClick"
+                        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
 
+                        <el-table-column type="index" :label="t('publicText.index')" width="55" align="center" fixed="left">
+                            <template #default="{ $index }">
+                                {{ $index + 1 + (currentPage - 1) * pageSize }}
+                            </template>
+                        </el-table-column>
                         <el-table-column prop="label" :label="t('smtSpotCheck.CraftBase.name')"
                             :min-width="getColumnWidth1('label')" />
+                        <el-table-column prop="inspectContent" :label="t('smtSpotCheck.CraftBase.inspectContent')"
+                            :min-width="getColumnWidth1('inspectContent')">
+                            <template #default="{ row }">
+                                <span v-if="row.type === 'step'">{{ row.inspectContent || '-' }}</span>
+                                <span v-else>-</span>
+                            </template>
+                        </el-table-column>
                         <el-table-column :label="$t('publicText.operation')" fixed="right" width="160" align="center">
                             <template #default="{ row }">
                                 <!-- 产品节点操作 -->
@@ -100,10 +113,10 @@
                             :min-width="getColumnWidth2('SubItemBasic')">
 
                         </el-table-column>
-                        <el-table-column :label="t('smtSpotCheck.CraftBase.subItemSolution')" prop="SubItemSolution"
+                        <!-- <el-table-column :label="t('smtSpotCheck.CraftBase.subItemSolution')" prop="SubItemSolution"
                             :min-width="getColumnWidth2('SubItemSolution')">
 
-                        </el-table-column>
+                        </el-table-column> -->
 
                         <el-table-column :label="$t('publicText.operation')" width="80" align="center">
                             <template #default="{ $index }">
@@ -310,20 +323,24 @@ const buildTreeFromFlatData = (flatData: any[]) => {
             })
         }
         const productNode = productMap.get(product)
-        // 避免重复添加工序（同一产品下工序唯一）
         const existingStep = productNode.children.find((child: any) => child.step === item.Step)
         if (!existingStep) {
+            const stepItems = flatData.filter((it: any) => it.Product === product && it.Step === item.Step)
+            const inspectContents = [...new Set(
+                stepItems
+                    .map((it: any) => it.InspectContent?.trim())
+                    .filter((c: string) => c && c.length > 0)
+            )]
             productNode.children.push({
                 id: `step_${product}_${item.Step}`,
                 type: 'step',
                 product: product,
                 step: item.Step,
                 label: item.Name,
-                inspectContent: item.InspectContent || '',
+                inspectContent: inspectContents.join(' / '),
             })
         }
     })
-    // 对每个产品下的工序按 Step 排序
     for (const productNode of productMap.values()) {
         productNode.children.sort((a: any, b: any) => a.step - b.step)
     }
@@ -584,6 +601,7 @@ const removeDetailRow = (index: number) => {
 
 const stepDialogCancel = () => {
     stepDialogVisible.value = false
+     stepForm.StepItemList = []
     stepFormRef.value?.resetFields()
 }
 

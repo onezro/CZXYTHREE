@@ -20,7 +20,8 @@
             <el-row :gutter="10">
                 <el-col :span="8">
                     <el-table ref="eltableRef" size="small" :data="displayData" stripe border fit :height="tableHeight"
-                        highlight-current-row @row-click="handleRowClick">
+                        highlight-current-row @row-click="handleRowClick"
+                        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                         <el-table-column type="index" :label="$t('publicText.index')" width="50" align="center" />
                         <el-table-column prop="Name" :label="t('smtSpotCheck.firstBase.name')"
                             :min-width="getColumnWidth1('Name')" />

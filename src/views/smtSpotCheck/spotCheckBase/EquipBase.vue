@@ -20,7 +20,8 @@
             <el-row :gutter="10">
                 <el-col :span="8">
                     <el-table ref="eltableRef" size="small" :data="displayData" stripe border fit :height="tableHeight"
-                        highlight-current-row @row-click="handleRowClick">
+                        highlight-current-row @row-click="handleRowClick"
+                        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                         <el-table-column type="index" :label="$t('publicText.index')" width="50" align="center" />
                         <el-table-column prop="Name" :label="t('smtSpotCheck.firstBase.name')"
                             :min-width="getColumnWidth1('Name')" />
@@ -478,7 +479,7 @@ const deleteSubItem = async (index: number) => {
             type: "warning",
         });
         // 构建删除后的子项列表（排除被删项）
-        const newSubItems = subItems.filter((_, idx) => idx !== index).map(item => ({
+        const newSubItems = subItems.filter((_, idx) => idx == index).map(item => ({
             SubItem: item.SubItem,
             SubItemName: item.SubItemName,
             SubItemMethod: item.SubItemMethod || "",
@@ -501,7 +502,7 @@ const deleteSubItem = async (index: number) => {
                 }
             ]
         };
-        const res: any = await UpdateEquipInspectData(requestData);
+        const res: any = await DeleteEquipInspectData(requestData);
         if (res.Success) {
             ElMessage.success(res.Msg || "删除成功");
             getData();

@@ -13,40 +13,41 @@
                 </div>
             </div>
 
-            <el-table :data="tableData.slice((currentPage - 1) * pageSize, currentPage * pageSize)" border
-                :height="tableHeight" style="width: 100%" size="small">
+            <el-table :data="tableData.slice((currentPage - 1) * pageSize, currentPage * pageSize)" ref="tableRef"
+                border :height="tableHeight" style="width: 100%" size="small" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" :label="t('publicText.index')" width="55" fixed="left" align="center">
                     <template #default="{ $index }">
                         {{ $index + 1 + (currentPage - 1) * pageSize }}
                     </template>
                 </el-table-column>
 
-                <el-table-column prop="panelmerge_id" :label="t('baseData.leftRightMerge.mergeId')" width="220"
-                    fixed="left" />
-                <el-table-column prop="panelmerge_name" :label="t('baseData.leftRightMerge.mergeName')" width="150" />
+                <el-table-column prop="panelmerge_id" :label="t('baseData.leftRightMerge.mergeId')"
+                    :min-width="getColumnWidth('panelmerge_id')" fixed="left" show-overflow-tooltip />
+                <el-table-column prop="panelmerge_name" :label="t('baseData.leftRightMerge.mergeName')"
+                    :min-width="300" show-overflow-tooltip />
 
                 <!-- 左灯信息列组 -->
                 <el-table-column :label="t('baseData.leftRightMerge.leftInfo')">
                     <el-table-column prop="panelmerge_left_no" :label="t('baseData.leftRightMerge.materialCode')"
-                        width="120" />
+                       width="120" />
                     <el-table-column prop="panelmerge_left_name" :label="t('baseData.leftRightMerge.materialName')"
-                        width="150" />
+                         width="120" show-overflow-tooltip />
                     <el-table-column prop="panelmerge_left_desc" :label="t('baseData.leftRightMerge.materialSpec')"
-                        width="200" />
+                        :min-width="200" show-overflow-tooltip />
                 </el-table-column>
 
                 <!-- 右灯信息列组 -->
                 <el-table-column :label="t('baseData.leftRightMerge.rightInfo')">
                     <el-table-column prop="panelmerge_right_no" :label="t('baseData.leftRightMerge.materialCode')"
-                        width="120" />
+                         width="120"/>
                     <el-table-column prop="panelmerge_right_name" :label="t('baseData.leftRightMerge.materialName')"
-                        width="150" />
+                      width="120" show-overflow-tooltip/>
                     <el-table-column prop="panelmerge_right_desc" :label="t('baseData.leftRightMerge.materialSpec')"
-                        width="200" />
+                         :min-width="200" show-overflow-tooltip  />
                 </el-table-column>
 
-                <el-table-column prop="panelmerge_manywo" :label="t('baseData.leftRightMerge.multiWo')" width="90"
-                    align="center">
+                <el-table-column prop="panelmerge_manywo" :label="t('baseData.leftRightMerge.multiWo')"
+                    :min-width="getColumnWidth('panelmerge_manywo')" align="center">
                     <template #default="{ row }">
                         <el-tag :type="row.panelmerge_manywo ? 'primary' : 'info'">
                             {{ row.panelmerge_manywo ? t('publicText.yes') : t('publicText.no') }}
@@ -54,8 +55,10 @@
                     </template>
                 </el-table-column>
 
-                <el-table-column prop="panelmerge_updateuser" :label="t('baseData.puzzlesBase.operator')" />
-                <el-table-column prop="panelmerge_updatedate" :label="t('baseData.puzzlesBase.operateTime')" />
+                <el-table-column prop="panelmerge_updateuser" :label="t('baseData.puzzlesBase.operator')"
+                    :min-width="getColumnWidth('panelmerge_updateuser')" show-overflow-tooltip />
+                <el-table-column prop="panelmerge_updatedate" :label="t('baseData.puzzlesBase.operateTime')"
+                    :min-width="getColumnWidth('panelmerge_updatedate')" show-overflow-tooltip />
 
                 <el-table-column fixed="right" :label="t('publicText.operation')" width="110" align="center">
                     <template #default="{ row }">
@@ -347,6 +350,7 @@ import { ElNotification, ElMessageBox } from 'element-plus'
 import { Search, Document, Delete, Plus } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { useUserStoreWithOut } from "@/stores/modules/user";
+import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
 const userStore = useUserStoreWithOut()
 
 // 请根据实际 API 路径调整
@@ -365,13 +369,19 @@ const { t } = useI18n()
 const searchText = ref('')
 const tableData = ref<any[]>([])
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(20)
 const tableHeight = ref(0)
+const tableRef = ref()
 const dialogVisible = ref(false)
 const detailVisible = ref(false)
 const formRef = ref()
 const editFormRef = ref()
 const puzzlesOptions = ref<any[]>([])
+
+// 动态列宽
+const { getColumnWidth } = useTableColumnWidth(tableRef, tableData, {
+    excludeLabels: [t('publicText.index'), t('publicText.operation')],
+})
 
 // 表单数据
 const form = ref({

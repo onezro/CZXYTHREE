@@ -17,7 +17,8 @@
             </div>
 
             <el-table ref="tableRef" :data="paginatedData" border :height="tableHeight"
-                style="width: 100%" size="small" stripe highlight-current-row>
+                style="width: 100%" size="small" stripe highlight-current-row
+                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" :label="$t('publicText.index')" width="55" align="center" fixed>
                     <template #default="{ $index }">
                         {{ $index + 1 + (currentPage - 1) * pageSize }}
@@ -229,7 +230,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { Search, Edit, Delete } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
 import { queryToolsMold, insertToolsMold, updateToolsMold, deleteToolsMold } from "@/api/deviceManage/fixture";
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 
 const { t } = useI18n();
 
@@ -259,21 +260,9 @@ const categoryList = [
 ];
 
 // ---------- 动态列宽 ----------
-// 定义需要计算宽度的列
-const tableColumns = computed(() => {
-    if (!tableRef.value) return [];
-    // 模拟列配置，也可直接从表格获取，这里手动定义保证准确
-    const columns = tableRef.value.columns
-        .map((item: any) => ({ prop: item.property, label: item.label }))
-        .filter((item: any) => item.label !== t("publicText.index") && item.label !== t("publicText.operation"));
-    return columns;
+const { getColumnWidth } = useTableColumnWidth(tableRef, filteredData, {
+    excludeLabels: [t("publicText.index"), t("publicText.operation")],
 });
-
-const columnWidths = computed(() => {
-    return calculateColumnsWidth(tableColumns.value, filteredData.value, { padding: 25, fontSize: 13 });
-});
-
-const getColumnWidth = (prop:any) => columnWidths.value[prop] || "auto";
 
 // ---------- 新增表单 ----------
 const addVisible = ref(false);

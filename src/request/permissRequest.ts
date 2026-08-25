@@ -137,18 +137,18 @@ service.interceptors.response.use(
     }
   },
   (error) => {
-    hideLoading();
-    removeToken();
+    // hideLoading();
+    // removeToken();
     // 携带 redirect 并避免在登录页重复跳转
-    if (router.currentRoute.value.path !== "/login") {
-      router.push({
-        path: "/login",
-        query: { redirect: router.currentRoute.value.fullPath },
-      });
-    }
-    // ElMessageBox.alert(error, "提示信息", {
-    //   confirmButtonText: "确定",
-    // });
+    // if (router.currentRoute.value.path !== "/login") {
+    //   router.push({
+    //     path: "/login",
+    //     query: { redirect: router.currentRoute.value.fullPath },
+    //   });
+    // }
+    ElMessageBox.alert(error, "提示信息", {
+      confirmButtonText: "确定",
+    });
   },
 );
 

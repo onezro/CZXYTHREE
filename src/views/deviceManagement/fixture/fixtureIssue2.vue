@@ -15,7 +15,8 @@
             </div>
 
             <el-table ref="tableRef"  :data="paginatedData" border :height="tableHeight"
-                style="width: 100%" size="small" stripe highlight-current-row>
+                style="width: 100%" size="small" stripe highlight-current-row
+                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column prop="WO" :label="$t('deviceManage.fixtureIssue.issueNo')"
                     :min-width="getColumnWidth('WO')" />
                 <el-table-column prop="PD_model" :label="$t('deviceManage.fixtureIssue.productModel')"
@@ -65,7 +66,7 @@ import { ElMessage } from "element-plus";
 import { Search } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
 import { queryToolsOrder } from "@/api/deviceManage/fixture";
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import dayjs from "dayjs";
 
 const { t } = useI18n();
@@ -88,19 +89,9 @@ const paginatedData = computed(() => {
 });
 
 // ---------- 动态列宽 ----------
-const tableColumns = computed(() => {
-    if (!tableRef.value) return [];
-    const columns = tableRef.value.columns
-        .map((item: any) => ({ prop: item.property, label: item.label }))
-        .filter((item: any) => item.label !== t("publicText.index") && item.label !== t("publicText.operation"));
-    return columns;
+const { getColumnWidth } = useTableColumnWidth(tableRef, filteredData, {
+    excludeLabels: [t("publicText.index"), t("publicText.operation")],
 });
-
-const columnWidths = computed(() => {
-    return calculateColumnsWidth(tableColumns.value, filteredData.value, { padding: 25, fontSize: 13 });
-});
-
-const getColumnWidth = (prop: string) => columnWidths.value[prop] || "auto";
 
 // ---------- 查询参数 ----------
 const queryParams = reactive({

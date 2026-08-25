@@ -187,7 +187,7 @@ import {
     QueryMaterialRequestDetail,
     CancelMaterialRequest,
     ManualSubmitSaiYiMaterialRequest,
-    ManualSubmitWorkOrderSupplementSaiYiMaterialRequest
+    ManualSubmitWorkOrderSupplementSaiYiMaterialRequest,
 } from "@/api/Scheduling/index"
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import {
@@ -205,6 +205,7 @@ import { useI18n } from "vue-i18n";
 
 const userStore = useUserStoreWithOut();
 const { t } = useI18n();
+
 const eltableRef = ref();
 const tableHeight = ref(0);
 const loading = ref(false);

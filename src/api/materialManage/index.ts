@@ -53,3 +53,39 @@ export function DeletePartNumber(data: any) {
     data,
   });
 }
+
+// 查询特殊物料
+export function QuerySpecialMaterial(data: any) {
+  return request({
+    url: "/api/mes/specialmaterial/QuerySpecialMaterial",
+    method: "post",
+    data,
+  });
+}
+
+// 新增特殊物料
+export function AddSpecialMaterial(data: any) {
+  return request({
+    url: "/api/mes/specialmaterial/AddSpecialMaterial",
+    method: "post",
+    data,
+  });
+}
+
+// 修改特殊物料
+export function UpdateSpecialMaterial(data: any) {
+  return request({
+    url: "/api/mes/specialmaterial/UpdateSpecialMaterial",
+    method: "post",
+    data,
+  });
+}
+
+// 删除特殊物料
+export function DeleteSpecialMaterial(data: any) {
+  return request({
+    url: "/api/mes/specialmaterial/DeleteSpecialMaterial",
+    method: "post",
+    data,
+  });
+}

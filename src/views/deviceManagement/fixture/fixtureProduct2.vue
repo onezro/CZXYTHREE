@@ -25,8 +25,8 @@
         </div>
       </div>
 
-      <el-table ref="tableRef" :data="paginatedData" border :height="tableHeight"
-        style="width: 100%" size="small" stripe highlight-current-row >
+      <el-table ref="tableRef" :data="paginatedData" border :height="tableHeight" style="width: 100%" size="small"
+        stripe highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column type="index" :label="$t('publicText.index')" width="55" align="center" fixed="left">
           <template #default="{ $index }">
             {{ $index + 1 + (currentPage - 1) * pageSize }}
@@ -38,8 +38,8 @@
           :min-width="getColumnWidth('PD_dsc')" show-overflow-tooltip />
         <el-table-column prop="Version" :label="$t('deviceManage.fixtureProduct.version')"
           :min-width="getColumnWidth('Version')" show-overflow-tooltip />
-        <el-table-column prop="Side" :label="$t('deviceManage.fixtureProduct.side')"
-          :min-width="getColumnWidth('Side')" show-overflow-tooltip />
+        <el-table-column prop="Side" :label="$t('deviceManage.fixtureProduct.side')" :min-width="getColumnWidth('Side')"
+          show-overflow-tooltip />
         <el-table-column prop="PN_Model" :label="$t('deviceManage.fixtureProduct.type')"
           :min-width="getColumnWidth('PN_Model')" show-overflow-tooltip />
         <el-table-column prop="MaterialName" :label="$t('deviceManage.fixtureProduct.typeDesc')"
@@ -58,7 +58,8 @@
           :min-width="getColumnWidth('Stts')" align="center">
           <template #default="{ row }">
             <el-tag :type="row.Stts === 0 || row.Stts === '0' ? 'success' : 'danger'" size="small">
-              {{ row.Stts === 0 || row.Stts === '0' ? $t('deviceManage.fixtureProduct.statusUsable') : $t('deviceManage.fixtureProduct.statusUnusable') }}
+              {{ row.Stts === 0 || row.Stts === '0' ? $t('deviceManage.fixtureProduct.statusUsable') :
+                $t('deviceManage.fixtureProduct.statusUnusable') }}
             </el-tag>
           </template>
         </el-table-column>
@@ -80,13 +81,12 @@
       <div style="margin-top: 8px">
         <el-pagination align="center" background size="small" @size-change="handleSizeChange"
           @current-change="handleCurrentChange" :current-page="currentPage" :page-size="pageSize"
-          :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper"
-          :total="total" />
+          :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" :total="total" />
       </div>
     </el-card>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="80%" :close-on-click-modal="false"
+    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="60%" :close-on-click-modal="false"
       @close="handleDialogClose">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px" size="small">
         <el-row :gutter="20">
@@ -98,16 +98,15 @@
           </el-col>
           <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.version')" prop="Version">
-              <el-input v-model="form.Version" 
-                :placeholder="$t('deviceManage.fixtureProduct.versionPlaceholder')" />
+              <el-input v-model="form.Version" :placeholder="$t('deviceManage.fixtureProduct.versionPlaceholder')" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.side')" prop="Side">
-              <el-select v-model="form.Side"  clearable
-                :placeholder="$t('deviceManage.fixtureProduct.sidePlaceholder')" style="width: 100%">
+              <el-select v-model="form.Side" clearable :placeholder="$t('deviceManage.fixtureProduct.sidePlaceholder')"
+                style="width: 100%">
                 <el-option label="TOP" value="TOP" />
                 <el-option label="BOT" value="BOT" />
               </el-select>
@@ -118,7 +117,8 @@
               <el-select v-model="form.ToolsMold" filterable
                 :placeholder="$t('deviceManage.fixtureProduct.typePlaceholder')" style="width: 100%"
                 @change="handleTypeChange">
-                <el-option v-for="item in typeList" :key="item.ToolsMold" :label="item.ToolsMold" :value="item.ToolsMold" />
+                <el-option v-for="item in typeList" :key="item.ToolsMold" :label="item.ToolsMold"
+                  :value="item.ToolsMold" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -176,7 +176,7 @@ import {
   importToolsSpec,
 } from "@/api/deviceManage/fixture";
 import { importExcelToJSON } from "@/utils/exportExcel/fixture";
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 
 const { t } = useI18n();
 
@@ -202,19 +202,9 @@ const paginatedData = computed(() => {
 const typeList = ref<any[]>([]);
 
 // ---------- 动态列宽 ----------
-const tableColumns = computed(() => {
-  if (!tableRef.value) return [];
-  const columns = tableRef.value.columns
-    .map((item: any) => ({ prop: item.property, label: item.label }))
-    .filter((item: any) => item.label !== t("publicText.index") && item.label !== t("publicText.operation"));
-  return columns;
+const { getColumnWidth } = useTableColumnWidth(tableRef, tableData, {
+  excludeLabels: [t("publicText.index"), t("publicText.operation")],
 });
-
-const columnWidths = computed(() => {
-  return calculateColumnsWidth(tableColumns.value, tableData.value, { padding: 25, fontSize: 13 });
-});
-
-const getColumnWidth = (prop: string) => columnWidths.value[prop] || "auto";
 
 // ---------- 对话框 ----------
 const dialogVisible = ref(false);
@@ -240,7 +230,6 @@ const dialogTitle = computed(() =>
 
 const formRules = {
   ProductName: [{ required: true, message: t("message.pleaseInput") + t("deviceManage.fixtureProduct.productName"), trigger: "blur" }],
-  Version: [{ required: true, message: t("message.pleaseInput") + t("deviceManage.fixtureProduct.version"), trigger: "blur" }],
   ToolsMold: [{ required: true, message: t("message.pleaseSelect") + t("deviceManage.fixtureProduct.type"), trigger: "change" }],
   Useage: [{ required: true, message: t("message.pleaseInput") + t("deviceManage.fixtureProduct.consumption"), trigger: "blur" }],
 };

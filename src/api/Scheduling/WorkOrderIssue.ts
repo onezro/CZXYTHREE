@@ -7,6 +7,21 @@ export function QueryReturnMaterials(data:any) {
   });
 }
 
+export function QueryReturnMaterialDetails(data:any) {
+  return request({
+    url: "/api/WorkOrderGroupMaterialIssue/QueryReturnMaterialDetails",
+    method: "post",
+    data
+  });
+}
+
+export function QueryIssueDetails(data:any) {
+  return request({
+    url: "/api/WorkOrderGroupMaterialIssue/QueryIssueDetails",
+    method: "post",
+    data
+  });
+}
 
 export function InitRecordsFromReceive(data:any) {
   return request({

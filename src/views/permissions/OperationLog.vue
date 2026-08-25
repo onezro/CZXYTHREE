@@ -3,12 +3,15 @@
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.native.prevent>
                 <el-form-item :label="t('permissions.operationLog.timeRange')" prop="TimeRange" class="mb-2">
-                    <el-date-picker v-model="queryTime" type="datetimerange" range-separator="-"
+                    <el-date-picker style="width: 350px;" v-model="queryTime" type="datetimerange" range-separator="-"
                         start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD HH:mm:ss"
                         :shortcuts="shortcuts1" :default-time="[
                             new Date(2000, 1, 1, 0, 0, 0),
                             new Date(2000, 1, 1, 23, 59, 59),
                         ]" :clearable="false" @change="handleDateRangeChange" :disabled-date="disabledDate" />
+                </el-form-item>
+                <el-form-item :label="t('permissions.operationLog.requestUrl')" prop="RequestUrl" class="mb-2">
+                    <el-input v-model="getForm.RequestUrl"  placeholder="请输入请求URL" clearable style="width: 350px;" @keyup.enter="getData" @clear="getData" />
                 </el-form-item>
                 <el-form-item class="mb-2">
                     <el-button :type="'primary'" @click="getData">{{
@@ -176,6 +179,7 @@ const total = ref(0);
 const queryTime = ref<any[]>([]);
 
 const getForm = reactive({
+    RequestUrl: "",
     StartTime: "",
     EndTime: "",
     PageIndex: 1,

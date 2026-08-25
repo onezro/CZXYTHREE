@@ -77,8 +77,11 @@
                     :min-width="getColumnWidth1('KittingStatusText')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.Description')" prop="Description"
                     :min-width="getColumnWidth1('Description')" />
-                <el-table-column fixed="right" :label="$t('publicText.operation')" width="80" align="center">
+                <el-table-column fixed="right" :label="$t('publicText.operation')" width="140" align="center">
                     <template #default="scope">
+                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.nonFirst')" placement="top">
+                            <el-button type="success" size="small" icon="Plus" @click="openNonFirstDialog(scope.row)" />
+                        </el-tooltip>
                         <el-tooltip :content="t('Scheduling.PrepareMaterials.resendPrepare')" placement="top">
                             <el-button :type="'info'" size="small" icon="Refresh" @click="handleResend(scope.row)" />
                         </el-tooltip>
@@ -241,11 +244,36 @@
                 </span>
             </template>
         </el-dialog>
+
+        <!-- 非首套叫料弹窗 -->
+        <el-dialog :title="t('Scheduling.CallMaterials.nonFirstTitle')" v-model="nonFirstVisible" width="500px"
+            align-center :close-on-click-modal="false">
+            <el-form ref="nonFirstFormRef" :model="nonFirstForm" :rules="nonFirstRules" label-width="100px">
+                <el-form-item :label="t('Scheduling.CallMaterials.GroupOrder')" prop="WOGroup">
+                    <el-input v-model="nonFirstForm.WOGroup" disabled />
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.CallMaterials.materialPN')" prop="MaterialPN">
+                    <el-input v-model="nonFirstForm.MaterialPN" disabled />
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.CallMaterials.qty')" prop="Qty">
+                    <el-input-number v-model="nonFirstForm.Qty" :min="1" :precision="0"
+                        :placeholder="t('Scheduling.CallMaterials.inputQty')" style="width: 100%" controls-position="right" />
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.CallMaterials.reason')" prop="Reason">
+                    <el-input v-model="nonFirstForm.Reason" type="textarea" :rows="3"
+                        :placeholder="t('Scheduling.CallMaterials.inputReason')" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="nonFirstVisible = false">{{ t('publicText.cancel') }}</el-button>
+                <el-button type="primary" :loading="nonFirstLoading" @click="submitNonFirst">{{ t('publicText.confirm') }}</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
-import { QueryMaterialPreparationList, QueryMaterialPreparationDetail, GenerateMaterialRequest, AddSupplementMaterialPreparation, ManualCreateSaiYiPreparePlan } from "@/api/Scheduling/index"
+import { QueryMaterialPreparationList, QueryMaterialPreparationDetail, GenerateMaterialRequest, AddSupplementMaterialPreparation, ManualCreateSaiYiPreparePlan, GenerateNonFirstMaterialRequest } from "@/api/Scheduling/index"
 import {
     GetSMTValorLine
 } from "@/api/smtApply/changeover";
@@ -260,11 +288,65 @@ import {
     onBeforeUnmount,
 } from "vue";
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
+import type { FormInstance, FormRules } from "element-plus";
 import { Warning } from "@element-plus/icons-vue";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 const userStore = useUserStoreWithOut();
 import { useI18n } from "vue-i18n";
 const { t } = useI18n();
+
+// ---------- 非首套叫料弹窗相关 ----------
+const nonFirstVisible = ref(false);
+const nonFirstLoading = ref(false);
+const nonFirstFormRef = ref<FormInstance>();
+const nonFirstForm = reactive({
+    WOGroup: "",
+    MaterialPN: "",
+    Qty: 1,
+    Reason: "",
+});
+const nonFirstRules = reactive<FormRules>({
+    Qty: [{ required: true, message: t('Scheduling.CallMaterials.inputQty'), trigger: 'blur' }],
+    Reason: [{ required: true, message: t('Scheduling.CallMaterials.inputReason'), trigger: 'blur' }],
+});
+
+const openNonFirstDialog = (row: any) => {
+    nonFirstForm.WOGroup = row.WOGroup || "";
+    nonFirstForm.MaterialPN = row.MaterialPreparationNo || "";
+    nonFirstForm.Qty = 1;
+    nonFirstForm.Reason = "";
+    nonFirstVisible.value = true;
+    nextTick(() => {
+        nonFirstFormRef.value?.clearValidate();
+    });
+};
+
+const submitNonFirst = async () => {
+    if (!nonFirstFormRef.value) return;
+    await nonFirstFormRef.value.validate((valid) => {
+        if (!valid) return;
+        nonFirstLoading.value = true;
+        const params = {
+            WOGroup: nonFirstForm.WOGroup,
+            MaterialPN: nonFirstForm.MaterialPN,
+            Qty: nonFirstForm.Qty,
+            Reason: nonFirstForm.Reason,
+        };
+        GenerateNonFirstMaterialRequest(params).then((res: any) => {
+            ElNotification({
+                title: t('publicText.tipTitle'),
+                message: res.Success ? t('Scheduling.CallMaterials.nonFirstSuccess') : res.Message,
+                type: res.Success ? "success" : "error",
+            });
+            if (res.Success) {
+                nonFirstVisible.value = false;
+                getData();
+            }
+        }).catch(() => { }).finally(() => {
+            nonFirstLoading.value = false;
+        });
+    });
+};
 
 // ---------- 高度自适应 ----------
 const tableHeight = ref(0);

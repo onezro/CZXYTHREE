@@ -20,7 +20,8 @@
             <el-row :gutter="10">
                 <el-col :span="8">
                     <el-table ref="eltableRef" size="small" :data="displayData" stripe border fit :height="tableHeight"
-                        highlight-current-row @row-click="handleRowClick">
+                        highlight-current-row @row-click="handleRowClick"
+                        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                         <el-table-column type="index" :label="$t('publicText.index')" width="50" align="center" />
                         <el-table-column prop="Name" :label="t('smtSpotCheck.firstBase.name')"
                             :min-width="getColumnWidth1('Name')" />
@@ -94,13 +95,6 @@
                         <el-table-column :label="t('smtSpotCheck.firstBase.subItemAim')" min-width="120">
                             <template #default="{ row }">
                                 {{ row.SubItemAim || '-' }}
-                            </template>
-                        </el-table-column>
-                        <el-table-column :label="$t('publicText.operation')" width="80" align="center">
-                            <template #default="{ $index }">
-                                <el-button type="danger" size="small" link @click="deleteSubItem($index)">
-                                    {{ t('publicText.delete') }}
-                                </el-button>
                             </template>
                         </el-table-column>
                         <template #empty>
@@ -245,6 +239,12 @@
                         <template #default="{ row }">
                             <el-input v-model="row.SubItemAim" size="small" type="textarea"
                                 :placeholder="t('smtSpotCheck.firstBase.subItemAimPlaceholder')" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="$t('publicText.operation')" width="80" align="center">
+                        <template #default="{ $index }">
+                            <el-button type="danger" size="small" link @click="removeEditDetailRow($index)">{{
+                                t('publicText.delete') }}</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -432,57 +432,6 @@ const handleCurrentChange = (val: number) => {
 // 点击左侧表格行
 const handleRowClick = (row: any) => {
     currentSelectedRow.value = row;
-};
-
-// ==================== 右侧明细删除子项 ====================
-const deleteSubItem = (index: number) => {
-    const subItems = currentSubItems.value;
-    // if (subItems.length <= 1) {
-    //     ElMessage.warning(t('smtSpotCheck.firstBase.cannotDeleteLastSubItem'));
-    //     return;
-    // }
-    const deletedItem = subItems[index];
-    ElMessageBox.confirm(`${t('publicText.confirmDelete')}【${deletedItem.SubItemName}】?`, t("publicText.confirm"), {
-        confirmButtonText: t("publicText.confirm"),
-        cancelButtonText: t("publicText.cancel"),
-        type: "warning",
-    }).then(() => {
-        // 构造删除后的子项列表
-        const newSubItems = subItems.filter((_, idx) => idx == index).map(item => ({
-            SubItemName: item.SubItemName,
-            SubItem: item.SubItem,
-            SubItemMethod: item.SubItemMethod || "",
-            SubItemBasic: item.SubItemBasic || "",
-            SubItemSolution: item.SubItemSolution || "",
-            SubItemAim: item.SubItemAim || "",
-            SubItemStatus: "I",
-        }));
-        const requestData = {
-            Product: "",
-            InspectType: "",
-            StepList: [
-                {
-                    Step: currentSelectedRow.value.Step,
-                    Status: "",
-                    Name: currentSelectedRow.value.Name,
-                    InspectContent: currentSelectedRow.value.InspectContent || "",
-                    StepItemList: newSubItems,
-                }
-            ]
-        };
-        DeleteFirstInspectData(requestData).then((res: any) => {
-            if (res.Success) {
-                ElMessage.success(res.Msg || "删除成功");
-                getData();
-            } else {
-                ElMessage.error(res.Msg || "删除失败");
-            }
-        }).catch(() => {
-            ElMessage.error("删除失败");
-        });
-    }).catch(() => {
-        ElMessage.info(t("publicText.cancel"));
-    });
 };
 
 // ==================== 删除工序 ====================
@@ -674,6 +623,53 @@ const openEdit = (row: any) => {
 const editDialogCancel = () => {
     editDialogVisible.value = false;
     editFormRef.value?.resetFields();
+};
+
+const removeEditDetailRow = (index: number) => {
+    const subItems = editForm.StepItemList;
+    const deletedItem = subItems[index];
+    ElMessageBox.confirm(`${t('publicText.confirmDelete')}【${deletedItem.SubItemName}】?`, t("publicText.confirm"), {
+        confirmButtonText: t("publicText.confirm"),
+        cancelButtonText: t("publicText.cancel"),
+        type: "warning",
+    }).then(() => {
+        // 构造删除后的子项列表
+        const newSubItems = subItems.filter((_, idx) => idx == index).map(item => ({
+            SubItemName: item.SubItemName,
+            SubItem: item.SubItem,
+            SubItemMethod: item.SubItemMethod || "",
+            SubItemBasic: item.SubItemBasic || "",
+            SubItemSolution: item.SubItemSolution || "",
+            SubItemAim: item.SubItemAim || "",
+            SubItemStatus: "I",
+        }));
+        const requestData = {
+            Product: "",
+            InspectType: "",
+            StepList: [
+                {
+                    Step: editForm.Step,
+                    Status: "",
+                    Name: editForm.Name,
+                    InspectContent: editForm.InspectContent || "",
+                    StepItemList: newSubItems,
+                }
+            ]
+        };
+        DeleteFirstInspectData(requestData).then((res: any) => {
+            if (res.Success) {
+                ElMessage.success(res.Msg || "删除成功");
+                editForm.StepItemList.splice(index, 1);
+                getData();
+            } else {
+                ElMessage.error(res.Msg || "删除失败");
+            }
+        }).catch(() => {
+            ElMessage.error("删除失败");
+        });
+    }).catch(() => {
+        ElMessage.info(t("publicText.cancel"));
+    });
 };
 
 const submitEdit = () => {

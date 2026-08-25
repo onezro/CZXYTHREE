@@ -123,6 +123,14 @@ export function AddSupplementMaterialPreparation(data:any) {
     });
 }
 
+export function GenerateNonFirstMaterialRequest(data:any) {
+    return request({
+        url: "/api/MaterialPreparation/GenerateNonFirstMaterialRequest",
+        method: "post",
+        data
+    });
+}
+
 export function UpdateMaterialRequestStatus(data:any) {
     return request({
         url: "/api/MaterialPreparation/UpdateMaterialRequestStatus",
@@ -144,6 +152,51 @@ export function ManualCreateSaiYiPreparePlan(data:any) {
 export function QueryOperationLog(data:any) {
     return request({
         url: "/api/APIRequestLogs/QueryPage",
+        method: "post",
+        data
+    });
+}
+
+//查询退料调拨主表列表
+export function GetProductionReturnAllocationList(data:any) {
+    return request({
+        url: "/api/mes/allocation/GetProductionReturnAllocationList",
+        method: "post",
+        data
+    });
+}
+
+//查询退料调拨明细列表
+export function GetProductionReturnAllocationDetailList(data:any) {
+    return request({
+        url: "/api/mes/allocation/GetProductionReturnAllocationDetailList",
+        method: "post",
+        data
+    });
+}
+
+//删除退料调拨主表
+export function DeleteProductionReturnAllocation(data:any) {
+    return request({
+        url: "/api/mes/allocation/DeleteProductionReturnAllocation",
+        method: "post",
+        data
+    });
+}
+
+//删除退料调拨明细
+export function DeleteProductionReturnAllocationDetail(data:any) {
+    return request({
+        url: "/api/mes/allocation/DeleteProductionReturnAllocationDetail",
+        method: "post",
+        data
+    });
+}
+
+//重新回传生产退料
+export function ResubmitProductionReturnAllocation(data:any) {
+    return request({
+        url: "/api/mes/allocation/ResubmitProductionReturnAllocation",
         method: "post",
         data
     });
