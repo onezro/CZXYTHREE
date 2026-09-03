@@ -1,13 +1,21 @@
 <template>
-  <div class="p-2">
-    <el-card shadow="always" :body-style="{ padding: '8px' }">
-      <div class="flex justify-between items-center mb-2">
-        <el-button type="primary" size="small" @click="addOpen">
-          {{ $t("publicText.add") }}
-        </el-button>
+  <div class="p-1">
+    <el-card shadow="never" :body-style="{ padding: '6px 8px' }">
+      <div class="flex justify-between items-center flex-wrap gap-y-1 mb-1">
+        <!-- 左：操作按钮组 -->
+        <div class="flex items-center flex-wrap gap-2">
+          <el-button type="primary" size="small" @click="addOpen">
+            {{ $t("publicText.add") }}
+          </el-button>
+          <el-button type="info" size="small" :disabled="selectedRows.length === 0"
+            @click="handleClearCell">
+            {{ $t("deviceManage.fixtureEntry.clearCell") }}
+          </el-button>
+        </div>
+        <!-- 右：搜索框 -->
         <div class="input_box">
           <el-input v-model="searchName" style="width: 350px" clearable
-            :placeholder="$t('deviceManage.fixtureEntry.searchPlaceholder')" @keyup.enter.native="searchData"
+            :placeholder="$t('deviceManage.fixtureEntry.searchPlaceholder')" @keyup.enter="searchData"
             @clear="clearData" size="small">
             <template #append>
               <el-button type="primary" icon="Search" @click="searchData" />
@@ -17,8 +25,9 @@
       </div>
 
       <el-table ref="tableRef" :data="tableData" border :height="tableHeight" style="width: 100%" size="small" stripe
-        highlight-current-row tooltip-effect="dark" v-loading="loading"
-        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+        highlight-current-row tooltip-effect="dark" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }"
+        @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="40" align="center" fixed="left" />
         <el-table-column type="index" :label="$t('publicText.index')" width="55" align="center" fixed="left">
           <template #default="{ $index }">
             {{ $index + 1 + (currentPage - 1) * pageSize }}
@@ -77,7 +86,7 @@
         </template>
       </el-table>
 
-      <div style="margin-top: 8px">
+      <div style="margin-top: 4px">
         <el-pagination align="center" background size="small" @size-change="handleSizeChange"
           @current-change="handleCurrentChange" :current-page="currentPage" :page-size="pageSize"
           :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next" :total="total" />
@@ -194,7 +203,7 @@ import { ref, reactive, computed, onBeforeMount, onMounted, onBeforeUnmount, nex
 // computed 仍用于 tableColumns 和 columnWidths
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useI18n } from "vue-i18n";
-import { queryToolsMold, queryToolsID, insertToolsID, updateToolsID, deleteToolsID, scrapToolsID, queryAssetToolsID } from "@/api/deviceManage/fixture";
+import { queryToolsMold, queryToolsID, insertToolsID, updateToolsID, deleteToolsID, scrapToolsID, queryAssetToolsID, CancelRackTask } from "@/api/deviceManage/fixture";
 import dayjs from "dayjs";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -216,6 +225,7 @@ const currentPage = ref(1);
 const pageSize = ref(50);
 const searchName = ref("");
 const total = ref(0);
+const selectedRows = ref<any[]>([]);
 
 // 类型列表（工治具类别）
 const typeList = ref<any[]>([]);
@@ -348,20 +358,10 @@ const getIDData = async () => {
   try {
     const res: any = await queryToolsID(params);
     if (res.Success) {
+      // console.log(res.Data);
       let rawData: any[] = [];
-      if (Array.isArray(res.Data)) {
-        rawData = res.Data;
-        total.value = res.Data.length;
-      } else if (res.Data && Array.isArray(res.Data.rows)) {
-        rawData = res.Data.rows;
-        total.value = res.Data.total || res.Data.rows.length;
-      } else if (res.Data && Array.isArray(res.Data.list)) {
-        rawData = res.Data.list;
-        total.value = res.Data.total || res.Data.list.length;
-      } else {
-        rawData = [];
-        total.value = 0;
-      }
+      rawData = res.Data.list;
+      total.value = res.Data.Total || 0;
       tableData.value = rawData.map((item: any) => ({
         ...item,
         ExpireDate: item.ExpireDate ? dayjs(item.ExpireDate).format("YYYY-MM-DD") : "",
@@ -580,6 +580,72 @@ const handleScrap = (row: any) => {
     .catch(() => {
       ElMessage.info(t("publicText.cancel"));
     });
+};
+
+// 储位清除（批量）
+const handleClearCell = () => {
+  const totalRows = selectedRows.value || [];
+  const validRows = totalRows.filter((r: any) => r && r.Cell);
+  if (validRows.length === 0) return;
+  const skipCount = totalRows.length - validRows.length;
+
+  // 储位列表：超过 8 条截断
+  const MAX_SHOW = 8;
+  const cellArr = validRows.map((r: any) => String(r.Cell));
+  const shownCells = cellArr.slice(0, MAX_SHOW).join("、");
+  let cellText = shownCells;
+  if (cellArr.length > MAX_SHOW) {
+    cellText += t("deviceManage.fixtureEntry.clearCellSkipHint", {
+      count: cellArr.length,
+      n: cellArr.length - MAX_SHOW,
+    });
+  }
+
+  const message =
+    totalRows.length === validRows.length
+      ? t("deviceManage.fixtureEntry.confirmClearCell", { cell: cellText })
+      : t("deviceManage.fixtureEntry.confirmClearCellBatch", {
+          total: totalRows.length,
+          skip: skipCount,
+          count: validRows.length,
+          cell: cellText,
+        });
+
+  ElMessageBox.confirm(message, t("publicText.tip"), {
+    confirmButtonText: t("publicText.confirm"),
+    cancelButtonText: t("publicText.cancel"),
+    type: "warning",
+    dangerouslyUseHTMLString: false,
+  })
+    .then(async () => {
+      loading.value = true;
+      try {
+        const data = {
+          items: validRows.map((r: any) => ({ rid: r.Tool, Cell: r.Cell })),
+          UserNo: userStore.getUserInfo || "",
+        };
+        const res: any = await CancelRackTask(data);
+        if (res.Success) {
+          ElMessage.success(t("deviceManage.fixtureEntry.clearCellSuccess"));
+          // 清除成功后清空选择
+          tableRef.value?.clearSelection?.();
+          await getIDData();
+        } else {
+          ElMessage.error(res.Msg || t("deviceManage.fixtureEntry.clearCellFailure"));
+        }
+      } catch (error) {
+        ElMessage.error(t("deviceManage.fixtureEntry.clearCellFailure"));
+      } finally {
+        loading.value = false;
+      }
+    })
+    .catch(() => {
+      ElMessage.info(t("publicText.cancel"));
+    });
+};
+
+const handleSelectionChange = (rows: any[]) => {
+  selectedRows.value = rows;
 };
 
 // 辅助函数：状态标签样式

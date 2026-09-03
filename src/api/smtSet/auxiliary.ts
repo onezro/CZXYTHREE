@@ -17,7 +17,15 @@ export function getProductDetail(data:any) {
 }
 export function insetProductData(data:any) {
   return request({
-    url: "/XingYuAPI/XY_CO_Product_CControl",
+    url: "/XingYuAPI/XY_CO_Product_IControl",
+    method: "post",
+    data,
+  });
+}
+
+export function insetConveyorWidth(data:any) {
+  return request({
+    url: "/api/ChangeOver/InsertUpdateConveyorWidth",
     method: "post",
     data,
   });

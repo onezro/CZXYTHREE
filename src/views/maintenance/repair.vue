@@ -2,36 +2,17 @@
   <div class="p-[10px]">
     <el-card shadow="always" :body-style="{ padding: '10px' }">
       <div>
-        <el-form
-          ref="formRef"
-          class="form flex justify-between"
-          :inline="true"
-          :model="getDataText"
-        >
+        <el-form ref="formRef" class="form flex justify-between" :inline="true" :model="getDataText">
           <div>
             <!-- <el-form> -->
             <el-form-item class="flex items-center">
-              <el-input
-                size="default"
-                placeholder="请输入板边码"
-                clearable
-                v-model="getDataText.SN"
-                class="input-with-select"
-              >
+              <el-input size="default" placeholder="请输入板边码" clearable v-model="getDataText.SN"
+                class="input-with-select">
               </el-input>
             </el-form-item>
             <el-form-item>
-              <el-select
-                v-model="getDataText.OperationType"
-                placeholder="操作类型"
-                style="width: 120px"
-              >
-                <el-option
-                  v-for="item in repairList"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                />
+              <el-select v-model="getDataText.OperationType" placeholder="操作类型" style="width: 120px">
+                <el-option v-for="item in repairList" :key="item.value" :label="item.label" :value="item.value" />
               </el-select>
             </el-form-item>
             <el-form-item>
@@ -40,241 +21,117 @@
             <!-- </el-form> -->
           </div>
           <el-form-item>
-            <el-button type="primary" @click="historyTableVisible = true"
-              >维修记录</el-button
-            >
+            <el-button type="primary" @click="historyTableVisible = true">维修记录</el-button>
           </el-form-item>
         </el-form>
       </div>
       <div class="table_container">
-        <el-table
-          :data="
-            tableData.slice(
-              (currentPage - 1) * pageSize,
-              currentPage * pageSize
-            )
-          "
-          border
-          :height="tableHeight"
-          row-key="step1"
-          style="width: 100%"
-          :tree-props="{ children: 'stepItemList' }"
-        >
+        <el-table :data="tableData.slice(
+          (currentPage - 1) * pageSize,
+          currentPage * pageSize
+        )
+          " border :height="tableHeight" row-key="step1" style="width: 100%"
+          :tree-props="{ children: 'stepItemList' }">
           <el-table-column prop="BarCode" label="SN条码" width="180">
           </el-table-column>
           <el-table-column prop="PadID" label="PadID"> </el-table-column>
           <el-table-column prop="Result" label="原因"> </el-table-column>
           <el-table-column prop="Remark" label="操作">
             <template #default="scope">
-              <el-button type="primary" @click="maintenance(scope.row)"
-                >维修</el-button
-              >
+              <el-button type="primary" @click="maintenance(scope.row)">维修</el-button>
             </template>
           </el-table-column>
         </el-table>
         <div class="block" style="margin-top: 15px">
-          <el-pagination
-            align="center"
-            background
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-            :current-page="currentPage"
-            :page-size="pageSize"
-            :page-sizes="[5, 10, 20, 50, 100]"
-            layout="total,sizes, prev, pager, next, jumper"
-            :total="tableData.length"
-          >
+          <el-pagination align="center" background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+            :current-page="currentPage" :page-size="pageSize" :page-sizes="[5, 10, 20, 50, 100]"
+            layout="total,sizes, prev, pager, next, jumper" :total="tableData.length">
           </el-pagination>
         </div>
       </div>
     </el-card>
     <el-dialog v-model="dialogTableVisible" title="维修" width="1000">
-      <el-form
-        :model="maintenanceForm"
-        :rules="rules"
-        :inline="true"
-        ref="ruleFormRef"
-      >
+      <el-form :model="maintenanceForm" :rules="rules" :inline="true" ref="ruleFormRef">
         <el-row>
           <el-col :span="6">
             <el-form-item label="内控SN" label-width="100px" prop="InternalSN">
-              <el-input
-                size="default"
-                v-model="maintenanceForm.InternalSN"
-                class="input-with-select"
-              >
+              <el-input size="default" v-model="maintenanceForm.InternalSN" class="input-with-select">
               </el-input>
             </el-form-item>
           </el-col>
           <el-col :span="6">
-            <el-form-item
-              label="生产计划号"
-              label-width="100px"
-              prop="WorkOrderNumber"
-            >
-              <el-input
-                size="default"
-                v-model="maintenanceForm.WorkOrderNumber"
-                class="input-with-select"
-              >
+            <el-form-item label="生产计划号" label-width="100px" prop="WorkOrderNumber">
+              <el-input size="default" v-model="maintenanceForm.WorkOrderNumber" class="input-with-select">
               </el-input>
             </el-form-item>
           </el-col>
           <el-col :span="6">
-            <el-form-item
-              label="维修类别"
-              label-width="100px"
-              prop="RepairType"
-            >
-              <el-select
-                v-model="maintenanceForm.RepairType"
-                placeholder="Select"
-                style="width: 120px"
-              >
-                <el-option
-                  v-for="item in ['测试']"
-                  :key="item"
-                  :label="item"
-                  :value="item"
-                />
+            <el-form-item label="维修类别" label-width="100px" prop="RepairType">
+              <el-select v-model="maintenanceForm.RepairType" placeholder="Select" style="width: 120px">
+                <el-option v-for="item in ['测试']" :key="item" :label="item" :value="item" />
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="6">
-            <el-form-item
-              label-width="100px"
-              label="不良原因"
-              prop="RepairReason"
-            >
-              <el-select
-                v-model="maintenanceForm.RepairReason"
-                placeholder="Select"
-                style="width: 120px"
-              >
-                <el-option
-                  v-for="item in ['测试']"
-                  :key="item"
-                  :label="item"
-                  :value="item"
-                />
+            <el-form-item label-width="100px" label="不良原因" prop="RepairReason">
+              <el-select v-model="maintenanceForm.RepairReason" placeholder="Select" style="width: 120px">
+                <el-option v-for="item in ['测试']" :key="item" :label="item" :value="item" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-divider />
         <el-form-item label="当前SN" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.CurrentBarcode"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.CurrentBarcode" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="面别" label-width="100px">
-          <el-select
-            v-model="maintenanceForm.FaceType"
-            placeholder="Select"
-            style="width: 180px"
-          >
-            <el-option
-              v-for="item in ['Top', 'Bot']"
-              :key="item"
-              :label="item"
-              :value="item"
-            />
+          <el-select v-model="maintenanceForm.FaceType" placeholder="Select" style="width: 180px">
+            <el-option v-for="item in ['Top', 'Bot']" :key="item" :label="item" :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item label="订单号" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.OrderNo"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.OrderNo" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="计划编号" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.PlanNumber"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.PlanNumber" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="客户名称" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.CustomerName"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.CustomerName" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="产品描述" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.ProductName"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.ProductName" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="工序名称" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.Processes"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.Processes" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="工序编码" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.ProcessesNumber"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.ProcessesNumber" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="拉线名称" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.StayWireName"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.StayWireName" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="拉线编码" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.StayWireNumber"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.StayWireNumber" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="返修工序" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.RepairProcesses"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.RepairProcesses" class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item label="返修工序编码" label-width="100px">
-          <el-input
-            size="default"
-            v-model="maintenanceForm.RepairProcessesNumber"
-            class="input-with-select"
-          >
+          <el-input size="default" v-model="maintenanceForm.RepairProcessesNumber" class="input-with-select">
           </el-input>
         </el-form-item>
-        <el-form-item
-          label-width="100px"
-          label="维修备注"
-          style="width: calc(100% - 70px)"
-        >
-          <el-input
-            v-model="maintenanceForm.Repairlnformation"
-            :rows="2"
-            type="textarea"
-            placeholder="请输入"
-          />
+        <el-form-item label-width="100px" label="维修备注" style="width: calc(100% - 70px)">
+          <el-input v-model="maintenanceForm.Repairlnformation" :rows="2" type="textarea" placeholder="请输入" />
         </el-form-item>
         <!-- <el-form-item label="订单号"> </el-form-item>
         <el-form-item label="计划编号"> </el-form-item>
@@ -301,46 +158,25 @@
       </template>
     </el-dialog>
 
-    <el-dialog
-      v-model="historyTableVisible"
-      title="查询返修维修记录"
-      width="1000"
-      align-center
-    >
+    <el-dialog v-model="historyTableVisible" title="查询返修维修记录" width="1000" align-center>
       <el-form :inline="true">
         <el-form-item>
-          <el-input
-            size="default"
-            placeholder="请输入内控SN"
-            clearable
-            v-model="getHistoryText.InternalSN"
-            class="input-with-select"
-          >
+          <el-input size="default" placeholder="请输入内控SN" clearable v-model="getHistoryText.InternalSN"
+            class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item>
-          <el-input
-            size="default"
-            placeholder="请输入位号"
-            clearable
-            v-model="getHistoryText.Position"
-            class="input-with-select"
-          >
+          <el-input size="default" placeholder="请输入位号" clearable v-model="getHistoryText.Position"
+            class="input-with-select">
           </el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="getHistory()">查询</el-button>
         </el-form-item>
       </el-form>
-      <table-tem
-        :showIndex="true"
-        :tableData="historyTable"
-        :tableHeight="'60vh'"
-        :columnData="columnData"
-        :pageObj="pageObj1"
-        @handleSizeChange="handleSizeChange1"
-        @handleCurrentChange="handleCurrentChange1"
-      ></table-tem>
+      <table-tem :showIndex="true" :tableData="historyTable" :tableHeight="'60vh'" :columnData="columnData"
+        :pageObj="pageObj1" @handleSizeChange="handleSizeChange1"
+        @handleCurrentChange="handleCurrentChange1"></table-tem>
     </el-dialog>
   </div>
 </template>
@@ -536,10 +372,10 @@ const sureMaintenance = (formEl: any) => {
     if (valid) {
       dialogTableVisible.value = false;
       MaintenanceAdd(maintenanceForm.value).then((res: any) => {
-    if (!res || res.content === null || res.content.length === 0) {
-      tableData.value = [];
-      return;
-    }
+        if (!res || res.content === null || res.content.length === 0) {
+          tableData.value = [];
+          return;
+        }
         getData();
         ElMessage({
           message: res.msg,

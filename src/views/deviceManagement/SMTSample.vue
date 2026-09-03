@@ -36,6 +36,10 @@
                         <el-button size="small" @click="resetSearch">{{ t("publicText.reset") }}</el-button>
                         <el-button type="warning" size="small" @click="openAdd">{{ t("publicText.add") }}</el-button>
                         <el-button type="success" size="small" @click="importDialogVisible = true">{{ t("publicText.import") }}</el-button>
+                        <el-button type="info" size="small" :disabled="selectedRows.length === 0"
+                            @click="handleClearCell">
+                            {{ t("deviceManage.smtSample.clearCell") }}
+                        </el-button>
                         <el-button size="small" type="danger" :disabled="selectedRows.length === 0"
                         @click="handleBatchDelete">
                         {{ t("publicText.batchDelete") }}
@@ -336,6 +340,7 @@ import {
     QuerySMTSampleList,
     ImportSMTSample,
 } from "@/api/deviceManage/SMTSample";
+import { CancelRackTask } from "@/api/deviceManage/fixture";
 import { ref, reactive, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useI18n } from "vue-i18n";
@@ -718,6 +723,39 @@ const handleBatchDelete = () => {
                 }
             } catch (error) {
                 ElMessage.error(t("message.deleteFailure"));
+            } finally {
+                loading.value = false;
+            }
+        })
+        .catch(() => { });
+};
+
+// 储位清除（批量）
+const handleClearCell = () => {
+    const validRows = selectedRows.value.filter((r: any) => r.location);
+    if (validRows.length === 0) return;
+    const cells = validRows.map((r: any) => r.location).join(", ");
+    ElMessageBox.confirm(
+        t("deviceManage.smtSample.confirmClearCell", { cell: cells }),
+        t("publicText.tip"),
+        { confirmButtonText: t("publicText.confirm"), cancelButtonText: t("publicText.cancel"), type: "warning" }
+    )
+        .then(async () => {
+            loading.value = true;
+            try {
+                const data = {
+                    items: validRows.map((r: any) => ({ rid: r.sample_no, Cell: r.location })),
+                    UserNo: userStore.getUserInfo || "",
+                };
+                const res: any = await CancelRackTask(data);
+                if (res.Success) {
+                    ElMessage.success(t("deviceManage.smtSample.clearCellSuccess"));
+                    getData();
+                } else {
+                    ElMessage.error(res.Msg || t("deviceManage.smtSample.clearCellFailure"));
+                }
+            } catch (error) {
+                ElMessage.error(t("deviceManage.smtSample.clearCellFailure"));
             } finally {
                 loading.value = false;
             }

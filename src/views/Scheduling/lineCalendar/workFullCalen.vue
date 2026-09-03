@@ -11,9 +11,8 @@
             <div class="text-xl font-bold">{{ calendarTitle }}</div>
           </div>
           <div class="flex gap-2">
-            <el-select v-model="calendarLine" placeholder="请选择产线" style="width: 200px" filterable
-              @change="changeLine">
-              <el-option v-for="l in lineData" :label="l.Description" :value="l.MfgLineName" />
+            <el-select v-model="calendarLine" placeholder="请选择产线" style="width: 200px" filterable @change="changeLine">
+              <el-option v-for="l in lineData" :label="l.name" :value="l.name" />
             </el-select>
             <el-select v-model="viewType" placeholder="视图类型" style="width: 80px" class="header_select"
               @change="handleChangeType">
@@ -36,8 +35,9 @@
     <el-drawer v-model="drawer" title="新增日程计划" direction="rtl" size="400" @close="handleClose">
       <el-form ref="formRef" :model="formData" label-width="auto">
         <el-form-item label="产线" prop="WorkLineName">
-          <el-select v-model="formData.WorkLineName" placeholder="请选择产线" multiple :clearble="false" style="width: 220px" collapse-tags collapse-tags-tooltip>
-            <el-option v-for="l in lineData" :label="l.Description" :value="l.MfgLineName" />
+          <el-select v-model="formData.WorkLineName" placeholder="请选择产线" multiple :clearble="false" style="width: 220px"
+            collapse-tags collapse-tags-tooltip>
+            <el-option v-for="l in lineData" :label="l.name" :value="l.name" />
           </el-select>
         </el-form-item>
 
@@ -60,21 +60,21 @@
 
         <el-divider content-position="center">白班</el-divider>
         <el-form-item label="开始时间" prop="formData.classtime[0].ClassStartTime">
-          <el-time-select v-model="formData.classtime[0].ClassStartTime" style="width: 220px" start="08:00" step="00:30"
-            end="14:00" format="HH:mm:ss" />
+          <el-time-select v-model="formData.classtime[0].ClassStartTime" style="width: 220px" start="00:00" step="00:30"
+            end="23:30" format="HH:mm:ss" />
         </el-form-item>
         <el-form-item label="结束时间" prop="formData.classtime[0].ClassEndTime">
-          <el-time-select v-model="formData.classtime[0].ClassEndTime" style="width: 220px" start="16:00" step="00:30"
-            end="20:30" format="HH:mm:ss" />
+          <el-time-select v-model="formData.classtime[0].ClassEndTime" style="width: 220px" start="00:00" step="00:30"
+            end="23:30" format="HH:mm:ss" />
         </el-form-item>
         <el-divider content-position="center">夜班</el-divider>
         <el-form-item label="开始时间" prop="formData.classtime[1].ClassStartTime">
-          <el-time-select v-model="formData.classtime[1].ClassStartTime" style="width: 220px" start="19:00" step="00:30"
-            end="21:00" format="HH:mm:ss" />
+          <el-time-select v-model="formData.classtime[1].ClassStartTime" style="width: 220px" start="00:00" step="00:30"
+            end="23:30" format="HH:mm:ss" />
         </el-form-item>
         <el-form-item label="结束时间" prop="formData.classtime[1].ClassEndTime">
-          <el-time-select v-model="formData.classtime[1].ClassEndTime" style="width: 220px" start="06:00" step="00:30"
-            end="09:00" format="HH:mm:ss" />
+          <el-time-select v-model="formData.classtime[1].ClassEndTime" style="width: 220px" start="00:00" step="00:30"
+            end="23:30" format="HH:mm:ss" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -112,8 +112,9 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="产线" prop="WorkLine">
-          <el-select v-model="planForm.WorkLine" placeholder="请选择产线" multiple :clearble="false" style="width: 220px" collapse-tags collapse-tags-tooltip>
-            <el-option v-for="l in lineData" :label="l.Description" :value="l.MfgLineName" />
+          <el-select v-model="planForm.WorkLine" placeholder="请选择产线" multiple :clearble="false" style="width: 220px"
+            collapse-tags collapse-tags-tooltip>
+            <el-option v-for="l in lineData" :label="l.name" :value="l.name" />
           </el-select>
         </el-form-item>
         <el-form-item label="计划类型" prop="SelectType">
@@ -170,8 +171,9 @@
           </el-radio-group>
         </el-form-item>
         <el-form-item label="产线" prop="WorkLine">
-          <el-select v-model="editForm.WorkLine" placeholder="请选择产线" multiple :clearble="false" style="width: 220px" disabled collapse-tags collapse-tags-tooltip>
-            <el-option v-for="l in lineData" :label="l.Description" :value="l.MfgLineName" />
+          <el-select v-model="editForm.WorkLine" placeholder="请选择产线" multiple :clearble="false" style="width: 220px"
+            disabled collapse-tags collapse-tags-tooltip>
+            <el-option v-for="l in lineData" :label="l.name" :value="l.name" />
           </el-select>
         </el-form-item>
         <el-form-item label="计划类型" prop="SelectType">
@@ -363,18 +365,20 @@ const eventClickData = (val: any) => {
 
   let data = val.event._def.extendedProps
   if (data.Calendar_Type == "日程计划") {
-
+    console.log(data);
     // editForm.value.TimeLong = dayjs(data.Calendary_End).diff(
     //   data.Calendar_Start,
     //   "hours"
     // );
+    const StartTime1 = dayjs(data.Calendar_Start).format("HH:mm:ss");
+
     SelectCalendarPlan({ PlanId: data.Calendar_PlanId }).then((res: any) => {
       editForm.value = {
         PlanId: data.Calendar_PlanId,
         WorkLine: res.Data[0].CalendarHead_ProductLine ? [res.Data[0].CalendarHead_ProductLine] : [],
         PlanName: data.Calendar_Name,
         PlanDate: res.Data[0].CalendarPlan_SelectDate,
-        StartTime: res.Data[0].CalendarPlan_SelectTime,
+        StartTime: StartTime1,
         TimeLong: res.Data[0].CalendarPlan_TimeLong,
         WorkStatus: res.Data[0].CalendarPlan_StatusType,
         SelectType: res.Data[0].CalendarPlan_SelectType,
@@ -423,6 +427,13 @@ const deletePlan = () => {
           planVisible.value = false
           getData()
         }
+        else {
+          ElNotification({
+            title: "提示信息",
+            message: res.Message,
+            type: "error",
+          });
+        }
       })
     })
     .catch(() => {
@@ -456,6 +467,13 @@ const editPlan = () => {
       }
       planVisible.value = false
       getData()
+    }
+    else {
+      ElNotification({
+        title: "提示信息",
+        message: res.Message,
+        type: "error",
+      });
     }
   })
 }
@@ -602,7 +620,7 @@ const getNext = () => {
 const getLineData = () => {
   GetMESWorkLineNews({ WorkLineName: "" }).then((res: any) => {
     lineData.value = res.Data;
-    calendarLine.value = res.Data[0].MfgLineName;
+    calendarLine.value = res.Data[0].name;
     getForm.value.WorkLineName = [calendarLine.value];
     getData();
   });
@@ -732,7 +750,7 @@ const changeDate = () => {
 </script>
 
 <style scoped>
-  :deep(.fc .fc-toolbar.fc-header-toolbar) {
-        margin-bottom:0.5em !important;
-  }
+:deep(.fc .fc-toolbar.fc-header-toolbar) {
+  margin-bottom: 0.5em !important;
+}
 </style>

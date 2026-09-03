@@ -135,3 +135,12 @@ export function importToolsSpec(data:any) {
     data,
   });
 }
+
+// 储位清除（取消料框任务）
+export function CancelRackTask(data: any) {
+  return request({
+    url: "/api/FixtureIssue/CancelRackTask",
+    method: "post",
+    data,
+  });
+}

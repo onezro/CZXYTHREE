@@ -74,9 +74,7 @@ const { getColumnWidth } = useTableColumnWidth(tableRef, tableData, {
 });
 
 const getData = () => {
-  QueryProductMSDData(getForm).then((res: any) => {
-    console.log(res);
-    
+  QueryProductMSDData(getForm).then((res: any) => {  
     if (res.Success) {
       tableData.value = res.Data.list || [];
       total.value = res.Data.Total || 0;

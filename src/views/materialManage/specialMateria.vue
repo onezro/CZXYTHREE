@@ -23,9 +23,9 @@
                 <el-form-item class="mb-2">
                     <el-button type="primary" @click="searchData">{{ t('publicText.query') }}</el-button>
                 </el-form-item>
-                <el-form-item class="mb-2">
+                <!-- <el-form-item class="mb-2">
                     <el-button type="success" @click="openAdd">{{ t('publicText.add') }}</el-button>
-                </el-form-item>
+                </el-form-item> -->
             </el-form>
             <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
                 :tooltip-effect="'dark'" border fit ref="eltableRef"
@@ -69,12 +69,12 @@
                         {{ formatDate(row.ud_dt) }}
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('publicText.operation')" prop="operation" width="140" align="center" fixed="right">
+                <!-- <el-table-column :label="t('publicText.operation')" prop="operation" width="140" align="center" fixed="right">
                     <template #default="{ row }">
                         <el-button type="primary" size="small" @click="openEdit(row)">{{ t('publicText.edit') }}</el-button>
                         <el-button type="danger" size="small" @click="handleDelete(row)">{{ t('publicText.delete') }}</el-button>
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />

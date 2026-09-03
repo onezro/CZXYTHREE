@@ -121,4 +121,85 @@ export function QueryPointSheet(data: any) {
   });
 }
 
+// 新增/修改AGV点位类别
+export function InsertUpdatePointType(data: any) {
+  return request({
+    url: "/api/mes/agv/InsertUpdatePointType",
+    method: "post",
+    data,
+  });
+}
+
+// 删除AGV点位类别
+export function DeletePointType(data: any) {
+  return request({
+    url: "/api/mes/agv/DeletePointType",
+    method: "post",
+    data,
+  });
+}
+
+// 查询AGV点位类别分页
+export function QueryPointType(data: any) {
+  return request({
+    url: "/api/mes/agv/QueryPointType",
+    method: "post",
+    data,
+  });
+}
+
+// 新增/修改AGV点位类别表
+export function InsertUpdatePointTypeSheet(data: any) {
+  return request({
+    url: "/api/mes/agv/InsertUpdatePointTypeSheet",
+    method: "post",
+    data,
+  });
+}
+
+// 删除AGV点位类别表
+export function DeletePointTypeSheet(data: any) {
+  return request({
+    url: "/api/mes/agv/DeletePointTypeSheet",
+    method: "post",
+    data,
+  });
+}
+
+// 查询AGV点位类别表分页
+export function QueryPointTypeSheet(data: any) {
+  return request({
+    url: "/api/mes/agv/QueryPointTypeSheet",
+    method: "post",
+    data,
+  });
+}
+
+// 查询可用的点位类别下拉
+export function GetEnablePointType(params?: any) {
+  return request({
+    url: "/api/mes/agv/GetEnablePointType",
+    method: "get",
+    params,
+  });
+}
+
 export { QueryPlateLoaderUnloader, InsertUpdatePlateLoaderUnloader, DeletePlateLoaderUnloader } from './plateLoaderUnloader';
+
+// AGV任务查询分页
+export function QueryAgvTaskPage(data: any) {
+  return request({
+    url: "/api/AgvTask/QueryPage",
+    method: "post",
+    data,
+  });
+}
+
+// 取消AGV任务
+export function GiveAgvTask(data: any) {
+  return request({
+    url: "/api/AgvTask/GiveAgvTask",
+    method: "post",
+    data,
+  });
+}

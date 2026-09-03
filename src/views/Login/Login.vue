@@ -103,7 +103,19 @@ const loginClick = () => {
       } else {
         push({ path: redirect.value });
       }
+    } else {
+      ElNotification({
+        title: t('login.loginFailed'),
+        message: data.Message || t('login.loginFailed'),
+        type: "error",
+      });
     }
+  }).catch((err: any) => {
+    ElNotification({
+      title: t('login.loginFailed'),
+      message: err?.Message || err?.message || t('login.loginFailed'),
+      type: "error",
+    });
   });
 };
 const switchSystems = () => {

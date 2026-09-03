@@ -15,8 +15,10 @@
         </div>
       </div>
       <div class="table_container">
-        <el-table ref="tableRef" :data="tableData" :height="tableHeight" border stripe style="width: 100%" size="small">
-          <el-table-column :label="t('publicText.index')" width="55" align="center">
+        <el-table ref="tableRef" :data="tableData" :height="tableHeight" border stripe style="width: 100%" size="small"
+          highlight-current-row
+          :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+          <el-table-column :label="t('publicText.index')" width="55" align="center" fixed="left">
             <template #default="scope">
               <span>{{
                 scope.$index + 1 + (currentPage - 1) * getlistText.pageSize
@@ -24,23 +26,99 @@
             </template>
           </el-table-column>
           <el-table-column prop="containerid" :label="t('wmsInMain.containerManage.containerId')"
-            :min-width="getColumnWidth('containerid')">
+            :min-width="getColumnWidth('containerid')" show-overflow-tooltip fixed="left">
+           
           </el-table-column>
           <el-table-column prop="containername" :label="t('wmsInMain.containerManage.containerName')"
-            :min-width="getColumnWidth('containername')">
+            :min-width="getColumnWidth('containername')" show-overflow-tooltip fixed="left">
+            
           </el-table-column>
-          <el-table-column prop="spec" :label="t('wmsInMain.containerManage.spec')" :min-width="getColumnWidth('spec')">
+          <el-table-column prop="spec" :label="t('wmsInMain.containerManage.spec')"
+            :min-width="getColumnWidth('spec')" show-overflow-tooltip>
+          
+          </el-table-column>
+          <el-table-column prop="pn" :label="t('wmsInMain.containerManage.pn')"
+            :min-width="getColumnWidth('pn')" show-overflow-tooltip>
+            
+          </el-table-column>
+          <el-table-column prop="qty" :label="t('wmsInMain.containerManage.qty')" align="center"
+            :min-width="getColumnWidth('qty')">
+           
+          </el-table-column>
+          <el-table-column prop="cellno" :label="t('wmsInMain.containerManage.cellNo')"
+            :min-width="getColumnWidth('cellno')" show-overflow-tooltip>
+          
+          </el-table-column>
+          <el-table-column prop="remarks" :label="t('wmsInMain.containerManage.remarks')"
+            :min-width="getColumnWidth('remarks')" show-overflow-tooltip>
+          
           </el-table-column>
           <el-table-column prop="capacity" :label="t('wmsInMain.containerManage.maxCapacity')"
-            :min-width="getColumnWidth('capacity')">
+            :min-width="getColumnWidth('capacity')" align="center">
+           
           </el-table-column>
-          <el-table-column prop="producetype" :label="t('wmsInMain.containerManage.produceType')"
+          <el-table-column prop="stts" :label="t('wmsInMain.containerManage.status')" align="center"
+            :min-width="getColumnWidth('stts')">
+            <template #default="{ row }">
+              <el-tag v-if="[row.stts, row.Stts].includes(-1)" type="danger" size="small">
+                {{ t('wmsInMain.containerManage.invalid') }}
+              </el-tag>
+              <el-tag v-else-if="[row.stts, row.Stts].includes(0)" type="info" size="small">
+                {{ t('wmsInMain.containerManage.unused') }}
+              </el-tag>
+              <el-tag v-else-if="[row.stts, row.Stts].includes(1)" type="success" size="small">
+                {{ t('wmsInMain.containerManage.inUse') }}
+              </el-tag>
+              <span v-else>{{ row.stts ?? row.Stts ?? "-" }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="Wo" :label="t('wmsInMain.containerManage.wo')"
+            :min-width="getColumnWidth('Wo')" show-overflow-tooltip>
+           
+          </el-table-column>
+          <el-table-column prop="Side" :label="t('wmsInMain.containerManage.side')" align="center"
+            :min-width="getColumnWidth('Side')">
+           
+          </el-table-column>
+          <el-table-column prop="Lock_no" :label="t('wmsInMain.containerManage.lockNo')"
+            :min-width="getColumnWidth('Lock_no')" show-overflow-tooltip>
+           
+          </el-table-column>
+          <el-table-column prop="producetype" :label="t('wmsInMain.containerManage.produceType')" align="center"
             :min-width="getColumnWidth('producetype')">
+           
           </el-table-column>
-          <el-table-column prop="maxusenum" :label="t('wmsInMain.containerManage.maxUseNum')"
+          <el-table-column prop="maxusenum" :label="t('wmsInMain.containerManage.maxUseNum')" align="center"
             :min-width="getColumnWidth('maxusenum')">
+            
           </el-table-column>
-          <el-table-column prop="exfactorydate" :label="t('wmsInMain.containerManage.exFactoryDate')" width="180">
+          <el-table-column prop="usednum" :label="t('wmsInMain.containerManage.usedNum')" align="center"
+            :min-width="getColumnWidth('usednum')">
+           
+          </el-table-column>
+          <el-table-column prop="exfactorydate" :label="t('wmsInMain.containerManage.exFactoryDate')"
+            :min-width="getColumnWidth('exfactorydate')">
+            <template #default="{ row }">
+              {{ formatDate(row.exfactorydate ?? row.ExFactoryDate) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="checkresult" :label="t('wmsInMain.containerManage.checkResult')"
+            :min-width="getColumnWidth('checkresult')" show-overflow-tooltip>
+           
+          </el-table-column>
+          <el-table-column prop="pointno" :label="t('wmsInMain.containerManage.pointNo')"
+            :min-width="getColumnWidth('pointno')" show-overflow-tooltip>
+          
+          </el-table-column>
+          <el-table-column prop="updatetime" :label="t('wmsInMain.containerManage.updateTime')"
+            :min-width="getColumnWidth('updatetime')">
+            <template #default="{ row }">
+              {{ formatDate(row.updatetime ?? row.UpdateTime) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="updateuser" :label="t('wmsInMain.containerManage.updateUser')"
+            :min-width="getColumnWidth('updateuser')" show-overflow-tooltip>
+          
           </el-table-column>
           <el-table-column fixed="right" :label="t('publicText.operation')" width="200" align="center">
             <template #default="scope">
@@ -246,6 +324,12 @@ const rules = {
 const { getColumnWidth } = useTableColumnWidth(tableRef, tableData, {
   excludeLabels: [t("publicText.index"), t("publicText.operation")],
 });
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr || dateStr === "1900-01-01T00:00:00") return "-";
+  const d = dayjs(dateStr);
+  return d.isValid() ? d.format("YYYY-MM-DD HH:mm:ss") : (dateStr ?? "-");
+};
 
 // 监听 containerid 变化
 watch(

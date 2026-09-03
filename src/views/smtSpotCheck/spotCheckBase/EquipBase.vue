@@ -98,13 +98,6 @@
                                 {{ getStatusLabel(row.SubItemStatus) }}
                             </template>
                         </el-table-column>
-                        <el-table-column :label="$t('publicText.operation')" width="80" align="center">
-                            <template #default="{ $index }">
-                                <el-button type="danger" size="small" link @click="deleteSubItem($index)">
-                                    {{ t('publicText.delete') }}
-                                </el-button>
-                            </template>
-                        </el-table-column>
                         <template #empty>
                             <el-empty :description="t('smtSpotCheck.firstBase.noSubItem')" />
                         </template>
@@ -264,6 +257,12 @@
                                     :value="item.value"
                                 />
                             </el-select>
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="$t('publicText.operation')" width="80" align="center">
+                        <template #default="{ $index }">
+                            <el-button type="danger" size="small" link @click="removeEditDetailRow($index)">{{
+                                t('publicText.delete') }}</el-button>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -468,9 +467,9 @@ const handleRowClick = (row: any) => {
     currentSelectedRow.value = row;
 };
 
-// ==================== 右侧明细删除子项（修正逻辑） ====================
-const deleteSubItem = async (index: number) => {
-    const subItems = currentSubItems.value;
+// ==================== 编辑弹窗内删除子项 ====================
+const removeEditDetailRow = async (index: number) => {
+    const subItems = editForm.StepItemList;
     const deletedItem = subItems[index];
     try {
         await ElMessageBox.confirm(`${t('publicText.confirmDelete')}【${deletedItem.SubItemName}】?`, t("publicText.confirm"), {
@@ -494,10 +493,10 @@ const deleteSubItem = async (index: number) => {
             InspectType: "",
             StepList: [
                 {
-                    Step: currentSelectedRow.value.Step,
+                    Step: editForm.Step,
                     Status: "",
-                    Name: currentSelectedRow.value.Name,
-                    InspectContent: currentSelectedRow.value.InspectContent || "",
+                    Name: editForm.Name,
+                    InspectContent: editForm.InspectContent || "",
                     StepItemList: newSubItems,
                 }
             ]
@@ -505,6 +504,7 @@ const deleteSubItem = async (index: number) => {
         const res: any = await DeleteEquipInspectData(requestData);
         if (res.Success) {
             ElMessage.success(res.Msg || "删除成功");
+            editForm.StepItemList.splice(index, 1);
             getData();
         } else {
             ElMessage.error(res.Msg || "删除失败");

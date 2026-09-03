@@ -1,6 +1,6 @@
 <template>
   <div class="p-2 flex gap-[10px]">
-    <el-card shadow="always" :body-style="{ padding: '8px' }" class="w-[250px] h-[calc(100vh-97px)]">
+    <!-- <el-card shadow="always" :body-style="{ padding: '8px' }" class="w-[250px] h-[calc(100vh-97px)]">
       <template #header>
         <div class="card-header flex justify-between items-center">
           <div class="flex gap-[5px] items-center">
@@ -21,14 +21,14 @@
           label: 'OrganizationName',
         }" @node-click="handleNodeClick" />
       </el-scrollbar>
-    </el-card>
+    </el-card> -->
 
-    <el-card shadow="always" :body-style="{ padding: '8px 8px 0 8px' }" class="flex-1">
-      <div class="mb-2 flex justify-between">
+    <el-card shadow="always" :body-style="{ padding: '8px' }" class="flex-1">
+      <div class=" flex justify-between">
         <div>
           <el-button type="primary" @click="handleAdd()" size="small">添加员工</el-button>
         </div>
-        <div>
+        <div class="mb-2">
           <el-input v-model="searchName" clearable placeholder="请输入">
             <template #append>
               <el-button type="primary" icon="Search"></el-button> </template></el-input>
@@ -466,13 +466,13 @@ const getHasRole = () => {
 const openAdd = () => {
   editVisible.value = true;
 };
-const dataPrecc = (data: any) => {
+const dataPrecc1 = (data: any) => {
   // console.log(data);
   let beforeData = data; //将dataArr赋值给beforeData  也可直接操作dataArr
   let tempArr = [];
   let afterData = []; //新数组
   for (let i = 0; i < beforeData.length; i++) {
-    if (tempArr.indexOf(beforeData[i].EmployeeId) === -1) {
+    if (tempArr.indexOf(beforeData[i].EmployeeName) === -1) {
       // console.log(beforeData[i].RoleName);
       afterData.push({
         employeeId: beforeData[i].EmployeeId,
@@ -486,12 +486,12 @@ const dataPrecc = (data: any) => {
           beforeData[i].RoleName == null ? [] : [beforeData[i].RoleName],
         LastLoginTime: beforeData[i].LastLoginTime,
       });
-      tempArr.push(beforeData[i].EmployeeId);
+      tempArr.push(beforeData[i].EmployeeName);
     } else {
       // console.log(1)
       for (let j = 0; j < afterData.length; j++) {
         if (
-          afterData[j].employeeId == beforeData[i].EmployeeId &&
+          afterData[j].employeeName == beforeData[i].EmployeeName &&
           beforeData[i].RoleName !== null
         ) {
           afterData[j].RoleName.push(beforeData[i].RoleName);
@@ -508,7 +508,48 @@ const dataPrecc = (data: any) => {
   tableData.value = afterData;
   tableData1.value = tableData.value;
 };
-
+const dataPrecc = (data: any) => {
+  // console.log(data);
+  let beforeData = data; //将dataArr赋值给beforeData  也可直接操作dataArr
+  let tempArr = [];
+  let afterData = []; //新数组
+  for (let i = 0; i < beforeData.length; i++) {
+    if (tempArr.indexOf(beforeData[i].EmployeeName) === -1) {
+      // console.log(beforeData[i].RoleName);
+      afterData.push({
+        employeeId: beforeData[i].EmployeeId,
+        employeeName: beforeData[i].EmployeeName,
+        fullName: beforeData[i].FullName,
+        title: beforeData[i].title,
+        email: beforeData[i].email,
+        OrganizationName: beforeData[i].OrganizationName,
+        OrganizationID: beforeData[i].OrganizationID,
+        RoleName:
+          beforeData[i].RoleName == null ? [] : [beforeData[i].RoleName],
+        LastLoginTime: beforeData[i].LastLoginTime,
+      });
+      tempArr.push(beforeData[i].EmployeeName);
+    } else {
+      // console.log(1)
+      for (let j = 0; j < afterData.length; j++) {
+        if (
+          afterData[j].employeeName == beforeData[i].EmployeeName &&
+          beforeData[i].RoleName !== null
+        ) {
+          afterData[j].RoleName.push(beforeData[i].RoleName);
+          break;
+        }
+      }
+    }
+  }
+  // console.log(afterData);
+  afterData.sort((a, b) => {
+    return a.employeeName.localeCompare(b.employeeName);
+  });
+  // console.log(afterData);
+  tableData.value = afterData;
+  tableData1.value = tableData.value;
+};
 const handleEdit = (row: any) => {
   roleName.value = row.fullName;
   // form.value.roleId = row.RoleId;
@@ -733,7 +774,7 @@ const handleCurrentChange = (val: any) => {
 };
 const getScreenHeight = () => {
   nextTick(() => {
-    tableHeight.value = window.innerHeight - 185;
+    tableHeight.value = window.innerHeight - 190;
   });
 };
 const getMaxLength = (arr: any) => {

@@ -42,6 +42,9 @@
                     <el-button :type="'primary'" :disabled="selectList.length !== 1" @click="handleGenerateCall">
                         {{ t('Scheduling.PrepareMaterials.generateCall') }}
                     </el-button>
+                    <el-button :type="'success'" :disabled="selectList.length !== 1"  @click="openNonFirstDialog(selectList[0])">
+                        {{ t('Scheduling.CallMaterials.nonFirst') }}
+                    </el-button>
                     <el-button :type="'warning'" :disabled="selectList.length !== 1" @click="addMaterial">{{ t('Scheduling.PrepareMaterials.StatusType2')
                     }}</el-button>
                 </el-form-item>
@@ -75,13 +78,10 @@
                     :min-width="getColumnWidth1('IsKittedText')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.KittingStatus')" prop="KittingStatusText"
                     :min-width="getColumnWidth1('KittingStatusText')" />
-                <el-table-column :label="t('Scheduling.PrepareMaterials.Description')" prop="Description"
-                    :min-width="getColumnWidth1('Description')" />
-                <el-table-column fixed="right" :label="$t('publicText.operation')" width="140" align="center">
+                <el-table-column :label="t('Scheduling.PrepareMaterials.Reason')" prop="Reason"
+                    :min-width="getColumnWidth1('Reason')" />
+                <el-table-column fixed="right" :label="$t('publicText.operation')" width="80" align="center">
                     <template #default="scope">
-                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.nonFirst')" placement="top">
-                            <el-button type="success" size="small" icon="Plus" @click="openNonFirstDialog(scope.row)" />
-                        </el-tooltip>
                         <el-tooltip :content="t('Scheduling.PrepareMaterials.resendPrepare')" placement="top">
                             <el-button :type="'info'" size="small" icon="Refresh" @click="handleResend(scope.row)" />
                         </el-tooltip>
@@ -255,10 +255,6 @@
                 <el-form-item :label="t('Scheduling.CallMaterials.materialPN')" prop="MaterialPN">
                     <el-input v-model="nonFirstForm.MaterialPN" disabled />
                 </el-form-item>
-                <el-form-item :label="t('Scheduling.CallMaterials.qty')" prop="Qty">
-                    <el-input-number v-model="nonFirstForm.Qty" :min="1" :precision="0"
-                        :placeholder="t('Scheduling.CallMaterials.inputQty')" style="width: 100%" controls-position="right" />
-                </el-form-item>
                 <el-form-item :label="t('Scheduling.CallMaterials.reason')" prop="Reason">
                     <el-input v-model="nonFirstForm.Reason" type="textarea" :rows="3"
                         :placeholder="t('Scheduling.CallMaterials.inputReason')" />
@@ -298,22 +294,20 @@ const { t } = useI18n();
 // ---------- 非首套叫料弹窗相关 ----------
 const nonFirstVisible = ref(false);
 const nonFirstLoading = ref(false);
-const nonFirstFormRef = ref<FormInstance>();
+const nonFirstFormRef = ref<any>();
 const nonFirstForm = reactive({
     WOGroup: "",
     MaterialPN: "",
-    Qty: 1,
     Reason: "",
 });
-const nonFirstRules = reactive<FormRules>({
-    Qty: [{ required: true, message: t('Scheduling.CallMaterials.inputQty'), trigger: 'blur' }],
+const nonFirstRules = reactive<any>({
     Reason: [{ required: true, message: t('Scheduling.CallMaterials.inputReason'), trigger: 'blur' }],
 });
 
 const openNonFirstDialog = (row: any) => {
+    if (!row) return;
     nonFirstForm.WOGroup = row.WOGroup || "";
     nonFirstForm.MaterialPN = row.MaterialPreparationNo || "";
-    nonFirstForm.Qty = 1;
     nonFirstForm.Reason = "";
     nonFirstVisible.value = true;
     nextTick(() => {
@@ -323,13 +317,12 @@ const openNonFirstDialog = (row: any) => {
 
 const submitNonFirst = async () => {
     if (!nonFirstFormRef.value) return;
-    await nonFirstFormRef.value.validate((valid) => {
+    await nonFirstFormRef.value.validate((valid: any) => {
         if (!valid) return;
         nonFirstLoading.value = true;
         const params = {
             WOGroup: nonFirstForm.WOGroup,
             MaterialPN: nonFirstForm.MaterialPN,
-            Qty: nonFirstForm.Qty,
             Reason: nonFirstForm.Reason,
         };
         GenerateNonFirstMaterialRequest(params).then((res: any) => {
@@ -707,23 +700,40 @@ const { getColumnWidth: getColumnWidth1 } = useTableColumnWidth(tableMasterRef, 
 const { getColumnWidth: getColumnWidth2 } = useTableColumnWidth(tableDetailRef, tableData2, {
     excludeLabels: [t('publicText.index'), t('publicText.operation')]
 });
-const getScreenHeight = () => {
+const formRef = ref();
+let formResizeObserver: ResizeObserver | null = null;
+
+const calcTableHeight = () => {
     nextTick(() => {
-        tableHeight.value = window.innerHeight - 500;
-        tableHeight2.value = window.innerHeight - tableHeight.value - 215;
+        const formEl = formRef.value?.$el;
+        const formHeight = formEl ? formEl.offsetHeight : 48;
+        const cardPadding = 16;
+        const tableGap = 10;
+        const paginationHeight = 36;
+        const detailHeaderHeight = 0;
+        const available = window.innerHeight - formHeight - cardPadding - tableGap - paginationHeight - detailHeaderHeight - 20-100;
+        tableHeight.value = Math.floor(available * 0.45);
+        tableHeight2.value = available - tableHeight.value;
     });
 };
 
 onBeforeMount(() => {
-    getScreenHeight();
+    calcTableHeight();
 });
 onMounted(() => {
-    window.addEventListener("resize", getScreenHeight);
+    window.addEventListener("resize", calcTableHeight);
+    if (formRef.value?.$el) {
+        formResizeObserver = new ResizeObserver(() => {
+            calcTableHeight();
+        });
+        formResizeObserver.observe(formRef.value.$el);
+    }
     getLineList();
     getData();
 });
 onBeforeUnmount(() => {
-    window.removeEventListener("resize", getScreenHeight);
+    window.removeEventListener("resize", calcTableHeight);
+    formResizeObserver?.disconnect();
 });
 </script>
 

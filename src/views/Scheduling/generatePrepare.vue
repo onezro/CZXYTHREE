@@ -36,10 +36,10 @@
                     :min-width="getColumnWidth('PN')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.BomVersion')" prop="BomVer"
                     :min-width="getColumnWidth('BomVer')" />
-                <el-table-column :label="t('Scheduling.generatePrepare.Quantity')" prop="planQty"
+                <!-- <el-table-column :label="t('Scheduling.generatePrepare.Quantity')" prop="planQty"
                     :min-width="getColumnWidth('planQty')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.Side')" prop="Side"
-                    :min-width="getColumnWidth('Side')" />
+                    :min-width="getColumnWidth('Side')" /> -->
                 <el-table-column :label="t('Scheduling.generatePrepare.LXLine')" prop="LXLine"
                     :min-width="getColumnWidth('LXLine')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.ProgramMerge')" prop="ProgramMerge"

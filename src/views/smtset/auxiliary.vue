@@ -57,26 +57,51 @@
             </div>
         </el-card>
 
-        <!-- 添加/编辑弹窗 -->
-        <el-dialog :title="isEdit ? t('smtset.auxiliary.editTitle') : t('publicText.add')" v-model="dialogVisible" width="500px"
-            :close-on-click-modal="false" @closed="handleDialogClosed">
-            <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
-                <el-form-item :label="t('smtset.auxiliary.product')" prop="product">
-                    <el-select v-model="form.product" :disabled="isEdit" filterable
+        <!-- 新增弹窗 -->
+        <el-dialog :title="t('publicText.add')" v-model="addDialogVisible" width="500px"
+            :close-on-click-modal="false" @closed="handleAddDialogClosed">
+            <el-form ref="addFormRef" :model="addForm" :rules="formRules" label-width="100px">
+                <el-form-item :label="t('smtset.auxiliary.product')" prop="Product">
+                    <el-select v-model="addForm.Product" filterable
                         :placeholder="t('smtset.auxiliary.selectPlaceholder')" style="width: 100%">
                         <el-option v-for="item in productOptions" :key="item" :label="item" :value="item" />
                     </el-select>
                 </el-form-item>
-                <el-form-item :label="t('smtset.auxiliary.width')" prop="width">
-                    <el-input v-model="form.width" :placeholder="t('smtset.auxiliary.widthPlaceholder')" />
+                <el-form-item :label="t('smtset.auxiliary.width')" prop="Width">
+                    <el-input v-model="addForm.Width" :placeholder="t('smtset.auxiliary.widthPlaceholder')" />
                 </el-form-item>
-                <el-form-item :label="t('smtset.auxiliary.speed')" prop="speed">
-                    <el-input v-model="form.speed" :placeholder="t('smtset.auxiliary.speedPlaceholder')" />
+                <el-form-item :label="t('smtset.auxiliary.speed')" prop="Speed">
+                    <el-input v-model="addForm.Speed" :placeholder="t('smtset.auxiliary.speedPlaceholder')" />
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="dialogVisible = false">{{ t('publicText.cancel') }}</el-button>
-                <el-button type="primary" @click="onSubmit" :loading="submitLoading">
+                <el-button @click="addDialogVisible = false">{{ t('publicText.cancel') }}</el-button>
+                <el-button type="primary" @click="onAddSubmit" :loading="addSubmitLoading">
+                    {{ t('publicText.confirm') }}
+                </el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 修改弹窗 -->
+        <el-dialog :title="t('smtset.auxiliary.editTitle')" v-model="editDialogVisible" width="500px"
+            :close-on-click-modal="false" @closed="handleEditDialogClosed">
+            <el-form ref="editFormRef" :model="editForm" :rules="formRules" label-width="100px">
+                <el-form-item :label="t('smtset.auxiliary.product')" prop="Product">
+                    <el-select v-model="editForm.Product" filterable disabled
+                        :placeholder="t('smtset.auxiliary.selectPlaceholder')" style="width: 100%">
+                        <el-option v-for="item in productOptions" :key="item" :label="item" :value="item" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="t('smtset.auxiliary.width')" prop="Width">
+                    <el-input v-model="editForm.Width" :placeholder="t('smtset.auxiliary.widthPlaceholder')" />
+                </el-form-item>
+                <el-form-item :label="t('smtset.auxiliary.speed')" prop="Speed">
+                    <el-input v-model="editForm.Speed" :placeholder="t('smtset.auxiliary.speedPlaceholder')" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="editDialogVisible = false">{{ t('publicText.cancel') }}</el-button>
+                <el-button type="primary" @click="onEditSubmit" :loading="editSubmitLoading">
                     {{ t('publicText.confirm') }}
                 </el-button>
             </template>
@@ -85,7 +110,7 @@
 </template>
 
 <script setup lang="ts">
-import { getProduct, insetProductData, queryProductQControl } from "@/api/smtSet/auxiliary";
+import { getProduct, insetProductData, queryProductQControl, insetConveyorWidth } from "@/api/smtSet/auxiliary";
 import { ElMessage } from "element-plus";
 import { useI18n } from "vue-i18n";
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
@@ -98,7 +123,6 @@ const { t } = useI18n();
 const tableMasterRef = ref();
 const tableHeight = ref(0);
 const loading = ref(false);
-const submitLoading = ref(false);
 const tableData = ref<any[]>([]);
 const searchText = ref("");
 const total = ref(0);
@@ -113,25 +137,34 @@ const { getColumnWidth } = useTableColumnWidth(tableMasterRef, tableData, {
     excludeLabels: [t('publicText.index'), t('publicText.operation')]
 });
 
-// 弹窗
-const dialogVisible = ref(false);
-const isEdit = ref(false);
-const formRef = ref();
-const form = reactive({
-    product: "",
-    width: "",
-    speed: "",
-    updatetime: "",
+// 新增弹窗
+const addDialogVisible = ref(false);
+const addSubmitLoading = ref(false);
+const addFormRef = ref();
+const addForm = reactive({
+    Product: "",
+    Width: "",
+    Speed: "",
+});
+
+// 修改弹窗
+const editDialogVisible = ref(false);
+const editSubmitLoading = ref(false);
+const editFormRef = ref();
+const editForm = reactive({
+    Product: "",
+    Width: "",
+    Speed: "",
 });
 
 const formRules = {
-    product: [
+    Product: [
         { required: true, message: t('smtset.auxiliary.productRequired'), trigger: 'change' },
     ],
-    width: [
+    Width: [
         { required: true, message: t('smtset.auxiliary.widthRequired'), trigger: 'blur' },
     ],
-    speed: [
+    Speed: [
         { required: true, message: t('smtset.auxiliary.speedRequired'), trigger: 'blur' },
     ],
 };
@@ -188,39 +221,49 @@ const handleCurrentChange = (val: number) => {
     getData();
 };
 
-// 重置表单
-const resetForm = () => {
-    form.product = "";
-    form.width = "";
-    form.speed = "";
+// 重置新增表单
+const resetAddForm = () => {
+    addForm.Product = "";
+    addForm.Width = "";
+    addForm.Speed = "";
+};
+
+// 重置修改表单
+const resetEditForm = () => {
+    editForm.Product = "";
+    editForm.Width = "";
+    editForm.Speed = "";
 };
 
 // 打开新增
 const openAdd = () => {
-    isEdit.value = false;
-    resetForm();
-    dialogVisible.value = true;
+    resetAddForm();
+    addDialogVisible.value = true;
 };
 
 // 编辑
 const handleEdit = (row: any) => {
-    isEdit.value = true;
-    form.product = row.ProductName;
-    form.width = row.Width != null ? String(row.Width) : "";
-    form.speed = row.Speed != null ? String(row.Speed) : "";
-    dialogVisible.value = true;
+    editForm.Product = row.ProductName || "";
+    editForm.Width = row.Width != null ? String(row.Width) : "";
+    editForm.Speed = row.Speed != null ? String(row.Speed) : "";
+    editDialogVisible.value = true;
 };
 
-// 提交
-const onSubmit = () => {
-    formRef.value?.validate((valid: boolean) => {
+// 新增提交 -> insetProductData {Product, Width(number), speed(lowercase, number), updatetime}
+const onAddSubmit = () => {
+    addFormRef.value?.validate((valid: boolean) => {
         if (!valid) return;
-        submitLoading.value = true;
-        form.updatetime = new Date().toJSON();
-        insetProductData(form).then((res: any) => {
+        addSubmitLoading.value = true;
+        const payload = {
+            Product: addForm.Product,
+            Width: Number(addForm.Width) || 0,
+            speed: Number(addForm.Speed) || 0,
+            updatetime: new Date().toJSON(),
+        };
+        insetProductData(payload).then((res: any) => {
             if (res.Success) {
                 ElMessage.success(t('smtset.auxiliary.setSuccess'));
-                dialogVisible.value = false;
+                addDialogVisible.value = false;
                 getData();
             } else {
                 ElMessage.error(res.Message);
@@ -228,15 +271,45 @@ const onSubmit = () => {
         }).catch(() => {
             ElMessage.error(t('smtset.auxiliary.setError'));
         }).finally(() => {
-            submitLoading.value = false;
+            addSubmitLoading.value = false;
+        });
+    });
+};
+
+// 修改提交 -> insetConveyorWidth {Product, Width, Speed}
+const onEditSubmit = () => {
+    editFormRef.value?.validate((valid: boolean) => {
+        if (!valid) return;
+        editSubmitLoading.value = true;
+        const payload = {
+            Product: editForm.Product,
+            Width: editForm.Width,
+            Speed: editForm.Speed,
+        };
+        insetConveyorWidth(payload).then((res: any) => {
+            if (res.Success) {
+                ElMessage.success(t('smtset.auxiliary.setSuccess'));
+                editDialogVisible.value = false;
+                getData();
+            } else {
+                ElMessage.error(res.Message);
+            }
+        }).catch(() => {
+            ElMessage.error(t('smtset.auxiliary.setError'));
+        }).finally(() => {
+            editSubmitLoading.value = false;
         });
     });
 };
 
 // 弹窗关闭后重置表单验证
-const handleDialogClosed = () => {
-    formRef.value?.resetFields();
-    resetForm();
+const handleAddDialogClosed = () => {
+    addFormRef.value?.resetFields();
+    resetAddForm();
+};
+const handleEditDialogClosed = () => {
+    editFormRef.value?.resetFields();
+    resetEditForm();
 };
 
 // ==================== 表格高度自适应 ====================

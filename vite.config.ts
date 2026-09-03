@@ -29,7 +29,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/controlApi/, '') 
       },
       '/smtApplyApi': {
-        target: 'http://172.16.28.85:12022',//http://172.16.28.106:12022
+        target: 'http://172.16.28.85:12022',//http://172.16.28.85:12022
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/smtApplyApi/, '') 
       },

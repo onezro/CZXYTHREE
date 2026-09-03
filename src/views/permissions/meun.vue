@@ -6,7 +6,7 @@
       </div>
       <div class="w-full">
         <el-table size="small" :data="tableData" stripe border fit :height="tableHeight" row-key="ID"
-          :tree-props="{ children: 'childMenu' }"  :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+          :tree-props="{ children: 'childMenu' }" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
 
           <el-table-column prop="title" label="标题"> </el-table-column>
           <el-table-column prop="icon" label="图标" align="center" width="60">
@@ -31,8 +31,8 @@
               <el-tooltip content="复制" placement="top" v-if="
                 scope.row.MenuName !== 'Portal' &&
                 scope.row.MenuName !== 'PDA' &&
-                scope.row.MenuName !== 'OPUI'&&
-                 scope.row.MenuName !== 'PC'
+                scope.row.MenuName !== 'OPUI' &&
+                scope.row.MenuName !== 'PC'
               ">
                 <el-button type="warning" icon="CopyDocument" size="small"
                   @click.prevent="handleCopy(scope.row)"></el-button>
@@ -40,8 +40,8 @@
               <el-tooltip content="编辑" placement="top" v-if="
                 scope.row.MenuName !== 'Portal' &&
                 scope.row.MenuName !== 'PDA' &&
-                scope.row.MenuName !== 'OPUI'&&
-                 scope.row.MenuName !== 'PC'
+                scope.row.MenuName !== 'OPUI' &&
+                scope.row.MenuName !== 'PC'
               ">
                 <el-button type="primary" icon="EditPen" size="small"
                   @click.prevent="handleEdit(scope.row)"></el-button>
@@ -50,8 +50,8 @@
               <el-tooltip content="删除" placement="top" v-if="
                 scope.row.MenuName !== 'Portal' &&
                 scope.row.MenuName !== 'PDA' &&
-                scope.row.MenuName !== 'OPUI'&&
-                 scope.row.MenuName !== 'PC'
+                scope.row.MenuName !== 'OPUI' &&
+                scope.row.MenuName !== 'PC'
               ">
                 <el-button type="danger" icon="Delete" size="small"
                   @click.prevent="handleDelete(scope.row)"></el-button>
@@ -94,19 +94,19 @@
                     <component :is="getIconComponent(form.icon)" />
                   </el-icon>
                 </template>
+                <template #suffix>
+                  <el-icon v-if="form.icon" @click.stop="clearIcon('add')" :size="14"
+                    style="cursor: pointer; color: #909399">
+                    <CircleClose />
+                  </el-icon>
+                </template>
               </el-input>
             </template>
             <div class="icon-picker">
               <el-input v-model="iconSearchKeyword" placeholder="搜索图标" size="small" clearable class="mb-2" />
               <div class="icon-grid">
-                <div
-                  v-for="name in filteredIcons"
-                  :key="name"
-                  class="icon-item"
-                  :class="{ active: form.icon === name }"
-                  @click="selectIcon(name, 'add')"
-                  :title="name"
-                >
+                <div v-for="name in filteredIcons" :key="name" class="icon-item" :class="{ active: form.icon === name }"
+                  @click="selectIcon(name, 'add')" :title="name">
                   <el-icon :size="18">
                     <component :is="getIconComponent(name)" />
                   </el-icon>
@@ -171,19 +171,19 @@
                     <component :is="getIconComponent(editForm.icon)" />
                   </el-icon>
                 </template>
+                <template #suffix>
+                  <el-icon v-if="editForm.icon" @click.stop="clearIcon('edit')" :size="14"
+                    style="cursor: pointer; color: #909399">
+                    <CircleClose />
+                  </el-icon>
+                </template>
               </el-input>
             </template>
             <div class="icon-picker">
               <el-input v-model="iconSearchKeyword" placeholder="搜索图标" size="small" clearable class="mb-2" />
               <div class="icon-grid">
-                <div
-                  v-for="name in filteredIcons"
-                  :key="name"
-                  class="icon-item"
-                  :class="{ active: editForm.icon === name }"
-                  @click="selectIcon(name, 'edit')"
-                  :title="name"
-                >
+                <div v-for="name in filteredIcons" :key="name" class="icon-item"
+                  :class="{ active: editForm.icon === name }" @click="selectIcon(name, 'edit')" :title="name">
                   <el-icon :size="18">
                     <component :is="getIconComponent(name)" />
                   </el-icon>
@@ -241,19 +241,19 @@
                     <component :is="getIconComponent(copyform.icon)" />
                   </el-icon>
                 </template>
+                <template #suffix>
+                  <el-icon v-if="copyform.icon" @click.stop="clearIcon('copy')" :size="14"
+                    style="cursor: pointer; color: #909399">
+                    <CircleClose />
+                  </el-icon>
+                </template>
               </el-input>
             </template>
             <div class="icon-picker">
               <el-input v-model="iconSearchKeyword" placeholder="搜索图标" size="small" clearable class="mb-2" />
               <div class="icon-grid">
-                <div
-                  v-for="name in filteredIcons"
-                  :key="name"
-                  class="icon-item"
-                  :class="{ active: copyform.icon === name }"
-                  @click="selectIcon(name, 'copy')"
-                  :title="name"
-                >
+                <div v-for="name in filteredIcons" :key="name" class="icon-item"
+                  :class="{ active: copyform.icon === name }" @click="selectIcon(name, 'copy')" :title="name">
                   <el-icon :size="18">
                     <component :is="getIconComponent(name)" />
                   </el-icon>
@@ -281,7 +281,7 @@
 import { ElMessage, ElMessageBox, ElTree } from "element-plus";
 import * as AntIcons from "@ant-design/icons-vue";
 import * as ElIcons from "@element-plus/icons-vue";
-
+import { CopyDocument, EditPen, Delete } from "@element-plus/icons-vue";
 import { useUserStoreWithOut } from '@/stores/modules/user'
 import { getFirstMeun, addMeun, deleteMeun, updateMeun } from "@/api/permiss";
 import { commonIcons } from "@/utils/iconList";
@@ -378,7 +378,7 @@ const list = reactive([{
   value: 'OPUI',
   label: 'OPUI'
 },
- {
+{
   value: 'PC',
   label: 'PC'
 }])
@@ -414,6 +414,16 @@ const selectIcon = (name: string, target: 'add' | 'edit' | 'copy') => {
     copyIconPopoverVisible.value = false;
   }
   iconSearchKeyword.value = '';
+};
+
+const clearIcon = (target: 'add' | 'edit' | 'copy') => {
+  if (target === 'add') {
+    form.value.icon = '';
+  } else if (target === 'edit') {
+    editForm.icon = '';
+  } else if (target === 'copy') {
+    copyform.value.icon = '';
+  }
 };
 onBeforeMount(() => {
   getScreenHeight();
@@ -533,7 +543,7 @@ const handleDelete = (row: any) => {
       // row.sonNum!=null? dataDispose(row):false
       // console.log(arrID.value);
       arrID.value.forEach((item) => {
-        deleteMeun(item).then((res:any) => {
+        deleteMeun(item).then((res: any) => {
           // console.log(data);
           arrID.value = arrID.value.filter((ID) => ID != item);
           // console.log(this.arrID);
@@ -554,7 +564,7 @@ const editCancel = () => {
   editVisible.value = false;
 };
 const editSubmit = () => {
-  updateMeun(editForm).then((res:any) => {
+  updateMeun(editForm).then((res: any) => {
     // console.log(res);
     editVisible.value = false;
     getData();
@@ -629,14 +639,17 @@ const getScreenHeight = () => {
 .icon-picker {
   max-height: 320px;
   overflow-y: auto;
+
   .mb-2 {
     margin-bottom: 8px;
   }
+
   .icon-grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     gap: 4px;
   }
+
   .icon-item {
     display: flex;
     align-items: center;
@@ -646,9 +659,11 @@ const getScreenHeight = () => {
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s;
+
     &:hover {
       background-color: var(--el-color-primary-light-9);
     }
+
     &.active {
       background-color: var(--el-color-primary);
       color: #fff;

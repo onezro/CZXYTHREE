@@ -152,11 +152,6 @@ watch(date, (newValue) => {
 }, { immediate: true });
 
 const getData = () => {
-  const loading = ElLoading.service({
-    lock: true,
-    text: "Loading...",
-    background: "rgba(0, 0, 0, 0.2)",
-  });
   QueryWarehouseInspectionData(form).then(({ data }: any) => {
     if (data.Success) {
       tableData.value = data.Data.list;
@@ -165,27 +160,21 @@ const getData = () => {
       tableData.value = [];
       form.PageIndex = 1;
     }
-    loading.close();
   });
 };
 
 const dataSubmit = () => {
   form.PageIndex = 1;
   form.PageSize = 20;
-  const loading = ElLoading.service({
-    lock: true,
-    text: "Loading...",
-    background: "rgba(0, 0, 0, 0.2)",
-  });
-  QueryWarehouseInspectionData(form).then(({ data }: any) => {
-    if (data.Success) {
-      tableData.value = data.Data.list;
-      total.value = data.Data.Total;
+
+  QueryWarehouseInspectionData(form).then((res: any) => {
+    if (res.Success) {
+      tableData.value = res.Data.list;
+      total.value = res.Data.Total;
     } else {
       tableData.value = [];
       form.PageIndex = 1;
     }
-    loading.close();
   });
 };
 

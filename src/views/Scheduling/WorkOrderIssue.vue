@@ -3,14 +3,22 @@
     <el-card shadow="always" :body-style="{ padding: '8px' }">
       <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.prevent>
         <el-form-item :label="t('Scheduling.WorkOrderIssue.groupOrder')" prop="groupOrder" class="mb-2">
-          <el-input v-model="getForm.group_order" :placeholder="t('Scheduling.WorkOrderIssue.pleaseInputGroupOrder')" clearable
-            @clear="queryReturnMaterials" @keyup.enter="queryReturnMaterials" style="width: 200px" />
+          <el-input v-model="getForm.group_order" :placeholder="t('Scheduling.WorkOrderIssue.pleaseInputGroupOrder')"
+            clearable @clear="queryReturnMaterials" @keyup.enter="queryReturnMaterials" style="width: 200px" />
         </el-form-item>
         <el-form-item :label="t('Scheduling.WorkOrderIssue.reelId')" prop="reelId" class="mb-2">
           <el-input v-model="getForm.reel_id" :placeholder="t('Scheduling.WorkOrderIssue.reelId')" clearable
             @clear="queryReturnMaterials" @keyup.enter="queryReturnMaterials" style="width: 200px" />
         </el-form-item>
-        <el-form-item :label="t('Scheduling.WorkOrderIssue.timeRange')" prop="queryTime" class="mb-2">
+        <el-form-item :label="t('Scheduling.WorkOrderIssue.uploadStatus')" prop="upload_status" class="mb-2">
+          <el-select v-model="getForm.upload_status" clearable
+            :placeholder="t('Scheduling.WorkOrderIssue.uploadStatus')" style="width: 140px"
+            @change="queryReturnMaterials">
+            <el-option :label="t('Scheduling.WorkOrderIssue.notUploaded')" :value="0" />
+            <el-option :label="t('Scheduling.WorkOrderIssue.uploaded')" :value="1" />
+          </el-select>
+        </el-form-item>
+        <!-- <el-form-item :label="t('Scheduling.WorkOrderIssue.timeRange')" prop="queryTime" class="mb-2">
           <el-date-picker style="width: 350px;" v-model="queryTime" type="datetimerange" range-separator="-"
             :start-placeholder="t('Scheduling.WorkOrderIssue.startTimePlaceholder')"
             :end-placeholder="t('Scheduling.WorkOrderIssue.endTimePlaceholder')"
@@ -18,7 +26,7 @@
               new Date(2000, 1, 1, 0, 0, 0),
               new Date(2000, 1, 1, 23, 59, 59),
             ]" :clearable="false" @change="handleDateRangeChange" :disabled-date="disabledDate" />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item class="mb-2">
           <el-button type="primary" @click="queryReturnMaterials">{{ t('publicText.query') }}</el-button>
         </el-form-item>
@@ -30,8 +38,8 @@
       <!-- 上表格：工单组列表 -->
       <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="masterTableHeight"
         :tooltip-effect="'dark'" border fit ref="tableRef"
-        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }"
-        highlight-current-row @row-click="handleRowClick">
+        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }" highlight-current-row
+        @row-click="handleRowClick">
         <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
           <template #default="scope">
             <span>{{ (getForm.PageIndex - 1) * getForm.PageSize + scope.$index + 1 }}</span>
@@ -67,10 +75,9 @@
         </template>
       </el-table>
       <div class="mt-2">
-        <el-pagination :size="'small'" background @size-change="handleSizeChange"
-          @current-change="handleCurrentChange" :pager-count="5" :current-page="getForm.PageIndex"
-          :page-size="getForm.PageSize" :page-sizes="[30, 50, 100, 200, 300]"
-          layout="total,sizes, prev, pager, next" :total="total">
+        <el-pagination :size="'small'" background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+          :pager-count="5" :current-page="getForm.PageIndex" :page-size="getForm.PageSize"
+          :page-sizes="[30, 50, 100, 200, 300]" layout="total,sizes, prev, pager, next" :total="total">
         </el-pagination>
       </div>
 
@@ -90,8 +97,7 @@
           :min-width="getColumnWidth1('material_pn')" show-overflow-tooltip />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.reelId')" prop="reel_id"
           :min-width="getColumnWidth1('reel_id')" show-overflow-tooltip />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.totalQty')" prop="total_qty" width="100"
-          align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.totalQty')" prop="total_qty" width="100" align="center" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.remainQty')" prop="remain_qty" width="100"
           align="center" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.actRetQty')" prop="act_ret_qty" width="100"
@@ -161,15 +167,15 @@ const getForm = reactive({
   reel_id: '',
   status: 0,
   upload_status: 0,
-  start_time: '',
-  end_time: '',
+  // start_time: '',
+  // end_time: '',
 });
 
 const queryTime = ref<any[]>([]);
 
 const handleDateRangeChange = (val: any[]) => {
-  getForm.start_time = val?.[0] || "";
-  getForm.end_time = val?.[1] || "";
+  // getForm.start_time = val?.[0] || "";
+  // getForm.end_time = val?.[1] || "";
 };
 
 const disabledDate = (time: Date) => {
@@ -210,10 +216,10 @@ const queryReturnMaterials = () => {
     reel_id: getForm.reel_id,
     status: getForm.status,
     upload_status: getForm.upload_status,
+    group_order: getForm.group_order,
   };
-  if (getForm.group_order) params.group_order = getForm.group_order;
-  if (getForm.start_time) params.start_time = getForm.start_time;
-  if (getForm.end_time) params.end_time = getForm.end_time;
+  // if (getForm.start_time) params.start_time = getForm.start_time;
+  // if (getForm.end_time) params.end_time = getForm.end_time;
 
   QueryReturnMaterials(params)
     .then((res: any) => {
@@ -263,6 +269,7 @@ const resetQuery = () => {
   queryTime.value = getDefaultDateRange();
   getForm.group_order = '';
   getForm.reel_id = '';
+  getForm.upload_status = 0;
   getForm.PageIndex = 1;
   tableData.value = [];
   total.value = 0;
@@ -287,7 +294,7 @@ const handleIssue = (row: any) => {
     .then(() => {
       issueMaterials(group_order);
     })
-    .catch(() => {});
+    .catch(() => { });
 };
 
 const issueMaterials = (group_order: string) => {
@@ -305,7 +312,7 @@ const issueMaterials = (group_order: string) => {
         ElMessage.error(res.Message || t("publicText.failure"));
       }
     })
-    .catch(() => {});
+    .catch(() => { });
 };
 
 const handleSizeChange = (val: number) => {

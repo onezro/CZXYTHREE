@@ -75,8 +75,8 @@
                         {{ formatDate(row.MaterialRequest_UpdateDt) }}
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('Scheduling.CallMaterials.Remark')" prop="MaterialRequest_Remark"
-                    :min-width="getColumnWidth('MaterialRequest_Remark')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.CallMaterials.Reason')" prop="Reason"
+                    :min-width="getColumnWidth('Reason')" show-overflow-tooltip />
                 <el-table-column :label="t('publicText.operation')" prop="operation" width="160" align="center" fixed="right">
                     <template #default="{ row }">
                         <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.Detail')" placement="top">
