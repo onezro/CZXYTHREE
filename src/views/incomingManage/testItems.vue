@@ -26,12 +26,13 @@
                 <!-- 左侧：检验项目主表列表 -->
                 <el-col :span="9">
                     <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                        :tooltip-effect="'dark'" border fit @row-click="handleRowClick" highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                        :tooltip-effect="'dark'" border fit @row-click="handleRowClick" highlight-current-row
+                        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                         <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                             <template #default="scope">
                                 <span>{{
                                     scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1
-                                }}</span>
+                                    }}</span>
                             </template>
                         </el-table-column>
                         <el-table-column :label="t('incomingManage.testItems.projectCode')" prop="ProjectCode"
@@ -78,7 +79,8 @@
                         <span v-if="currentProjectCode" class="detail-project-code">{{ currentProjectCode }}</span>
                     </div>
                     <el-table :data="detailData" size="small" :style="{ width: '100%' }" :height="tableHeight2"
-                        :tooltip-effect="'dark'" border fit :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                        :tooltip-effect="'dark'" border fit
+                        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                         <el-table-column type="index" align="center" :label="$t('publicText.index')" width="50" />
                         <el-table-column :label="t('incomingManage.testItems.gaugeCode')" prop="InspectionCode"
                             :min-width="getColumnWidth2('InspectionCode')" />
@@ -165,7 +167,7 @@
                             t('publicText.add') }}检验项</el-button>
                         <el-table :data="addForm.Details" border size="small" style="width: 100%" height="400"
                             class="editable-detail-table">
-                            <el-table-column :label="t('incomingManage.testItems.gaugeName')" min-width="160">
+                            <el-table-column :label="t('incomingManage.testItems.gaugeName')" min-width="160" fixed="left">
                                 <template #default="{ row, $index }">
                                     <el-select v-model="row.InspectionCode" size="small" style="width: 100%" filterable
                                         clearable placeholder="请选择检验项" @change="handleInspectionSelect(row, $event)">
@@ -178,8 +180,8 @@
                             <el-table-column :label="t('incomingManage.testItems.gaugeCode')" prop="InspectionCode"
                                 width="150" />
                             <!-- 新增字段列 -->
-                            <el-table-column label="检验项类型" width="140">
-                                <template #default="{ row }">
+                            <el-table-column label="检验项类型" width="140" prop="InspectionItemType">
+                                <!-- <template #default="{ row }">
                                     <el-select v-model="row.InspectionItemType" size="small" style="width: 100%"
                                         clearable placeholder="请选择">
                                         <el-option label="外观" value="外观" />
@@ -188,16 +190,15 @@
                                         <el-option label="重量" value="重量" />
                                         <el-option label="成分" value="成分" />
                                     </el-select>
-                                </template>
+                                </template> -->
                             </el-table-column>
-                            <el-table-column label="检验工具" width="140">
-                                <template #default="{ row }">
-                                    <el-input v-model="row.InspectionTool" size="small" placeholder="检验工具" />
-                                </template>
+                            <el-table-column label="检验工具" width="140" prop="InspectionTool">
+
                             </el-table-column>
-                            <el-table-column label="检测方法" width="140">
+                            <el-table-column label="检测方法" width="250">
                                 <template #default="{ row }">
-                                    <el-input v-model="row.DetectionMethod" size="small" placeholder="检测方法（非必填）" />
+                                    <el-input v-model="row.DetectionMethod" type="textarea" size="small" rows="2"
+                                        placeholder="" />
                                 </template>
                             </el-table-column>
                             <el-table-column label="排序" width="100">

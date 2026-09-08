@@ -77,13 +77,19 @@
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.CallMaterials.Reason')" prop="Reason"
                     :min-width="getColumnWidth('Reason')" show-overflow-tooltip />
-                <el-table-column :label="t('publicText.operation')" prop="operation" width="160" align="center" fixed="right">
+                <el-table-column :label="t('publicText.operation')" prop="operation" width="250" align="center" fixed="right">
                     <template #default="{ row }">
                         <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.Detail')" placement="top">
                             <el-button type="primary" size="small" icon="Tickets" @click="fetchDetail(row)" />
                         </el-tooltip>
                         <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.call')" placement="top">
                             <el-button type="warning" size="small" icon="Bell" :disabled="row.RequestInfo !== 1" @click="handleCallMaterial(row)" />
+                        </el-tooltip>
+                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.pushShelter')" placement="top">
+                            <el-button type="success" size="small" icon="Promotion" :loading="row._pushLoading" @click="handlePushShelter(row)" />
+                        </el-tooltip>
+                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.cancelShelter')" placement="top">
+                            <el-button type="info" size="small" icon="Close" :loading="row._cancelShelterLoading" @click="handleCancelShelter(row)" />
                         </el-tooltip>
                         <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.Cancel')" placement="top">
                             <el-button type="danger" size="small" icon="DocumentDelete" :disabled="row.MaterialRequest_Status === 3 || row.MaterialRequest_Status === 99" @click="handleCancel(row)" />
@@ -188,6 +194,8 @@ import {
     CancelMaterialRequest,
     ManualSubmitSaiYiMaterialRequest,
     ManualSubmitWorkOrderSupplementSaiYiMaterialRequest,
+    OutOrderPushBySN,
+    OutOrderCancel,
 } from "@/api/Scheduling/index"
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import {
@@ -405,6 +413,64 @@ const handleCancel = (row: any) => {
                 if (res.Success) getData();
             });
         }
+    }).catch(() => { });
+};
+
+const handlePushShelter = (row: any) => {
+    ElMessageBox.confirm(
+        t('Scheduling.CallMaterials.confirmPushShelter').replace('{0}', row.MaterialRequest_No || ''),
+        t('publicText.tip'),
+        {
+            confirmButtonText: t('publicText.confirm'),
+            cancelButtonText: t('publicText.cancel'),
+            type: "warning",
+        }
+    ).then(() => {
+        row._pushLoading = true;
+        OutOrderPushBySN({
+            MaterialRequestNo: row.MaterialRequest_No,
+            UserNo: userStore.getUserInfo || "",
+        }).then((res: any) => {
+            ElNotification({
+                title: t('publicText.tipTitle'),
+                message: res.Message,
+                type: res.Success ? "success" : "error",
+            });
+            if (res.Success) getData();
+        }).catch(() => {
+            ElMessage.error(t('Scheduling.CallMaterials.pushShelterFailure'));
+        }).finally(() => {
+            row._pushLoading = false;
+        });
+    }).catch(() => { });
+};
+
+const handleCancelShelter = (row: any) => {
+    ElMessageBox.confirm(
+        t('Scheduling.CallMaterials.confirmCancelShelter').replace('{0}', row.MaterialRequest_No || ''),
+        t('publicText.tip'),
+        {
+            confirmButtonText: t('publicText.confirm'),
+            cancelButtonText: t('publicText.cancel'),
+            type: "warning",
+        }
+    ).then(() => {
+        row._cancelShelterLoading = true;
+        OutOrderCancel({
+            MaterialRequestNo: row.MaterialRequest_No,
+            UserNo: userStore.getUserInfo || "",
+        }).then((res: any) => {
+            ElNotification({
+                title: t('publicText.tipTitle'),
+                message: res.Message,
+                type: res.Success ? "success" : "error",
+            });
+            if (res.Success) getData();
+        }).catch(() => {
+            ElMessage.error(t('Scheduling.CallMaterials.cancelShelterFailure'));
+        }).finally(() => {
+            row._cancelShelterLoading = false;
+        });
     }).catch(() => { });
 };
 

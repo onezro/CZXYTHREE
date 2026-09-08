@@ -22,7 +22,7 @@
                 <!-- 左侧：检验规则主表列表 -->
                 <el-col :span="11">
                     <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                        :tooltip-effect="'dark'" border fit @row-click="handleRowClick" highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                        ref="eltableRef" border fit @row-click="handleRowClick" highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                         <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                             <template #default="scope">
                                 <span>{{
@@ -31,23 +31,11 @@
                             </template>
                         </el-table-column>
                         <el-table-column :label="t('incomingManage.inspectionRule.materialCode')" prop="MaterialCode"
-                            :min-width="getColumnWidth1('MaterialCode')">
-                            <template #default="{ row }">
-                                <div class="material-multi">{{ row.MaterialCode }}</div>
-                            </template>
-                        </el-table-column>
+                            :min-width="getColumnWidth1('MaterialCode')" />
                         <el-table-column :label="t('incomingManage.inspectionRule.materialName')" prop="MaterialName"
-                            :min-width="getColumnWidth1('MaterialName')">
-                            <template #default="{ row }">
-                                <div class="material-multi">{{ row.MaterialName }}</div>
-                            </template>
-                        </el-table-column>
+                            :min-width="getColumnWidth1('MaterialName')" />
                         <el-table-column :label="t('incomingManage.inspectionRule.materialSpec')" prop="MaterialSpec"
-                            :min-width="getColumnWidth1('MaterialSpec')">
-                            <template #default="{ row }">
-                                <div class="material-multi">{{ row.MaterialSpec }}</div>
-                            </template>
-                        </el-table-column>
+                            :min-width="getColumnWidth1('MaterialSpec')" />
                         <el-table-column :label="t('incomingManage.inspectionRule.isDouble')" prop="IsDouble"
                             :min-width="getColumnWidth1('IsDouble')">
                             <template #default="{ row }">
@@ -84,7 +72,7 @@
                     <div class="mt-2">
                         <el-pagination :size="'small'" background @size-change="handleSizeChange"
                             @current-change="handleCurrentChange" :pager-count="5" :current-page="getForm.PageIndex"
-                            :page-size="getForm.PageSize" :page-sizes="[30, 50, 100, 200, 300]"
+                            :page-size="getForm.PageSize" :page-sizes="[10, 20, 30, 50, 100]"
                             layout="total,sizes, prev, pager, next" :total="total">
                         </el-pagination>
                     </div>
@@ -94,7 +82,7 @@
                     <el-tabs v-model="activeName" class="demo-tabs">
                         <el-tab-pane :label="t('incomingManage.inspectionRule.projectGroups')" name="projects">
                             <el-table :data="projectGroupData" size="small" :style="{ width: '100%' }"
-                                :height="tableHeight2" :tooltip-effect="'dark'" border fit :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                                :height="tableHeight2" ref="eltableRef2" border fit :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                                 <el-table-column type="index" align="center" :label="$t('publicText.index')"
                                     width="50" />
                                 <el-table-column :label="t('incomingManage.inspectionRule.projectCode')"
@@ -122,7 +110,7 @@
                         </el-tab-pane>
                         <el-tab-pane :label="t('incomingManage.inspectionRule.details')" name="detail">
                             <el-table :data="detailData" size="small" :style="{ width: '100%' }" :height="tableHeight2"
-                                :tooltip-effect="'dark'" border fit :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                                ref="eltableRef3" border fit :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                                 <el-table-column type="index" align="center" :label="$t('publicText.index')"
                                     width="50" />
                                 <el-table-column :label="t('incomingManage.testItems.gaugeCode')" prop="InspectionCode"
@@ -185,14 +173,18 @@
                 <!-- 左右分布布局 -->
                 <el-row :gutter="20" style="margin-top: 16px;">
                     <!-- 左边：物料列表 -->
-                    <el-col :span="8">
+                    <el-col :span="10">
                         <div class="detail-table-wrapper">
                             <el-button type="primary" size="small" @click="openMaterialSelectDialog" class="mb-2">{{
                                 t('publicText.add')
                                 }}物料</el-button>
-                            <el-table :data="addForm.Materials" border size="small" style="width: 100%" height="450">
+                            <el-table :data="paginatedMaterials" border size="small" style="width: 100%" height="450">
                                 <el-table-column type="index" align="center" :label="$t('publicText.index')"
-                                    width="50" />
+                                    width="50">
+                                    <template #default="scope">
+                                        <span>{{ scope.$index + (materialPage.currentPage - 1) * materialPage.pageSize + 1 }}</span>
+                                    </template>
+                                </el-table-column>
                                 <el-table-column :label="t('incomingManage.inspectionRule.materialCode')"
                                     min-width="150">
                                     <template #default="{ row }">
@@ -201,16 +193,23 @@
                                 </el-table-column>
                                 <el-table-column :label="$t('publicText.operation')" width="80" align="center">
                                     <template #default="{ $index }">
-                                        <el-button type="danger" size="small" link @click="removeMaterialRow($index)">{{
+                                        <el-button type="danger" size="small" link @click="removeMaterialRow($index + (materialPage.currentPage - 1) * materialPage.pageSize)">{{
                                             t('publicText.delete') }}</el-button>
                                     </template>
                                 </el-table-column>
                             </el-table>
+                            <div class="mt-2">
+                                <el-pagination :size="'small'" background @size-change="onMaterialSizeChange"
+                                    @current-change="onMaterialPageChange" :current-page="materialPage.currentPage"
+                                    :page-size="materialPage.pageSize" :pager-count="5" :page-sizes="[10, 20, 50, 100]"
+                                    layout="total, sizes, prev, pager, next" :total="addForm.Materials.length">
+                                </el-pagination>
+                            </div>
                             <div class="tips">{{ t('incomingManage.inspectionRule.materialTips') }}</div>
                         </div>
                     </el-col>
                     <!-- 右边：项目组和明细 Tab -->
-                    <el-col :span="16">
+                    <el-col :span="14">
                         <el-tabs v-model="dialogActiveTab" class="dialog-tabs">
                             <!-- 项目组 Tab -->
                             <el-tab-pane :label="t('incomingManage.inspectionRule.projectGroups')" name="project">
@@ -398,7 +397,7 @@ import {
     UpdateInspectionRule,
     QueryInspectionRuleMaterial
 } from "@/api/incomingManage/index";
-import { calculateColumnsWidth } from "@/utils/tableminWidth";
+import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import {
     ref,
     reactive,
@@ -418,13 +417,16 @@ const { t } = useI18n();
 // 表格高度自适应
 const tableHeight = ref(0);
 const tableHeight2 = ref(0);
+const eltableRef = ref();
+const eltableRef2 = ref();
+const eltableRef3 = ref();
 
 // 主表数据
 const tableData = ref<any[]>([]);
 const total = ref(0);
 const getForm = reactive({
     PageIndex: 1,
-    PageSize: 50,
+    PageSize: 30,
     MaterialCode: "",
 });
 
@@ -450,6 +452,26 @@ const addForm = reactive({
     defaultProjectIndex: -1,
 });
 const addRules = {};
+
+// 弹窗物料表格前端分页
+const materialPage = reactive({
+    currentPage: 1,
+    pageSize: 20,
+});
+const paginatedMaterials = computed(() => {
+    const start = (materialPage.currentPage - 1) * materialPage.pageSize;
+    return addForm.Materials.slice(start, start + materialPage.pageSize);
+});
+const onMaterialSizeChange = (val: number) => {
+    materialPage.pageSize = val;
+    materialPage.currentPage = 1;
+};
+const onMaterialPageChange = (val: number) => {
+    materialPage.currentPage = val;
+};
+const resetMaterialPage = () => {
+    materialPage.currentPage = 1;
+};
 
 // 物料搜索相关
 const materialList = ref<any[]>([]);
@@ -594,6 +616,8 @@ const materialSelectCancel = () => {
 // 删除物料行
 const removeMaterialRow = (index: number) => {
     addForm.Materials.splice(index, 1);
+    const maxPage = Math.max(1, Math.ceil(addForm.Materials.length / materialPage.pageSize));
+    if (materialPage.currentPage > maxPage) materialPage.currentPage = maxPage;
 };
 
 // 查询（重置页码）
@@ -684,6 +708,7 @@ const openAdd = () => {
     addForm.Details = [];
     addForm.defaultProjectIndex = -1;
     dialogActiveTab.value = "project";
+    resetMaterialPage();
     getInspectionItems();
     getProjectList();
     addVisible.value = true;
@@ -748,6 +773,7 @@ const openEdit = async (row: any) => {
         addForm.Details = [];
         dialogActiveTab.value = "materials";
     }
+    resetMaterialPage();
     getInspectionItems();
     getProjectList();
     addVisible.value = true;
@@ -993,36 +1019,12 @@ const addSubmit = () => {
 };
 
 // ==================== 列宽自适应 ====================
-const columnWidths1 = computed(() => {
-    const columns = [
-        { label: t("incomingManage.inspectionRule.materialCode"), prop: "MaterialCode" },
-        { label: t("incomingManage.inspectionRule.materialName"), prop: "MaterialName" },
-        { label: t("incomingManage.inspectionRule.materialSpec"), prop: "MaterialSpec" },
-        { label: t("incomingManage.inspectionRule.isDouble"), prop: "IsDouble" },
-        { label: t("incomingManage.testItems.creator"), prop: "CreateUser" },
-        { label: t("incomingManage.testItems.creatime"), prop: "CreateTime" },
-        { label: t("incomingManage.testItems.updator"), prop: "UpdateUser" },
-        { label: t("incomingManage.testItems.updatetime"), prop: "UpdateTime" },
-    ];
-    return calculateColumnsWidth(columns, tableData.value, { padding: 25, fontSize: 13 });
+const { getColumnWidth: getColumnWidth1 } = useTableColumnWidth(eltableRef, tableData, {
+    excludeLabels: [t('publicText.index'), t('publicText.operation')]
 });
-const getColumnWidth1 = (prop: string) => columnWidths1.value[prop] || "auto";
-
-const columnWidths2 = computed(() => {
-    const columns = [
-        { label: t("incomingManage.testItems.gaugeCode"), prop: "InspectionCode" },
-        { label: t("incomingManage.testItems.gaugeName"), prop: "InspectionName" },
-        { label: t("incomingManage.testItems.IsInspectionTool"), prop: "IsInspectionTool" },
-        { label: t("incomingManage.testItems.inspectionType"), prop: "InspectionType" },
-        { label: t("incomingManage.inspectionRule.upperLimit"), prop: "UpperLimit" },
-        { label: t("incomingManage.inspectionRule.lowerLimit"), prop: "LowerLimit" },
-        { label: t("incomingManage.inspectionRule.unit"), prop: "Unit" },
-        { label: t("incomingManage.testItems.creator"), prop: "CreateUser" },
-        { label: t("incomingManage.testItems.creatime"), prop: "CreateTime" },
-    ];
-    return calculateColumnsWidth(columns, detailData.value, { padding: 25, fontSize: 13 });
+const { getColumnWidth: getColumnWidth2 } = useTableColumnWidth(eltableRef3, detailData, {
+    excludeLabels: [t('publicText.index')]
 });
-const getColumnWidth2 = (prop: string) => columnWidths2.value[prop] || "auto";
 
 // 高度自适应
 const getScreenHeight = () => {
@@ -1047,10 +1049,10 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.material-multi {
-    white-space: pre-line;
-    word-break: break-all;
-    line-height: 1.5;
+:deep(.el-table .cell) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .el-pagination {

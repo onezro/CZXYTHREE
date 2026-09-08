@@ -9,8 +9,8 @@
                             style="width: 200px" :placeholder="t('Scheduling.lineChangeTime.inputLineName')" /> -->
                         <el-select v-model="searchForm.LineName" clearable filterable @change="handleSearch"
                             style="width: 200px" :placeholder="t('Scheduling.lineChangeTime.selectLine')">
-                            <el-option v-for="item in lineData" :key="item.MfgLineName" :label="item.MfgLineName"
-                                :value="item.MfgLineName" />
+                            <el-option v-for="item in lineData" :key="item.name" :label="item.name"
+                                :value="item.name" />
                         </el-select>
                     </el-form-item>
                     <el-form-item class="mb-2">
@@ -87,8 +87,8 @@
                 <el-form-item :label="t('Scheduling.lineChangeTime.lineName')" prop="LineName">
                     <el-select v-model="addForm.LineName" clearable filterable
                         :placeholder="t('Scheduling.lineChangeTime.selectLine')">
-                        <el-option v-for="item in lineData" :key="item.MfgLineName" :label="item.MfgLineName"
-                            :value="item.MfgLineName" />
+                        <el-option v-for="item in lineData" :key="item.name" :label="item.name"
+                            :value="item.name" />
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.lineChangeTime.timeLong')" prop="TimeLong">

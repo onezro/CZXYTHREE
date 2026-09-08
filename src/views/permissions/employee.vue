@@ -26,7 +26,7 @@
     <el-card shadow="always" :body-style="{ padding: '8px' }" class="flex-1">
       <div class=" flex justify-between">
         <div>
-          <el-button type="primary" @click="handleAdd()" size="small">添加员工</el-button>
+          <!-- <el-button type="primary" @click="handleAdd()" size="small">添加员工</el-button> -->
         </div>
         <div class="mb-2">
           <el-input v-model="searchName" clearable placeholder="请输入">

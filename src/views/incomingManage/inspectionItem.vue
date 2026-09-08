@@ -47,10 +47,10 @@
                         <span v-else>-</span>
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('incomingManage.inspectionItem.creator')" prop="CreateUser"
+                <!-- <el-table-column :label="t('incomingManage.inspectionItem.creator')" prop="CreateUser"
                     :min-width="getColumnWidth1('CreateUser')" />
                 <el-table-column :label="t('incomingManage.inspectionItem.creatime')" prop="CreateTime"
-                    :min-width="getColumnWidth1('CreateTime')" />
+                    :min-width="getColumnWidth1('CreateTime')" /> -->
                 <el-table-column :label="t('incomingManage.inspectionItem.updator')" prop="UpdateUser"
                     :min-width="getColumnWidth1('UpdateUser')" />
                 <el-table-column :label="t('incomingManage.inspectionItem.updatetime')" prop="UpdateTime"
@@ -96,10 +96,21 @@
                         <el-option label="性能" value="性能"></el-option>
                         <el-option label="重量" value="重量"></el-option>
                         <el-option label="成分" value="成分"></el-option>
+                        <el-option label="环保" value="环保"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="检验工具" prop="InspectionTool">
-                    <el-input v-model="addForm.InspectionTool" placeholder="请输入检验工具" clearable style="width: 100%" />
+                    <el-select v-model="addForm.InspectionTool" placeholder="请选择检验工具" clearable style="width: 100%">
+                        <el-option label="积分球" value="积分球"></el-option>
+                        <el-option label="塞尺" value="塞尺"></el-option>
+                        <el-option label="量棒" value="量棒"></el-option>
+                        <el-option label="二次元/投影仪" value="二次元/投影仪"></el-option>
+                        <el-option label="大理石平台" value="大理石平台"></el-option>
+                        <el-option label="数字电桥" value="数字电桥"></el-option>
+                        <el-option label="游标卡尺" value="游标卡尺"></el-option>
+                        <el-option label="通止规" value="通止规"></el-option>
+                        <el-option label="电子秤" value="电子秤"></el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="检验类型" prop="InspectionType">
                     <el-select v-model="addForm.InspectionType" placeholder="请选择检验类型" style="width: 100%">
@@ -132,10 +143,21 @@
                         <el-option label="性能" value="性能"></el-option>
                         <el-option label="重量" value="重量"></el-option>
                         <el-option label="成分" value="成分"></el-option>
+                           <el-option label="环保" value="环保"></el-option>
                     </el-select>
                 </el-form-item>
                 <el-form-item label="检验工具" prop="InspectionTool">
-                    <el-input v-model="editForm.InspectionTool" placeholder="请输入检验工具" clearable style="width: 100%" />
+                    <el-select v-model="editForm.InspectionTool" filterable placeholder="请选择检验工具" clearable style="width: 100%">
+                        <el-option label="积分球" value="积分球"></el-option>
+                        <el-option label="塞尺" value="塞尺"></el-option>
+                        <el-option label="量棒" value="量棒"></el-option>
+                        <el-option label="二次元/投影仪" value="二次元/投影仪"></el-option>
+                        <el-option label="大理石平台" value="大理石平台"></el-option>
+                        <el-option label="数字电桥" value="数字电桥"></el-option>
+                        <el-option label="游标卡尺" value="游标卡尺"></el-option>
+                        <el-option label="通止规" value="通止规"></el-option>
+                        <el-option label="电子秤" value="电子秤"></el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="检验类型" prop="InspectionType">
                     <el-select v-model="editForm.InspectionType" placeholder="请选择检验类型" style="width: 100%">

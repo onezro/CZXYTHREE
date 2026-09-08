@@ -4,7 +4,7 @@
       <el-form :inline="true" :model="queryForm" label-width="auto" @submit.prevent size="small">
         <el-form-item :label="t('Scheduling.abnormalMove.lineName')" class="mb-2">
           <el-select v-model="queryForm.LineName" placeholder="" clearable style="width:160px">
-            <el-option v-for="item in lineList" :key="item.MfgLineName" :label="item.Description" :value="item.MfgLineName" />
+            <el-option v-for="item in lineList" :key="item.name" :label="item.name" :value="item.name" />
           </el-select>
         </el-form-item>
         <el-form-item :label="t('Scheduling.abnormalMove.pn')" class="mb-2">
@@ -48,7 +48,7 @@
       <el-form :model="addForm" ref="addFormRef" label-width="auto">
         <el-form-item :label="t('Scheduling.abnormalMove.lineName')" prop="LineName" :rules="[{ required: true, message: t('Scheduling.abnormalMove.selectLine') }]">
           <el-select v-model="addForm.LineName" placeholder="" style="width:100%">
-            <el-option v-for="item in lineList" :key="item.MfgLineName" :label="item.Description" :value="item.MfgLineName" />
+            <el-option v-for="item in lineList" :key="item.name" :label="item.name" :value="item.name" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -93,7 +93,7 @@
       <el-form :model="editForm" ref="editFormRef" label-width="100px">
         <el-form-item :label="t('Scheduling.abnormalMove.lineName')" prop="LineName" :rules="[{ required: true, message: t('Scheduling.abnormalMove.selectLine') }]">
           <el-select v-model="editForm.LineName" placeholder="" style="width:100%">
-            <el-option v-for="item in lineList" :key="item.MfgLineName" :label="item.Description" :value="item.MfgLineName" />
+            <el-option v-for="item in lineList" :key="item.name" :label="item.name" :value="item.name" />
           </el-select>
         </el-form-item>
         <el-form-item :label="t('Scheduling.abnormalMove.pn')" prop="Pn" :rules="[{ required: true, message: t('Scheduling.abnormalMove.inputPn') }]">
@@ -116,12 +116,12 @@
       <el-form :model="copyForm" label-width="100px">
         <el-form-item :label="t('Scheduling.abnormalMove.fromLine')">
           <el-select v-model="copyForm.FromLineName" placeholder="" style="width:100%">
-            <el-option v-for="item in lineList" :key="item.MfgLineName" :label="item.Description" :value="item.MfgLineName" />
+            <el-option v-for="item in lineList" :key="item.name" :label="item.name" :value="item.name" /> 
           </el-select>
         </el-form-item>
         <el-form-item :label="t('Scheduling.abnormalMove.toLine')">
           <el-select v-model="copyForm.ToLineName" placeholder="" style="width:100%" multiple>
-            <el-option v-for="item in lineList" :key="item.MfgLineName" :label="item.Description" :value="item.MfgLineName" />
+            <el-option v-for="item in lineList" :key="item.name" :label="item.name" :value="item.name" /> 
           </el-select>
         </el-form-item>
       </el-form>

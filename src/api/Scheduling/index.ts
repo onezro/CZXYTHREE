@@ -201,3 +201,21 @@ export function ResubmitProductionReturnAllocation(data:any) {
         data
     });
 }
+
+//下发方仓
+export function OutOrderPushBySN(data:any) {
+    return request({
+        url: "/api/mes/shelter/OutOrderPushBySN",
+        method: "post",
+        data
+    });
+}
+
+//取消下发方仓
+export function OutOrderCancel(data:any) {
+    return request({
+        url: "/api/mes/shelter/OutOrderCancel",
+        method: "post",
+        data
+    });
+}
