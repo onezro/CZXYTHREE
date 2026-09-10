@@ -1,4 +1,5 @@
 import request from "@/request/smtApplyRequest";
+import { getToken } from "@/utils/auth";
 
 //获取检验项
 export function RefreshInspectionItem(data:any) {
@@ -232,5 +233,64 @@ export function QueryInspectionRuleMaterial(data:any) {
         url: "/api/iqc/QueryInspectionRuleMaterial",
         method: "get",
         params:data
+    });
+}
+//上传检验文件
+export function UploadInspectionFile(data:any) {
+    return request({
+        url: "/api/iqc/UploadInspectionFile",
+        method: "post",
+        data
+    });
+}
+//查询检验文件
+export function QueryInspectionFile(data:any) {
+    return request({
+        url: "/api/iqc/QueryInspectionFile",
+        method: "get",
+        params:data
+    });
+}
+//下载/预览检验文件（返回blob）
+export function DownloadInspectionFile(attachmentId: number): Promise<Blob> {
+    const token = getToken() || '';
+    return fetch(`/smtApplyApi/api/iqc/DownloadInspectionFile?AttachmentId=${attachmentId}`, {
+        method: 'GET',
+        headers: {
+            'authorization': token,
+        }
+    }).then(response => {
+        if (!response.ok) throw new Error(`下载失败: ${response.status}`);
+        return response.blob();
+    });
+}
+//上传报检单附件
+export function UploadArrivalAttachment(data:any, params:any) {
+    return request({
+        url: "/api/iqc/UploadArrivalAttachment",
+        method: "post",
+        data,
+        params
+    });
+}
+//查询报检单附件
+export function QueryArrivalAttachment(data:any) {
+    return request({
+        url: "/api/iqc/QueryArrivalAttachment",
+        method: "get",
+        params:data
+    });
+}
+//下载/预览报检单附件（返回blob）
+export function DownloadArrivalAttachment(attachmentId: number): Promise<Blob> {
+    const token = getToken() || '';
+    return fetch(`/smtApplyApi/api/iqc/DownloadArrivalAttachment?AttachmentId=${attachmentId}`, {
+        method: 'GET',
+        headers: {
+            'authorization': token,
+        }
+    }).then(response => {
+        if (!response.ok) throw new Error(`下载失败: ${response.status}`);
+        return response.blob();
     });
 }

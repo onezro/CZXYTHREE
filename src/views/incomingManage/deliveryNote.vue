@@ -154,7 +154,27 @@
                     <el-input v-model="inspectForm.MaterialName" type="textarea" disabled rows="1"
                         style="width: 100%;" />
                 </el-form-item>
-                <el-form-item :label="t('incomingManage.deliveryNote.result')">
+                <el-form-item label="附件" style="width: 100%;">
+                    <div class="attachment-row">
+                        <el-upload :auto-upload="false" :limit="1" :on-change="handleAttachmentChange"
+                            :on-remove="handleAttachmentRemove" :on-exceed="handleAttachmentExceed"
+                            :file-list="attachmentFileList" accept=".pdf">
+                            <el-button type="primary" size="small">选择PDF文件</el-button>
+                        </el-upload>
+                        <span class="el-upload__tip upload-tip">仅限PDF，最大20MB</span>
+                        <template v-if="existingAttachments.length > 0">
+                            <el-divider direction="vertical" />
+                            <div v-for="file in existingAttachments" :key="file.AttachmentId"
+                                class="attachment-item">
+                                <el-icon class="file-icon" color="#006487"><Document /></el-icon>
+                                <span class="attachment-name" :title="file.OriginalFileName">{{ file.OriginalFileName }}</span>
+                                <el-button type="primary" link size="small" @click="previewAttachment(file)">预览</el-button>
+                                <el-button type="primary" link size="small" @click="downloadAttachment(file)">下载</el-button>
+                            </div>
+                        </template>
+                    </div>
+                </el-form-item>
+                <el-form-item :label="t('incomingManage.deliveryNote.result')" style="width: 50%;">
                     <el-select v-model="inspectForm.MainResult" size="small" style="width: 200px" :disabled="isInspected">
                         <el-option :label="t('incomingManage.deliveryNote.qualified')" :value="1" />
                         <el-option :label="t('incomingManage.deliveryNote.unqualified')" :value="2" />
@@ -262,13 +282,42 @@
                     }}</el-button>
             </template>
         </el-dialog>
+
+        <!-- PDF预览弹窗 -->
+        <el-dialog v-model="previewVisible" width="85%" align-center :append-to-body="true"
+            :close-on-click-modal="false" @close="closePreview" class="preview-dialog">
+            <template #header>
+                <div class="preview-header">
+                    <el-icon class="preview-icon"><Document /></el-icon>
+                    <span class="preview-title" :title="previewFileName">{{ previewFileName }}</span>
+                </div>
+            </template>
+            <div class="preview-body">
+                <div v-if="previewLoading" class="preview-loading">
+                    <el-icon class="is-loading" :size="40" color="#006487"><Loading /></el-icon>
+                    <span class="loading-text">文件加载中...</span>
+                </div>
+                <VuePdfEmbed v-if="previewUrl" :source="previewUrl"
+                    class="pdf-preview-frame" @loaded="previewLoading = false"
+                    @loading-failed="handlePreviewFailed" @rendered="previewLoading = false" />
+                <el-empty v-if="!previewUrl && !previewLoading" description="暂无文件" />
+            </div>
+            <template #footer>
+                <el-button type="primary" :disabled="!currentPreviewFile" @click="downloadAttachment(currentPreviewFile)">
+                    <el-icon style="margin-right: 4px;"><Download /></el-icon>下载
+                </el-button>
+                <el-button @click="previewVisible = false">{{ t("publicText.close") }}</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
-import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspectionResult, SubmitInspectionResult, UpdateReviewResult, DeleteArrivalInspection } from "@/api/incomingManage/index";
+import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspectionResult, SubmitInspectionResult, UpdateReviewResult, DeleteArrivalInspection, UploadArrivalAttachment, QueryArrivalAttachment, DownloadArrivalAttachment } from "@/api/incomingManage/index";
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { Document, Loading, Download } from "@element-plus/icons-vue";
+import VuePdfEmbed from "vue-pdf-embed";
 import dayjs from "dayjs";
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -449,7 +498,9 @@ const openInspectDialog = async (row: any) => {
             inspectForm.MainResult = row.Result ?? '';
             inspectForm.Details = details;
             isInspected.value = row.Result !== 0;
+            attachmentFileList.value = [];
             inspectDialogVisible.value = true;
+            loadExistingAttachments();
         } else {
             ElMessage.error(res.Message || "加载明细失败");
         }
@@ -514,6 +565,10 @@ const submitInspect = async () => {
             Result: inspectForm.MainResult,
         });
         if (submitRes.Success) {
+            // 上传附件（如果有）
+            if (attachmentFileList.value.length > 0) {
+                await uploadAttachment();
+            }
             ElMessage.success(submitRes.Message || "检验完成");
             inspectDialogVisible.value = false;
             getData();
@@ -537,6 +592,126 @@ const closeInspectDialog = () => {
     inspectForm.MaterialName = "";
     inspectForm.MainResult = 0;
     inspectForm.Details = [];
+    attachmentFileList.value = [];
+    existingAttachments.value = [];
+};
+
+// ==================== 附件上传 ====================
+const attachmentFileList = ref<any[]>([]);
+const MAX_ATTACHMENT_SIZE = 20 * 1024 * 1024; // 20MB
+
+const handleAttachmentExceed = () => {
+    ElMessage.warning("只能上传一个文件，请先删除已选文件");
+};
+const handleAttachmentChange = (file: any) => {
+    const raw = file.raw as File;
+    if (!raw) return;
+    if (!raw.name.toLowerCase().endsWith(".pdf")) {
+        ElMessage.error("仅限PDF文件");
+        attachmentFileList.value = [];
+        return;
+    }
+    if (raw.size > MAX_ATTACHMENT_SIZE) {
+        ElMessage.error("文件大小不能超过20MB");
+        attachmentFileList.value = [];
+        return;
+    }
+    attachmentFileList.value = [file];
+};
+const handleAttachmentRemove = () => {
+    attachmentFileList.value = [];
+};
+
+const uploadAttachment = async () => {
+    if (attachmentFileList.value.length === 0 || !inspectForm.ArrivalId) return;
+    const formData = new FormData();
+    formData.append("file", attachmentFileList.value[0].raw);
+    try {
+        const res: any = await UploadArrivalAttachment(formData, { ArrivalId: inspectForm.ArrivalId });
+        if (res.Success) {
+            ElMessage.success(res.Message || "附件上传成功");
+            // 上传成功后重新查询附件列表
+            await loadExistingAttachments();
+        } else {
+            ElMessage.error(res.Message || "附件上传失败");
+        }
+    } catch {
+        ElMessage.error("附件上传失败");
+    }
+};
+
+// ==================== 附件查询/预览/下载 ====================
+const existingAttachments = ref<any[]>([]);
+const previewVisible = ref(false);
+const previewUrl = ref("");
+const previewFileName = ref("");
+const previewLoading = ref(false);
+const currentPreviewFile = ref<any>(null);
+
+// 查询已上传附件
+const loadExistingAttachments = async () => {
+    if (!inspectForm.ArrivalId) return;
+    try {
+        const res: any = await QueryArrivalAttachment({ ArrivalId: inspectForm.ArrivalId });
+        if (res.Success) {
+            existingAttachments.value = res.Data || [];
+        } else {
+            existingAttachments.value = [];
+        }
+    } catch {
+        existingAttachments.value = [];
+    }
+};
+
+// 预览附件（PDF）
+const previewAttachment = async (file: any) => {
+    try {
+        currentPreviewFile.value = file;
+        previewFileName.value = file.OriginalFileName;
+        previewVisible.value = true;
+        previewLoading.value = true;
+        previewUrl.value = "";
+        const blob = await DownloadArrivalAttachment(file.AttachmentId);
+        previewUrl.value = window.URL.createObjectURL(blob);
+    } catch (e: any) {
+        ElMessage.error(e.message || "预览失败");
+        previewLoading.value = false;
+        previewVisible.value = false;
+    }
+};
+
+// 下载附件
+const downloadAttachment = async (file: any) => {
+    try {
+        const blob = await DownloadArrivalAttachment(file.AttachmentId);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = file.OriginalFileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+    } catch (e: any) {
+        ElMessage.error(e.message || "下载失败");
+    }
+};
+
+const handlePreviewFailed = () => {
+    ElMessage.error("文件加载失败");
+    previewLoading.value = false;
+    previewVisible.value = false;
+};
+
+const closePreview = () => {
+    if (previewUrl.value) {
+        window.URL.revokeObjectURL(previewUrl.value);
+        previewUrl.value = "";
+    }
+    previewFileName.value = "";
+    previewLoading.value = false;
+    currentPreviewFile.value = null;
 };
 
 // ==================== 二次确认弹窗（保持不变） ====================
@@ -611,5 +786,109 @@ onBeforeUnmount(() => window.removeEventListener("resize", getScreenHeight));
 <style scoped>
 .el-pagination {
     justify-content: center;
+}
+.attachment-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.upload-tip {
+    color: #909399;
+    font-size: 12px;
+}
+.attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.file-icon {
+    font-size: 16px;
+}
+.attachment-name {
+    display: inline-block;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    color: #303133;
+    font-size: 13px;
+}
+
+/* ============ PDF预览弹窗样式 ============ */
+:deep(.preview-dialog) {
+    border-radius: 8px;
+    overflow: hidden;
+}
+:deep(.preview-dialog .el-dialog__header) {
+    background: linear-gradient(135deg, #006487 0%, #0088aa 100%);
+    padding: 14px 20px;
+    margin-right: 0;
+    border-bottom: none;
+}
+:deep(.preview-dialog .el-dialog__headerbtn) {
+    top: 14px;
+}
+:deep(.preview-dialog .el-dialog__headerbtn .el-dialog__close) {
+    color: #fff;
+    font-size: 18px;
+}
+:deep(.preview-dialog .el-dialog__headerbtn:hover .el-dialog__close) {
+    color: #ffd666;
+}
+:deep(.preview-dialog .el-dialog__body) {
+    padding: 0;
+    background: #f5f7fa;
+}
+:deep(.preview-dialog .el-dialog__footer) {
+    padding: 12px 20px;
+    border-top: 1px solid #e4e7ed;
+    text-align: center;
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.preview-icon {
+    font-size: 20px;
+    color: #fff;
+}
+.preview-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.preview-body {
+    position: relative;
+    width: 100%;
+    max-height: 65vh;
+    overflow-y: auto;
+    background: #f5f7fa;
+}
+.preview-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 65vh;
+    gap: 16px;
+}
+.loading-text {
+    font-size: 14px;
+    color: #909399;
+}
+.pdf-preview-frame {
+    width: 100%;
+    height: 65vh;
+    border: none;
+    display: block;
+    background: #fff;
 }
 </style>
