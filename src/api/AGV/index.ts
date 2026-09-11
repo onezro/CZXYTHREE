@@ -186,6 +186,8 @@ export function GetEnablePointType(params?: any) {
 
 export { QueryPlateLoaderUnloader, InsertUpdatePlateLoaderUnloader, DeletePlateLoaderUnloader } from './plateLoaderUnloader';
 
+export { AddPlateBaseData, UpdatePlateBaseData, DeletePlateBaseData, QueryPlateBaseData, GetEquipment, GetPoint, GetAllValorLine } from './plateBaseData';
+
 // AGV任务查询分页
 export function QueryAgvTaskPage(data: any) {
   return request({

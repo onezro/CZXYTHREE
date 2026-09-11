@@ -11,10 +11,10 @@
                         ]" :clearable="false" @change="handleDateRangeChange" :disabled-date="disabledDate" />
                 </el-form-item>
                 <el-form-item :label="t('permissions.operationLog.requestUrl')" prop="RequestUrl" class="mb-2">
-                    <el-input v-model="getForm.RequestUrl"  placeholder="请输入请求URL" clearable style="width: 350px;" @keyup.enter="getData" @clear="getData" />
+                    <el-input v-model="getForm.RequestUrl"  placeholder="请输入请求URL" clearable style="width: 350px;" @keyup.enter="searchData" @clear="searchData" />
                 </el-form-item>
                 <el-form-item class="mb-2">
-                    <el-button :type="'primary'" @click="getData">{{
+                    <el-button :type="'primary'" @click="searchData">{{
                         t("publicText.query")
                         }}</el-button>
                     <el-button @click="resetForm">{{ t("publicText.reset") }}</el-button>
@@ -287,6 +287,10 @@ const disabledDate = (time: Date) => {
     return time.getTime() < oneMonthAgo.getTime() || time.getTime() > now.getTime();
 };
 
+const searchData = () => {
+    getForm.PageIndex = 1;
+   getData();
+};
 const getData = () => {
     QueryOperationLog(getForm).then((res: any) => {
         if (res.Success) {
