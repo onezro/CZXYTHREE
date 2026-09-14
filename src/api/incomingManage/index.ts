@@ -1,4 +1,4 @@
-import request from "@/request/smtApplyRequest";
+import request from "@/request/deviceRequest";
 import { getToken } from "@/utils/auth";
 
 //获取检验项

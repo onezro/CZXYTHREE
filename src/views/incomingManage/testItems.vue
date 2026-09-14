@@ -193,7 +193,20 @@
                                 </template> -->
                             </el-table-column>
                             <el-table-column label="检验工具" width="140" prop="InspectionTool">
-
+                                <template #default="{ row }">
+                                    <el-select v-model="row.InspectionTool" size="small" filterable clearable
+                                        placeholder="请选择" style="width: 100%">
+                                        <el-option label="积分球" value="积分球" />
+                                        <el-option label="塞尺" value="塞尺" />
+                                        <el-option label="量棒" value="量棒" />
+                                        <el-option label="二次元/投影仪" value="二次元/投影仪" />
+                                        <el-option label="大理石平台" value="大理石平台" />
+                                        <el-option label="数字电桥" value="数字电桥" />
+                                        <el-option label="游标卡尺" value="游标卡尺" />
+                                        <el-option label="通止规" value="通止规" />
+                                        <el-option label="电子秤" value="电子秤" />
+                                    </el-select>
+                                </template>
                             </el-table-column>
                             <el-table-column label="检测方法" width="250">
                                 <template #default="{ row }">

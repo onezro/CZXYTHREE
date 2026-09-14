@@ -31,6 +31,11 @@
                             :placeholder="t('deviceManage.smtSample.versionPlaceholder')" clearable
                             style="width: 120px" size="small" @keyup.enter="handleSearch" />
                     </el-form-item>
+                    <el-form-item :label="t('deviceManage.smtSample.location')" class="mb-2">
+                        <el-input v-model="searchForm.location"
+                            :placeholder="t('deviceManage.smtSample.locationPlaceholder')" clearable
+                            style="width: 120px" size="small" @keyup.enter="handleSearch" />
+                    </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button type="primary" size="small" @click="handleSearch">{{ t("publicText.query") }}</el-button>
                         <el-button size="small" @click="resetSearch">{{ t("publicText.reset") }}</el-button>
@@ -374,6 +379,7 @@ const searchForm = reactive({
     finished_code: "",
     product_name: "",
     version: "",
+    location: "",
 });
 
 const { getColumnWidth } = useTableColumnWidth(tableRef, tableData, {
@@ -541,17 +547,18 @@ const getData = async () => {
             finished_code: searchForm.finished_code,
             product_name: searchForm.product_name,
             version: searchForm.version,
+            location: searchForm.location,
             pageIndex: currentPage.value,
             pageSize: pageSize.value,
         };
         const res: any = await QuerySMTSampleList(params);
         if (res.Success) {
-            if (res.Data && Array.isArray(res.Data)) {
+            if (res.Data && Array.isArray(res.Data.list)) {
+                tableData.value = res.Data.list;
+                total.value = res.Data.Total ?? res.Data.list.length;
+            } else if (res.Data && Array.isArray(res.Data)) {
                 tableData.value = res.Data;
                 total.value = res.Data.length;
-            } else if (res.Data && Array.isArray(res.Data.rows)) {
-                tableData.value = res.Data.rows;
-                total.value = res.Data.total || res.Data.rows.length;
             } else {
                 tableData.value = [];
                 total.value = 0;
@@ -577,6 +584,7 @@ const resetSearch = () => {
     searchForm.finished_code = "";
     searchForm.product_name = "";
     searchForm.version = "";
+    searchForm.location = "";
     currentPage.value = 1;
     getData();
 };

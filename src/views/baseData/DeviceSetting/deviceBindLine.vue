@@ -55,8 +55,8 @@
                     :min-width="getColumnWidth('IsDelete')" align="center">
                     <template #default="{ row }">
                         <el-switch v-model="row.IsDelete"
-                            :active-value="false"
-                            :inactive-value="true"
+                            :active-value="true"
+                            :inactive-value="false"
                             :active-text="t('publicText.on')"
                             :inactive-text="t('publicText.off')"
                             inline-prompt
@@ -120,8 +120,8 @@
                 </el-form-item>
                 <el-form-item :label="$t('deviceSetting.deviceBindLine.status')" prop="IsDelete">
                     <el-switch v-model="addForm.IsDelete"
-                        :active-value="false"
-                        :inactive-value="true"
+                        :active-value="true"
+                        :inactive-value="false"
                         :active-text="t('publicText.on')"
                         :inactive-text="t('publicText.off')"
                         inline-prompt />
@@ -168,8 +168,8 @@
                 </el-form-item>
                 <el-form-item :label="$t('deviceSetting.deviceBindLine.status')" prop="IsDelete">
                     <el-switch v-model="editForm.IsDelete"
-                        :active-value="false"
-                        :inactive-value="true"
+                        :active-value="true"
+                        :inactive-value="false"
                         :active-text="t('publicText.on')"
                         :inactive-text="t('publicText.off')"
                         inline-prompt />

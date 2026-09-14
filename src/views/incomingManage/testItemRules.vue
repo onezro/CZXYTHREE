@@ -353,15 +353,21 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="检验文件">
-                            <el-upload v-model:file-list="editFileList" :auto-upload="false" :limit="1"
-                                :on-exceed="handleExceed" accept=".pdf">
-                                <el-button type="primary" size="small">选择文件</el-button>
-                                <el-button v-if="editExistingFile" type="info" size="small"
-                                    @click="previewInspectionFile(editExistingFile)">预览已传</el-button>
-                                <template #tip>
-                                    <span class="el-upload__tip" style="margin-left: 8px;">只能上传一个文件</span>
+                            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                <!-- 已上传文件 -->
+                                <template v-if="editExistingFile">
+                                    <el-icon color="#006487"><Document /></el-icon>
+                                    <span class="attachment-name" :title="editExistingFile.OriginalFileName">{{ editExistingFile.OriginalFileName }}</span>
+                                    <el-button type="primary" link size="small" @click.stop="previewInspectionFile(editExistingFile)">预览</el-button>
+                                    <el-button type="primary" link size="small" @click.stop="downloadInspectionFile(editExistingFile)">下载</el-button>
+                                    <el-divider direction="vertical" />
                                 </template>
-                            </el-upload>
+                                <!-- 上传新文件 -->
+                                <el-upload v-model:file-list="editFileList" :auto-upload="false" :limit="1"
+                                    :on-exceed="handleExceed" accept=".pdf">
+                                    <el-button type="primary" size="small">选择文件</el-button>
+                                </el-upload>
+                            </div>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -639,6 +645,8 @@ const currentRuleId = ref<number | null>(null);
 const inspectionFile = ref<any>(null);
 // 编辑弹窗中已上传的检验文件
 const editExistingFile = ref<any>(null);
+// 编辑弹窗中物料原始快照（用于计算增量）
+const originalMaterials = ref<any[]>([]);
 // PDF预览
 const previewVisible = ref(false);
 const previewUrl = ref("");
@@ -927,7 +935,7 @@ const handleFilePreview = async (row: any) => {
         if (res.Success && res.Data && res.Data.length > 0) {
             previewInspectionFile(res.Data[0]);
         } else {
-            ElMessage.info("该物料暂无检验文件");
+            ElMessage.info("暂无检验文件");
         }
     } catch {
         ElMessage.error("查询检验文件失败");
@@ -1011,7 +1019,7 @@ const openEdit = async (row: any) => {
         const details = (detailRes as any).Success ? ((detailRes as any).Data ?? []) : [];
         const projects = (projectRes as any).Success ? ((projectRes as any).Data ?? []) : [];
 
-        // 查询已上传的检验文件（取第一个物料编码）
+        // 查询已上传的检验文件（使用 MaterialCode）
         const firstMaterialCode = materials.length > 0 ? materials[0].MaterialCode : row.MaterialCode;
         if (firstMaterialCode) {
             try {
@@ -1027,6 +1035,8 @@ const openEdit = async (row: any) => {
             MaterialName: m.MaterialName,
             MaterialSpec: m.MaterialSpec,
         }));
+        // 保存原始物料快照用于提交时计算增量
+        originalMaterials.value = editForm.Materials.map((m: any) => ({ ...m }));
 
         if (projects.length > 0) {
             editForm.Projects = projects.map((p: any) => ({
@@ -1074,6 +1084,8 @@ const editCancel = () => {
     editVisible.value = false;
     editFormRef.value?.resetFields();
     editFileList.value = [];
+    editExistingFile.value = null;
+    originalMaterials.value = [];
     currentForm.value = null;
 };
 
@@ -1169,13 +1181,15 @@ const handleInspectionTypeChange = (row: any) => {
 };
 
 // ==================== 文件上传 ====================
-const uploadInspectionFile = (materialCodes: string, fileList: any[]) => {
+const uploadInspectionFile = (ruleId: number, fileList: any[]) => {
     if (fileList.length === 0) return;
     const formData = new FormData();
-    formData.append("MaterialCodes", materialCodes);
+    formData.append("ruleId", String(ruleId));
     formData.append("file", fileList[0].raw);
     return UploadInspectionFile(formData).then((res: any) => {
         if (res.Success) {
+            editVisible.value = false;
+            addVisible.value=false
             ElMessage.success("文件上传成功");
         } else {
             ElMessage.error(res.Message || "文件上传失败");
@@ -1261,6 +1275,10 @@ const validateProjectsAndDetails = (form: any): { projectsParams: any[], details
         if (form.Projects.length === 0) {
             ElMessage.warning("请至少添加一个检验项目组");
             return null;
+        }
+        // 提交前同步 defaultProjectIndex -> IsDefault
+        if (form.defaultProjectIndex !== undefined && form.defaultProjectIndex !== -1) {
+            updateProjectsDefaultFlag(form);
         }
         const defaultCount = form.Projects.filter((p: any) => p.IsDefault === 1).length;
         if (defaultCount !== 1) {
@@ -1361,10 +1379,10 @@ const addSubmit = () => {
         };
         AddInspectionRule(params).then((res: any) => {
             if (res.Success) {
+                const newRuleId = res.Data?.ruleId;
                 // 上传文件
-                if (addFileList.value.length > 0) {
-                    const codes = materialsParams.map((m: any) => m.MaterialCode).join(",");
-                    uploadInspectionFile(codes, addFileList.value);
+                if (addFileList.value.length > 0 && newRuleId) {
+                    uploadInspectionFile(newRuleId, addFileList.value);
                 }
                 ElMessage.success(res.Message || "新增成功");
                 addVisible.value = false;
@@ -1378,7 +1396,7 @@ const addSubmit = () => {
     });
 };
 
-// 提交编辑
+// 提交编辑（增量提交：只传本次变更的物料）
 const editSubmit = () => {
     editFormRef.value.validate((valid: boolean) => {
         if (!valid) return;
@@ -1387,30 +1405,61 @@ const editSubmit = () => {
         if (!result) return;
 
         const { projectsParams, detailsParams } = result;
-        const materialsParams = editForm.Materials.map((m: any) => ({
-            MaterialCode: m.MaterialCode,
-            MaterialName: m.MaterialName,
-            MaterialSpec: m.MaterialSpec,
-        }));
+
+        // 计算物料增量（用 Set/Map 优化 O(n*m) -> O(n)）
+        const origMap = new Map<string, any>();
+        for (const m of originalMaterials.value) {
+            origMap.set(m.MaterialCode, m);
+        }
+        const curCodeSet = new Set<string>();
+        for (const m of editForm.Materials) {
+            curCodeSet.add(m.MaterialCode);
+        }
+
+        // 新增的物料
+        const addMaterials: any[] = [];
+        for (const m of editForm.Materials) {
+            if (!origMap.has(m.MaterialCode)) {
+                addMaterials.push({ MaterialCode: m.MaterialCode, MaterialName: m.MaterialName, MaterialSpec: m.MaterialSpec });
+            }
+        }
+
+        // 删除的物料编码
+        const deleteMaterialCodes: string[] = [];
+        for (const m of originalMaterials.value) {
+            if (!curCodeSet.has(m.MaterialCode)) {
+                deleteMaterialCodes.push(m.MaterialCode);
+            }
+        }
+
+        // 更新的物料（编码相同但其他字段有变化）
+        const updateMaterials: any[] = [];
+        for (const m of editForm.Materials) {
+            const orig = origMap.get(m.MaterialCode);
+            if (orig && (orig.MaterialName !== m.MaterialName || orig.MaterialSpec !== m.MaterialSpec)) {
+                updateMaterials.push({ MaterialCode: m.MaterialCode, MaterialName: m.MaterialName, MaterialSpec: m.MaterialSpec });
+            }
+        }
 
         const params = {
             RuleId: editForm.ruleId,
             IsDouble: editForm.IsDouble,
             DoubleQty: editForm.DoubleQty,
             UpdateUser: userStore.getUserInfo || "admin",
-            Materials: materialsParams,
             Projects: projectsParams,
             Details: detailsParams,
+            AddMaterials: addMaterials,
+            DeleteMaterialCodes: deleteMaterialCodes,
+            UpdateMaterials: updateMaterials,
         };
         UpdateInspectionRule(params).then((res: any) => {
             if (res.Success) {
-                // 上传文件
+                // 上传文件（使用 ruleId）
                 if (editFileList.value.length > 0) {
-                    const codes = materialsParams.map((m: any) => m.MaterialCode).join(",");
-                    uploadInspectionFile(codes, editFileList.value);
+                    uploadInspectionFile(editForm.ruleId, editFileList.value);
                 }
                 ElMessage.success(res.Message || "更新成功");
-                editVisible.value = false;
+                // editVisible.value = false;
                 getData();
                 if (currentRuleId.value === editForm.ruleId) {
                     handleRowClick({ RuleId: editForm.ruleId });

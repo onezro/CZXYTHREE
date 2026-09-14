@@ -46,13 +46,13 @@
                 <el-table-column :label="t('Scheduling.CallMaterials.RequestInfo')" prop="RequestInfo"
                     :min-width="getColumnWidth('RequestInfo')" align="center">
                     <template #default="{ row }">
-                        <el-tag :type="getRequestInfoType(row.RequestInfo)" size="small">
+                        <el-tag :type="getRequestInfoType(row.RequestInfo)" :effect="row.RequestInfo === 0 ? 'dark' : 'plain'"  size="small">
                             {{ getRequestInfoText(row.RequestInfo) }}
                         </el-tag>
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.ERPDocument.Status')" prop="MaterialRequest_Status"
-                    :min-width="getColumnWidth('MaterialRequest_Status')" align="center">
+                    :min-width="100" align="center">
                     <template #default="{ row }">
                         <el-tag :type="getStatusType(row.MaterialRequest_Status)" size="small">
                             {{ getStatusText(row.MaterialRequest_Status) }}
@@ -82,14 +82,14 @@
                         <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.Detail')" placement="top">
                             <el-button type="primary" size="small" icon="Tickets" @click="fetchDetail(row)" />
                         </el-tooltip>
-                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.call')" placement="top">
+                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.call')" placement="top" >
                             <el-button type="warning" size="small" icon="Bell" :disabled="row.RequestInfo !== 1" @click="handleCallMaterial(row)" />
                         </el-tooltip>
-                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.pushShelter')" placement="top">
-                            <el-button type="success" size="small" icon="Promotion" :loading="row._pushLoading" @click="handlePushShelter(row)" />
+                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.pushShelter')" placement="top" >
+                            <el-button type="success" size="small" icon="Promotion" :loading="row._pushLoading"  :disabled="row.RequestInfo !== 0" @click="handlePushShelter(row)" />
                         </el-tooltip>
-                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.cancelShelter')" placement="top">
-                            <el-button type="info" size="small" icon="Close" :loading="row._cancelShelterLoading" @click="handleCancelShelter(row)" />
+                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.cancelShelter')" placement="top" >
+                            <el-button type="info" size="small" icon="Close" :loading="row._cancelShelterLoading" :disabled="row.RequestInfo !== 0||row.MaterialRequest_Status === 3 || row.MaterialRequest_Status === 99" @click="handleCancelShelter(row)" />
                         </el-tooltip>
                         <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.Cancel')" placement="top">
                             <el-button type="danger" size="small" icon="DocumentDelete" :disabled="row.MaterialRequest_Status === 3 || row.MaterialRequest_Status === 99" @click="handleCancel(row)" />
@@ -250,7 +250,7 @@ const formatDate = (dateStr: string) => {
     return dayjs(dateStr).format("YYYY-MM-DD HH:mm:ss");
 };
 
-// RequestInfo 映射：0=方舱, 1=赛意, 2=锡膏
+// RequestInfo 映射：0=MES, 1=WMS, 2=锡膏
 const getRequestInfoText = (info: number) => {
     switch (info) {
         case 0: return t('Scheduling.CallMaterials.FangCang');
@@ -263,9 +263,9 @@ const getRequestInfoText = (info: number) => {
 const getRequestInfoType = (info: number) => {
     switch (info) {
         case 0: return "primary";
-        case 1: return "success";
+        case 1: return "info";
         case 2: return "warning";
-        default: return "info";
+        default: return "success";
     }
 };
 

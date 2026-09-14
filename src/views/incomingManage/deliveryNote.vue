@@ -41,7 +41,8 @@
 
             <!-- 主表列表 -->
             <el-table :data="tableData" ref="eltableRef" size="small" :style="{ width: '100%' }" :height="tableHeight"
-                :tooltip-effect="'dark'" border fit highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                :tooltip-effect="'dark'" border fit highlight-current-row
+                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{ scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1 }}</span>
@@ -55,8 +56,8 @@
                     :min-width="getColumnWidth('ArrivalBatch')" />
                 <el-table-column :label="t('incomingManage.deliveryNote.materialCode')" prop="MaterialCode"
                     :min-width="getColumnWidth('MaterialCode')" />
-                <el-table-column :label="t('incomingManage.deliveryNote.materialName')" prop="MaterialName"
-                    width="200"  show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.deliveryNote.materialName')" prop="MaterialName" width="200"
+                    show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.deliveryNote.projectName')" prop="ProjectName"
                     :min-width="getColumnWidth('ProjectName')" />
                 <el-table-column :label="t('incomingManage.deliveryNote.isDouble')" prop="IsDouble" width="80"
@@ -65,6 +66,8 @@
                         <span>{{ row.IsDouble === 1 ? t('publicText.yes') : t('publicText.no') }}</span>
                     </template>
                 </el-table-column>
+                <el-table-column :label="t('incomingManage.deliveryNote.displayQty')" prop="DisplayQty" width="100"
+                    align="right" />
                 <el-table-column :label="t('incomingManage.deliveryNote.arrivalQty')" prop="ArrivalQty" width="100"
                     align="right" />
                 <!-- <el-table-column :label="t('incomingManage.deliveryNote.sampleQty')" prop="SampleQty" width="100"
@@ -83,8 +86,8 @@
                     :min-width="getColumnWidth('Inspector')" />
                 <el-table-column :label="t('incomingManage.deliveryNote.inspectTime')" prop="InspectTime"
                     :min-width="getColumnWidth('InspectTime')" />
-                <el-table-column :label="t('incomingManage.materialReview.reviewStatus')" prop="ReviewStatus" width="100"
-                    align="center">
+                <el-table-column :label="t('incomingManage.materialReview.reviewStatus')" prop="ReviewStatus"
+                    width="100" align="center">
                     <template #default="{ row }">
                         <el-tag :type="row.ReviewStatus === 1 ? 'success' : 'info'" size="small">
                             {{ row.ReviewStatus === 1 ? t('publicText.completed') : t('publicText.notStarted') }}
@@ -106,19 +109,21 @@
                     :min-width="getColumnWidth('CreateTime')" />
                 <el-table-column :label="$t('publicText.operation')" fixed="right" width="160" align="center">
                     <template #default="{ row }">
-                        <el-tooltip effect="dark" :content="row.Result === 0 ? t('incomingManage.deliveryNote.inspect') : t('publicText.detail')"
+                        <el-tooltip effect="dark"
+                            :content="row.Result === 0 ? t('incomingManage.deliveryNote.inspect') : t('publicText.detail')"
                             placement="top-start">
-                            <el-button type="primary" size="small"
-                                @click="openInspectDialog(row)" :icon="row.Result === 0 ? 'Edit' : 'View'">
+                            <el-button type="primary" size="small" @click="openInspectDialog(row)"
+                                :icon="row.Result === 0 ? 'Edit' : 'View'">
                             </el-button>
                         </el-tooltip>
-                        <el-tooltip effect="dark" :content=" t('incomingManage.deliveryNote.review')"
+                        <el-tooltip effect="dark" :content="t('incomingManage.deliveryNote.review')"
                             placement="top-start">
-                            <el-button type="warning" size="small" @click="openReviewDialog(row)" icon="Check" :disabled="row.Result !== 2||row.ReviewStatus==1"/>
+                            <el-button type="warning" size="small" @click="openReviewDialog(row)" icon="Check"
+                                :disabled="row.Result !== 2 || row.ReviewStatus == 1" />
                         </el-tooltip>
-                        <el-tooltip effect="dark" :content=" t('publicText.delete')"
-                            placement="top-start">
-                            <el-button type="danger" size="small" @click="handleDelete(row)" icon="Delete" :disabled="row.Result === 2"/>
+                        <el-tooltip effect="dark" :content="t('publicText.delete')" placement="top-start">
+                            <el-button type="danger" size="small" @click="handleDelete(row)" icon="Delete"
+                                :disabled="row.Result === 2" />
                         </el-tooltip>
                     </template>
                 </el-table-column>
@@ -137,10 +142,10 @@
         </el-card>
 
         <!-- 检验弹窗（录入实测值/选择结果） -->
-        <el-dialog :title="isInspected ? t('publicText.detail') : t('incomingManage.deliveryNote.inspectTitle')" v-model="inspectDialogVisible" width="1200px"
-            @close="closeInspectDialog" align-center :append-to-body="true" :close-on-click-modal="false"
-            :close-on-press-escape="false">
-            <el-form :model="inspectForm" size="small" :inline="true" label-width="auto">
+        <el-dialog :title="isInspected ? t('publicText.detail') : t('incomingManage.deliveryNote.inspectTitle')"
+            v-model="inspectDialogVisible" width="1200px" @close="closeInspectDialog" align-center
+            :append-to-body="true" :close-on-click-modal="false" :close-on-press-escape="false">
+            <el-form :model="inspectForm" size="small" :inline="true" label-width="90px" class="inspect-form">
                 <el-form-item :label="t('incomingManage.deliveryNote.iqcNo')">
                     <el-input v-model="inspectForm.IQCNo" disabled style="width: 200px;" />
                 </el-form-item>
@@ -150,32 +155,54 @@
                 <el-form-item :label="t('incomingManage.deliveryNote.materialCode')">
                     <el-input v-model="inspectForm.MaterialCode" disabled style="width: 200px;" />
                 </el-form-item>
-                <el-form-item :label="t('incomingManage.deliveryNote.materialName')" style="width: 100%;">
-                    <el-input v-model="inspectForm.MaterialName" type="textarea" disabled rows="1"
-                        style="width: 100%;" />
+                <el-form-item :label="t('incomingManage.deliveryNote.materialName')">
+                    <el-input v-model="inspectForm.MaterialName" disabled style="width: 200px;" />
                 </el-form-item>
-                <el-form-item label="附件" style="width: 100%;">
-                    <div class="attachment-row">
-                        <el-upload :auto-upload="false" :limit="1" :on-change="handleAttachmentChange"
-                            :on-remove="handleAttachmentRemove" :on-exceed="handleAttachmentExceed"
-                            :file-list="attachmentFileList" accept=".pdf">
-                            <el-button type="primary" size="small">选择PDF文件</el-button>
-                        </el-upload>
-                        <span class="el-upload__tip upload-tip">仅限PDF，最大20MB</span>
-                        <template v-if="existingAttachments.length > 0">
-                            <el-divider direction="vertical" />
-                            <div v-for="file in existingAttachments" :key="file.AttachmentId"
-                                class="attachment-item">
-                                <el-icon class="file-icon" color="#006487"><Document /></el-icon>
-                                <span class="attachment-name" :title="file.OriginalFileName">{{ file.OriginalFileName }}</span>
-                                <el-button type="primary" link size="small" @click="previewAttachment(file)">预览</el-button>
-                                <el-button type="primary" link size="small" @click="downloadAttachment(file)">下载</el-button>
-                            </div>
-                        </template>
-                    </div>
-                </el-form-item>
-                <el-form-item :label="t('incomingManage.deliveryNote.result')" style="width: 50%;">
-                    <el-select v-model="inspectForm.MainResult" size="small" style="width: 200px" :disabled="isInspected">
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item label="检验文件">
+                            <template v-if="inspectionFileData">
+                                <el-icon class="file-icon" color="#006487">
+                                    <Document />
+                                </el-icon>
+                                <span class="attachment-name" :title="inspectionFileData.OriginalFileName">{{
+                                    inspectionFileData.OriginalFileName }}</span>
+                                <el-button type="primary" link size="small"
+                                    @click="previewInspectionFile(inspectionFileData)">预览</el-button>
+                                <el-button type="primary" link size="small"
+                                    @click="downloadInspectionFile(inspectionFileData)">下载</el-button>
+                            </template>
+                            <span v-else style="color: #909399; line-height: 32px;">暂无</span>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="上传报告"> <el-upload v-if="!isInspected" :auto-upload="false" :limit="1"
+                                :on-change="handleAttachmentChange" :on-remove="handleAttachmentRemove"
+                                :on-exceed="handleAttachmentExceed" :file-list="attachmentFileList" accept=".pdf">
+                                <el-button type="primary" size="small">选择PDF</el-button>
+                            </el-upload>
+                            <template v-if="existingAttachments.length > 0">
+                                <div v-for="file in existingAttachments" :key="file.AttachmentId"
+                                    class="attachment-item">
+                                    <el-icon class="file-icon" color="#006487">
+                                        <Document />
+                                    </el-icon>
+                                    <span class="attachment-name" :title="file.OriginalFileName">{{
+                                        file.OriginalFileName
+                                        }}</span>
+                                    <el-button type="primary" link size="small"
+                                        @click="previewAttachment(file)">预览</el-button>
+                                    <el-button type="primary" link size="small"
+                                        @click="downloadAttachment(file)">下载</el-button>
+                                </div>
+                            </template>
+                            <span v-if="isInspected && existingAttachments.length === 0"
+                                style="color: #909399; line-height: 32px;">暂无</span></el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item :label="t('incomingManage.deliveryNote.result')">
+                    <el-select v-model="inspectForm.MainResult" size="small" style="width: 200px"
+                        :disabled="isInspected">
                         <el-option :label="t('incomingManage.deliveryNote.qualified')" :value="1" />
                         <el-option :label="t('incomingManage.deliveryNote.unqualified')" :value="2" />
                     </el-select>
@@ -197,9 +224,9 @@
                     <!-- 定量检验：显示实测值输入框 -->
                     <el-table-column :label="t('incomingManage.deliveryNote.measuredValue')" width="140">
                         <template #default="{ row }">
-                            <el-input-number v-model="row.MeasuredValue" :disabled="isInspected || row.InspectionType !== 2" size="small"
-                                :controls="false" style="width: 100%" 
-                                @change="() => calculateDetailResult(row)" />
+                            <el-input-number v-model="row.MeasuredValue"
+                                :disabled="isInspected || row.InspectionType !== 2" size="small" :controls="false"
+                                style="width: 100%" @change="() => calculateDetailResult(row)" />
                         </template>
                     </el-table-column>
                     <!-- 检验结果列 -->
@@ -224,8 +251,9 @@
             </el-form>
             <template #footer>
                 <el-button @click="inspectDialogVisible = false">{{ t("publicText.close") }}</el-button>
-                <el-button type="primary" v-if="!isInspected" @click="submitInspect" :loading="inspectSubmitting">{{ t("publicText.confirm")
-                    }}</el-button>
+                <el-button type="primary" v-if="!isInspected" @click="submitInspect" :loading="inspectSubmitting">{{
+                    t("publicText.confirm")
+                }}</el-button>
             </template>
         </el-dialog>
 
@@ -288,23 +316,30 @@
             :close-on-click-modal="false" @close="closePreview" class="preview-dialog">
             <template #header>
                 <div class="preview-header">
-                    <el-icon class="preview-icon"><Document /></el-icon>
+                    <el-icon class="preview-icon">
+                        <Document />
+                    </el-icon>
                     <span class="preview-title" :title="previewFileName">{{ previewFileName }}</span>
                 </div>
             </template>
             <div class="preview-body">
                 <div v-if="previewLoading" class="preview-loading">
-                    <el-icon class="is-loading" :size="40" color="#006487"><Loading /></el-icon>
+                    <el-icon class="is-loading" :size="40" color="#006487">
+                        <Loading />
+                    </el-icon>
                     <span class="loading-text">文件加载中...</span>
                 </div>
-                <VuePdfEmbed v-if="previewUrl" :source="previewUrl"
-                    class="pdf-preview-frame" @loaded="previewLoading = false"
-                    @loading-failed="handlePreviewFailed" @rendered="previewLoading = false" />
+                <VuePdfEmbed v-if="previewUrl" :source="previewUrl" class="pdf-preview-frame"
+                    @loaded="previewLoading = false" @loading-failed="handlePreviewFailed"
+                    @rendered="previewLoading = false" />
                 <el-empty v-if="!previewUrl && !previewLoading" description="暂无文件" />
             </div>
             <template #footer>
-                <el-button type="primary" :disabled="!currentPreviewFile" @click="downloadAttachment(currentPreviewFile)">
-                    <el-icon style="margin-right: 4px;"><Download /></el-icon>下载
+                <el-button type="primary" :disabled="!currentPreviewFile"
+                    @click="currentPreviewType === 'inspection' ? downloadInspectionFile(currentPreviewFile) : downloadAttachment(currentPreviewFile)">
+                    <el-icon style="margin-right: 4px;">
+                        <Download />
+                    </el-icon>下载
                 </el-button>
                 <el-button @click="previewVisible = false">{{ t("publicText.close") }}</el-button>
             </template>
@@ -313,7 +348,7 @@
 </template>
 
 <script setup lang="ts">
-import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspectionResult, SubmitInspectionResult, UpdateReviewResult, DeleteArrivalInspection, UploadArrivalAttachment, QueryArrivalAttachment, DownloadArrivalAttachment } from "@/api/incomingManage/index";
+import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspectionResult, SubmitInspectionResult, UpdateReviewResult, DeleteArrivalInspection, UploadArrivalAttachment, QueryArrivalAttachment, DownloadArrivalAttachment, QueryInspectionFile, DownloadInspectionFile } from "@/api/incomingManage/index";
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Document, Loading, Download } from "@element-plus/icons-vue";
@@ -501,6 +536,7 @@ const openInspectDialog = async (row: any) => {
             attachmentFileList.value = [];
             inspectDialogVisible.value = true;
             loadExistingAttachments();
+            loadInspectionFile();
         } else {
             ElMessage.error(res.Message || "加载明细失败");
         }
@@ -594,6 +630,7 @@ const closeInspectDialog = () => {
     inspectForm.Details = [];
     attachmentFileList.value = [];
     existingAttachments.value = [];
+    inspectionFileData.value = null;
 };
 
 // ==================== 附件上传 ====================
@@ -642,11 +679,13 @@ const uploadAttachment = async () => {
 
 // ==================== 附件查询/预览/下载 ====================
 const existingAttachments = ref<any[]>([]);
+const inspectionFileData = ref<any>(null);
 const previewVisible = ref(false);
 const previewUrl = ref("");
 const previewFileName = ref("");
 const previewLoading = ref(false);
 const currentPreviewFile = ref<any>(null);
+const currentPreviewType = ref<"attachment" | "inspection">("attachment");
 
 // 查询已上传附件
 const loadExistingAttachments = async () => {
@@ -663,10 +702,65 @@ const loadExistingAttachments = async () => {
     }
 };
 
+// 查询检验文件
+const loadInspectionFile = async () => {
+    if (!inspectForm.MaterialCode) {
+        inspectionFileData.value = null;
+        return;
+    }
+    try {
+        const res: any = await QueryInspectionFile({ MaterialCode: inspectForm.MaterialCode });
+        if (res.Success && res.Data && res.Data.length > 0) {
+            inspectionFileData.value = res.Data[0];
+        } else {
+            inspectionFileData.value = null;
+        }
+    } catch {
+        inspectionFileData.value = null;
+    }
+};
+
+// 预览检验文件
+const previewInspectionFile = async (file: any) => {
+    try {
+        currentPreviewFile.value = file;
+        currentPreviewType.value = "inspection";
+        previewFileName.value = file.OriginalFileName;
+        previewVisible.value = true;
+        previewLoading.value = true;
+        previewUrl.value = "";
+        const blob = await DownloadInspectionFile(file.AttachmentId);
+        previewUrl.value = window.URL.createObjectURL(blob);
+    } catch (e: any) {
+        ElMessage.error(e.message || "预览失败");
+        previewLoading.value = false;
+        previewVisible.value = false;
+    }
+};
+
+// 下载检验文件
+const downloadInspectionFile = async (file: any) => {
+    try {
+        const blob = await DownloadInspectionFile(file.AttachmentId);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = file.OriginalFileName;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+    } catch (e: any) {
+        ElMessage.error(e.message || "下载失败");
+    }
+};
+
 // 预览附件（PDF）
 const previewAttachment = async (file: any) => {
     try {
         currentPreviewFile.value = file;
+        currentPreviewType.value = "attachment";
         previewFileName.value = file.OriginalFileName;
         previewVisible.value = true;
         previewLoading.value = true;
@@ -787,24 +881,48 @@ onBeforeUnmount(() => window.removeEventListener("resize", getScreenHeight));
 .el-pagination {
     justify-content: center;
 }
+
+:deep(.inspect-form .el-form-item) {
+    margin-bottom: 12px;
+    vertical-align: middle;
+}
+
+:deep(.inspect-form .el-form-item__label) {
+    line-height: 32px;
+}
+
+:deep(.inspect-form .el-input__wrapper) {
+    height: 32px;
+}
+
 .attachment-row {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
 }
+
+.file-label {
+    color: #606266;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
 .upload-tip {
     color: #909399;
     font-size: 12px;
 }
+
 .attachment-item {
     display: flex;
     align-items: center;
     gap: 6px;
 }
+
 .file-icon {
     font-size: 16px;
 }
+
 .attachment-name {
     display: inline-block;
     max-width: 200px;
@@ -821,26 +939,32 @@ onBeforeUnmount(() => window.removeEventListener("resize", getScreenHeight));
     border-radius: 8px;
     overflow: hidden;
 }
+
 :deep(.preview-dialog .el-dialog__header) {
     background: linear-gradient(135deg, #006487 0%, #0088aa 100%);
     padding: 14px 20px;
     margin-right: 0;
     border-bottom: none;
 }
+
 :deep(.preview-dialog .el-dialog__headerbtn) {
     top: 14px;
 }
+
 :deep(.preview-dialog .el-dialog__headerbtn .el-dialog__close) {
     color: #fff;
     font-size: 18px;
 }
+
 :deep(.preview-dialog .el-dialog__headerbtn:hover .el-dialog__close) {
     color: #ffd666;
 }
+
 :deep(.preview-dialog .el-dialog__body) {
     padding: 0;
     background: #f5f7fa;
 }
+
 :deep(.preview-dialog .el-dialog__footer) {
     padding: 12px 20px;
     border-top: 1px solid #e4e7ed;
@@ -852,10 +976,12 @@ onBeforeUnmount(() => window.removeEventListener("resize", getScreenHeight));
     align-items: center;
     gap: 10px;
 }
+
 .preview-icon {
     font-size: 20px;
     color: #fff;
 }
+
 .preview-title {
     font-size: 16px;
     font-weight: 600;
@@ -865,6 +991,7 @@ onBeforeUnmount(() => window.removeEventListener("resize", getScreenHeight));
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
 .preview-body {
     position: relative;
     width: 100%;
@@ -872,6 +999,7 @@ onBeforeUnmount(() => window.removeEventListener("resize", getScreenHeight));
     overflow-y: auto;
     background: #f5f7fa;
 }
+
 .preview-loading {
     display: flex;
     flex-direction: column;
@@ -880,10 +1008,12 @@ onBeforeUnmount(() => window.removeEventListener("resize", getScreenHeight));
     height: 65vh;
     gap: 16px;
 }
+
 .loading-text {
     font-size: 14px;
     color: #909399;
 }
+
 .pdf-preview-frame {
     width: 100%;
     height: 65vh;
