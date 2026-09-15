@@ -163,7 +163,7 @@
                     </el-col>
                     <el-col :span="6">
                         <el-form-item label="数量" prop="DoubleQty">
-                            <el-input-number v-model="addForm.DoubleQty" :min="0" :disabled="addForm.IsDouble !== 1"
+                            <el-input-number v-model="addForm.DoubleQty" :min="0" 
                                 style="width: 100%" />
                         </el-form-item>
                     </el-col>
@@ -347,25 +347,30 @@
                     </el-col>
                     <el-col :span="6">
                         <el-form-item label="数量" prop="DoubleQty">
-                            <el-input-number v-model="editForm.DoubleQty" :min="0" :disabled="editForm.IsDouble !== 1"
+                            <el-input-number v-model="editForm.DoubleQty" :min="0" 
                                 style="width: 100%" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="检验文件">
-                            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-                                <!-- 已上传文件 -->
+                            <div class="file-area">
                                 <template v-if="editExistingFile">
-                                    <el-icon color="#006487"><Document /></el-icon>
-                                    <span class="attachment-name" :title="editExistingFile.OriginalFileName">{{ editExistingFile.OriginalFileName }}</span>
-                                    <el-button type="primary" link size="small" @click.stop="previewInspectionFile(editExistingFile)">预览</el-button>
-                                    <el-button type="primary" link size="small" @click.stop="downloadInspectionFile(editExistingFile)">下载</el-button>
-                                    <el-divider direction="vertical" />
+                                    <div class="file-item">
+                                        <el-icon color="#006487"><Document /></el-icon>
+                                        <span class="file-name" :title="editExistingFile.OriginalFileName">{{ editExistingFile.OriginalFileName }}</span>
+                                        <el-button type="primary" link size="small" @click.stop="previewInspectionFile(editExistingFile)">预览</el-button>
+                                        <el-button type="primary" link size="small" @click.stop="downloadInspectionFile(editExistingFile)">下载</el-button>
+                                        <el-button type="danger" link size="small" @click.stop="deleteInspectionFile(editExistingFile)">删除</el-button>
+                                        <el-divider direction="vertical" />
+                                        <el-upload v-model:file-list="editFileList" :auto-upload="false" :limit="1"
+                                            :on-exceed="handleExceed" accept=".pdf" style="display: inline-flex;">
+                                            <el-button type="primary" size="small" plain>替换</el-button>
+                                        </el-upload>
+                                    </div>
                                 </template>
-                                <!-- 上传新文件 -->
-                                <el-upload v-model:file-list="editFileList" :auto-upload="false" :limit="1"
+                                <el-upload v-else v-model:file-list="editFileList" :auto-upload="false" :limit="1"
                                     :on-exceed="handleExceed" accept=".pdf">
-                                    <el-button type="primary" size="small">选择文件</el-button>
+                                    <el-button type="primary" size="small" plain>选择文件</el-button>
                                 </el-upload>
                             </div>
                         </el-form-item>
@@ -597,7 +602,8 @@ import {
     QueryInspectionRuleMaterial,
     UploadInspectionFile,
     QueryInspectionFile,
-    DownloadInspectionFile
+    DownloadInspectionFile,
+    DeleteInspectionFile
 } from "@/api/incomingManage/index";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import {
@@ -610,7 +616,7 @@ import {
     onBeforeUnmount,
 } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Document, Loading, Download } from "@element-plus/icons-vue";
+import { Document, Loading, Download, Delete } from "@element-plus/icons-vue";
 import VuePdfEmbed from "vue-pdf-embed";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useI18n } from "vue-i18n";
@@ -1242,6 +1248,27 @@ const downloadInspectionFile = async (file: any) => {
     }
 };
 
+// 删除检验文件
+const deleteInspectionFile = (file: any) => {
+    ElMessageBox.confirm(
+        `确定删除文件「${file.OriginalFileName}」吗？`,
+        "提示",
+        { type: "warning" }
+    ).then(async () => {
+        try {
+            const res: any = await DeleteInspectionFile(file.AttachmentId);
+            if (res.Success) {
+                ElMessage.success("删除成功");
+                editExistingFile.value = null;
+            } else {
+                ElMessage.error(res.Message || "删除失败");
+            }
+        } catch (e: any) {
+            ElMessage.error(e.message || "删除失败");
+        }
+    }).catch(() => {});
+};
+
 const handlePreviewFailed = () => {
     ElMessage.error("文件加载失败");
     previewLoading.value = false;
@@ -1383,9 +1410,10 @@ const addSubmit = () => {
                 // 上传文件
                 if (addFileList.value.length > 0 && newRuleId) {
                     uploadInspectionFile(newRuleId, addFileList.value);
+                }else{
+                    addVisible.value = false;
                 }
                 ElMessage.success(res.Message || "新增成功");
-                addVisible.value = false;
                 getData();
             } else {
                 ElMessage.error(res.Message || "新增失败");
@@ -1457,9 +1485,11 @@ const editSubmit = () => {
                 // 上传文件（使用 ruleId）
                 if (editFileList.value.length > 0) {
                     uploadInspectionFile(editForm.ruleId, editFileList.value);
+                }else{
+                       editVisible.value = false;
                 }
                 ElMessage.success(res.Message || "更新成功");
-                // editVisible.value = false;
+             
                 getData();
                 if (currentRuleId.value === editForm.ruleId) {
                     handleRowClick({ RuleId: editForm.ruleId });
@@ -1578,6 +1608,24 @@ onBeforeUnmount(() => {
 }
 
 /* ============ 检验文件卡片 ============ */
+.file-area {
+    width: 100%;
+    line-height: 32px;
+}
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+.file-item .file-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex-shrink: 1;
+    min-width: 0;
+}
 .inspection-file-card {
     display: flex;
     align-items: center;

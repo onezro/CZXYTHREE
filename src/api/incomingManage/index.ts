@@ -264,6 +264,14 @@ export function DownloadInspectionFile(attachmentId: number): Promise<Blob> {
         return response.blob();
     });
 }
+//删除检验文件
+export function DeleteInspectionFile(attachmentId: number) {
+    return request({
+        url: "/api/iqc/DeleteInspectionFile",
+        method: "post",
+        params: { AttachmentId: attachmentId }
+    });
+}
 //上传报检单附件
 export function UploadArrivalAttachment(data:any, params:any) {
     return request({
@@ -292,5 +300,13 @@ export function DownloadArrivalAttachment(attachmentId: number): Promise<Blob> {
     }).then(response => {
         if (!response.ok) throw new Error(`下载失败: ${response.status}`);
         return response.blob();
+    });
+}
+//删除报检单附件
+export function DeleteArrivalAttachment(attachmentId: number) {
+    return request({
+        url: "/api/iqc/DeleteArrivalAttachment",
+        method: "post",
+        params: { AttachmentId: attachmentId }
     });
 }

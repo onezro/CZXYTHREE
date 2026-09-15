@@ -17,8 +17,8 @@
               @change="handleDateRangeChange" />
           </el-form-item>
           <el-form-item class="mb-2">
-            <el-select v-model="getDataText.lineName" placeholder="线体" style="width: 200px" clearable>
-              <el-option v-for="item in lineList" :key="item.value" :label="item.lable" :value="item.value" />
+            <el-select v-model="getDataText.lineName" placeholder="线体" style="width: 200px" clearable filterable>
+              <el-option v-for="item in lineList" :key="item.line" :label="item.line" :value="item.line" />
             </el-select>
           </el-form-item>
           <el-form-item class="mb-2" v-show="getDataText.inspectType == 'WI'">
@@ -120,6 +120,10 @@ import { ref, reactive, computed, onBeforeMount, onMounted, onBeforeUnmount, wat
 import { ElMessage, ElLoading } from 'element-plus'
 import dayjs from 'dayjs'
 import { QueryInspection } from '@/api/smtSpotCheck/base/index'
+import {
+   
+    GetSMTValorLine,
+} from "@/api/smtApply/changeover";
 import { shortcuts, setTodayDate, setLastDate } from '@/utils/dataMenu'
 
 // ---------- 类型定义 ----------
@@ -208,11 +212,7 @@ const getDataText = reactive({
 
 const value1 = ref<string[]>([])
 
-const lineList = [
-  { lable: 'Line1', value: 'Line1' }, { lable: 'Line2', value: 'Line2' },
-  { lable: 'Line3', value: 'Line3' }, { lable: 'Line4', value: 'Line4' },
-  { lable: 'Line5', value: 'Line5' }, { lable: 'Line6', value: 'Line6' }, { lable: 'Line7', value: 'Line7' }
-]
+const lineList = ref<any[]>([])
 
 const typeList = [
    { lable: '开班检（首检）', value: 'FI' }, { lable: '巡检', value: 'RI' },
@@ -240,30 +240,7 @@ const isStatusTag = (value: number) => {
   const map: Record<number, string> = { 1: 'success', 2: 'danger', 3: 'info' }
   return map[value] || ''
 }
-const subItemStatusText = (value: string) => {
-  const map: Record<string, string> = { 'I': '未开始', 'P': '进行中', 'S': '已检验', 'C': '已完成' }
-  return map[value] || value
-}
-const subItemStatusTag = (value: string) => {
-  const map: Record<string, string> = { 'I': 'info', 'P': 'warning', 'S': 'primary', 'C': 'success' }
-  return map[value] || ''
-}
-const resultText = (value: string) => {
-  const map: Record<string, string> = { '0': '未检查', '9': '正常', '1': 'NG', '2': '报修', '3': '故障' }
-  return map[value] || ''
-}
-const resultTag = (value: string) => {
-  const map: Record<string, string> = { '0': '', '9': 'success', '1': 'danger', '2': 'warning', '3': 'info' }
-  return map[value] || ''
-}
-const resultText1 = (value: string) => {
-  const map: Record<string, string> = { C: '已检验', D: '已删除', P: '进行中', I: '未开始' }
-  return map[value] || ''
-}
-const resultTag1 = (value: string) => {
-  const map: Record<string, string> = { C: 'success', D: 'danger', P: 'warning', I: 'info' }
-  return map[value] || ''
-}
+
 
 // 提取图片URL（兼容字符串和对象）
 const extractImageUrl = (attachment: any): string => {
@@ -539,6 +516,11 @@ watch(() => getDataText.inspectType, (newVal, oldVal) => {
   }
 })
 
+const getLineList = async () => {
+    GetSMTValorLine({}).then((res: any) => {
+        lineList.value = res.Data;
+    });
+};
 onBeforeMount(() => {
   getScreenHeight()
   value1.value = [setLastDate() + ' 00:00:00', setTodayDate() + ' 23:59:59']
@@ -547,6 +529,7 @@ onBeforeMount(() => {
 onMounted(() => {
   window.addEventListener('resize', getScreenHeight)
   getData()
+  getLineList()
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', getScreenHeight)

@@ -37,3 +37,19 @@ export function IssueMaterials(data:any) {
     data
   });
 }
+
+export function ResetIssueData(data:any) {
+  return request({
+    url: "/api/WorkOrderGroupMaterialIssue/ResetIssueData",
+    method: "post",
+    data
+  });
+}
+
+export function SendIssueData(data:any) {
+  return request({
+    url: "/api/WorkOrderGroupMaterialIssue/SendIssueData",
+    method: "post",
+    data
+  });
+}

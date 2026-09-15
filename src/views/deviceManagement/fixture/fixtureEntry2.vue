@@ -1,27 +1,28 @@
 <template>
-  <div class="p-1">
-    <el-card shadow="never" :body-style="{ padding: '6px 8px' }">
+  <div class="p-2">
+    <el-card  :body-style="{ padding: '8px' }">
       <div class="flex justify-between items-center flex-wrap gap-y-1 mb-1">
-        <!-- 左：操作按钮组 -->
-        <div class="flex items-center flex-wrap gap-2">
-          <el-button type="primary" size="small" @click="addOpen">
-            {{ $t("publicText.add") }}
-          </el-button>
-          <el-button type="info" size="small" :disabled="selectedRows.length === 0"
-            @click="handleClearCell">
-            {{ $t("deviceManage.fixtureEntry.clearCell") }}
-          </el-button>
-        </div>
-        <!-- 右：搜索框 -->
-        <div class="input_box">
-          <el-input v-model="searchName" style="width: 350px" clearable
-            :placeholder="$t('deviceManage.fixtureEntry.searchPlaceholder')" @keyup.enter="searchData"
-            @clear="clearData" size="small">
-            <template #append>
-              <el-button type="primary" icon="Search" @click="searchData" />
-            </template>
-          </el-input>
-        </div>
+        <el-form :inline="true" :model="{}" label-width="auto" @submit.prevent>
+          <el-form-item :label="$t('deviceManage.fixtureEntry.searchPlaceholder')" class="mb-1">
+            <el-input v-model="searchName" clearable
+              :placeholder="''" @keyup.enter="searchData"
+              @clear="clearData" size="small" style="width: 250px" />
+          </el-form-item>
+          <el-form-item :label="$t('deviceManage.fixtureEntry.cell')" class="mb-1">
+            <el-input v-model="searchCell" clearable
+              :placeholder="''" @keyup.enter="searchData"
+              @clear="clearData" size="small" style="width: 200px" />
+          </el-form-item>
+          <el-form-item class="mb-1">
+            <el-button type="primary" size="small" @click="searchData">{{ $t("publicText.query") }}</el-button>
+            <el-button size="small" @click="clearData">{{ $t("publicText.reset") }}</el-button>
+            <el-button type="warning" size="small" @click="addOpen">{{ $t("publicText.add") }}</el-button>
+            <el-button type="info" size="small" :disabled="selectedRows.length === 0"
+              @click="handleClearCell">
+              {{ $t("deviceManage.fixtureEntry.clearCell") }}
+            </el-button>
+          </el-form-item>
+        </el-form>
       </div>
 
       <el-table ref="tableRef" :data="tableData" border :height="tableHeight" style="width: 100%" size="small" stripe
@@ -63,7 +64,7 @@
           :min-width="getColumnWidth('Ud_user')" />
         <el-table-column prop="Ud_dt" :label="$t('deviceManage.fixtureEntry.operateTime')" width="155"
           :min-width="getColumnWidth('Ud_dt')" />
-        <el-table-column fixed="right" :label="$t('publicText.operation')" width="240" align="center">
+        <el-table-column fixed="right" :label="$t('publicText.operation')" width="220" align="center">
           <template #default="{ row }">
             <el-tooltip :content="$t('publicText.edit')" placement="top">
               <el-button type="primary" icon="Edit" size="small" :disabled="row.Stts === -1" @click="handleEdit(row)" />
@@ -224,6 +225,7 @@ const tableHeight = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(50);
 const searchName = ref("");
+const searchCell = ref("");
 const total = ref(0);
 const selectedRows = ref<any[]>([]);
 
@@ -351,6 +353,7 @@ const getIDData = async () => {
       SelectType: ["1", "2"],
       ExpireLong: "",
       ExpireUnit: "",
+      Cell: searchCell.value.trim(),
     },
     StartTime: "",
     EndTime: "",
@@ -394,6 +397,7 @@ const searchData = () => {
 
 const clearData = () => {
   searchName.value = "";
+  searchCell.value = "";
   currentPage.value = 1;
   getIDData();
 };

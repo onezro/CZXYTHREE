@@ -40,7 +40,7 @@ export function QueryPlateBaseData(data: any) {
 // 获取设备下拉数据
 export function GetEquipment(data: any = {}) {
   return request({
-    url: "/GetEquipment",
+    url: "/api/AGVPlateBaseData/GetEquipment",
     method: "post",
     data,
   });
@@ -49,7 +49,7 @@ export function GetEquipment(data: any = {}) {
 // 获取点位下拉数据
 export function GetPoint(data: any = {}) {
   return request({
-    url: "/GetPoint",
+    url: "/api/AGVPlateBaseData/GetPoint",
     method: "post",
     data,
   });

@@ -243,7 +243,7 @@ const handleReset = () => {
 
 const handleCancelTask = (row: any) => {
     ElMessageBox.confirm(
-        t("AGV.taskQuery.confirmCancelTask").replace('{0}', row.TaskGuid || ''),
+        t("AGV.taskQuery.confirmCancelTask", [row.TaskGuid || '']),
         t("publicText.tip"),
         {
             confirmButtonText: t("publicText.confirm"),

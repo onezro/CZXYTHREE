@@ -194,6 +194,8 @@
                                         @click="previewAttachment(file)">预览</el-button>
                                     <el-button type="primary" link size="small"
                                         @click="downloadAttachment(file)">下载</el-button>
+                                    <el-button v-if="!isInspected" type="danger" link size="small"
+                                        @click="deleteAttachment(file)">删除</el-button>
                                 </div>
                             </template>
                             <span v-if="isInspected && existingAttachments.length === 0"
@@ -348,7 +350,7 @@
 </template>
 
 <script setup lang="ts">
-import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspectionResult, SubmitInspectionResult, UpdateReviewResult, DeleteArrivalInspection, UploadArrivalAttachment, QueryArrivalAttachment, DownloadArrivalAttachment, QueryInspectionFile, DownloadInspectionFile } from "@/api/incomingManage/index";
+import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspectionResult, SubmitInspectionResult, UpdateReviewResult, DeleteArrivalInspection, UploadArrivalAttachment, QueryArrivalAttachment, DownloadArrivalAttachment, DeleteArrivalAttachment, QueryInspectionFile, DownloadInspectionFile } from "@/api/incomingManage/index";
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Document, Loading, Download } from "@element-plus/icons-vue";
@@ -790,6 +792,29 @@ const downloadAttachment = async (file: any) => {
     } catch (e: any) {
         ElMessage.error(e.message || "下载失败");
     }
+};
+
+// 删除附件
+const deleteAttachment = (file: any) => {
+    ElMessageBox.confirm(
+        `确定删除文件「${file.OriginalFileName}」吗？`,
+        "提示",
+        { type: "warning" }
+    ).then(async () => {
+        try {
+            const res: any = await DeleteArrivalAttachment(file.AttachmentId);
+            if (res.Success) {
+                ElMessage.success("删除成功");
+                existingAttachments.value = existingAttachments.value.filter(
+                    (f: any) => f.AttachmentId !== file.AttachmentId
+                );
+            } else {
+                ElMessage.error(res.Message || "删除失败");
+            }
+        } catch (e: any) {
+            ElMessage.error(e.message || "删除失败");
+        }
+    }).catch(() => {});
 };
 
 const handlePreviewFailed = () => {

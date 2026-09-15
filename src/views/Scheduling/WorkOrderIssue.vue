@@ -61,10 +61,16 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="t('publicText.operation')" fixed="right" width="120" align="center">
+        <el-table-column :label="t('publicText.operation')" fixed="right" width="320" align="center">
           <template #default="{ row }">
             <el-button type="success" size="small" @click.stop="handleIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.issueMaterials') }}
+            </el-button>
+            <el-button type="warning" size="small" @click.stop="handleResetIssue(row)">
+              {{ t('Scheduling.WorkOrderIssue.resetIssueData') }}
+            </el-button>
+            <el-button type="primary" size="small" @click.stop="handleSendIssue(row)">
+              {{ t('Scheduling.WorkOrderIssue.sendIssueData') }}
             </el-button>
           </template>
         </el-table-column>
@@ -87,62 +93,75 @@
           <template v-if="currentRow.group_order">: {{ currentRow.group_order }}</template>
         </span>
       </div>
-      <el-table :data="detailData" size="small" :style="{ width: '100%' }" :height="detailTableHeight"
+      <el-table :data="pagedDetailData" size="small" :style="{ width: '100%' }" :height="detailTableHeight"
         :tooltip-effect="'dark'" border fit ref="detailTableRef"
         :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
-        <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.mesWorkOrder')" prop="mes_work_order"
-          :min-width="getColumnWidth1('mes_work_order')" show-overflow-tooltip />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.materialPn')" prop="material_pn"
-          :min-width="getColumnWidth1('material_pn')" show-overflow-tooltip />
+        <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
+          <template #default="scope">
+            {{ scope.$index + (detailPage.PageIndex - 1) * detailPage.PageSize + 1 }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.programMerge')" prop="program_merge"
+          :min-width="150" show-overflow-tooltip fixed="left" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.planStartTime')" prop="plan_start_time"
+          :min-width="getColumnWidth1('plan_start_time')">
+          <template #default="{ row }">
+            {{ formatDate(row.plan_start_time) }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.planEndTime')" prop="plan_end_time"
+          :min-width="getColumnWidth1('plan_end_time')">
+          <template #default="{ row }">
+            {{ formatDate(row.plan_end_time) }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.line')" prop="line" :min-width="getColumnWidth1('line')"
+          show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.erpFeedCode')" prop="erp_feed_code"
+          :min-width="getColumnWidth1('erp_feed_code')" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.erpMoLineNo')" prop="erp_mo_line_no"
+          :min-width="getColumnWidth1('erp_mo_line_no')" show-overflow-tooltip />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.reelId')" prop="reel_id"
           :min-width="getColumnWidth1('reel_id')" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.materialPn')" prop="material_pn"
+          :min-width="getColumnWidth1('material_pn')" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.bomQty')" prop="bom_qty" width="100" align="center" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.totalQty')" prop="total_qty" width="100" align="center" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.remainQty')" prop="remain_qty" width="100"
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.reelOriginalQty')" prop="reel_original_qty" width="110"
+          align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.deductQty')" prop="deduct_qty" width="100"
+          align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.remainQtyAfter')" prop="remain_qty_after" width="110"
           align="center" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.actRetQty')" prop="act_ret_qty" width="100"
           align="center" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.status')" prop="status" width="80" align="center">
-          <template #default="{ row }">
-            <el-tag :type="row.status ? 'success' : 'info'" size="small">
-              {{ row.status_name || '-' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.uploadStatus')" prop="upload_status_name"
-          :min-width="getColumnWidth1('upload_status_name')" align="center">
-          <template #default="{ row }">
-            <el-tag :type="row.upload_status === 1 ? 'success' : 'info'" size="small">
-              {{ row.upload_status_name || '-' }}
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column :label="t('Scheduling.WorkOrderIssue.batchId')" prop="batch_id"
-          :min-width="getColumnWidth1('batch_id')" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.outOri')" prop="out_ori"
-          :min-width="getColumnWidth1('out_ori')" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.outWareHouse')" prop="out_ware_house"
-          :min-width="getColumnWidth1('out_ware_house')" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.createTime')" prop="create_time"
-          :min-width="getColumnWidth1('create_time')" show-overflow-tooltip>
-          <template #default="{ row }">
-            {{ formatDate(row.create_time) }}
-          </template>
-        </el-table-column>
+          :min-width="getColumnWidth1('batch_id')" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.supperlier')" prop="supperlier"
+          :min-width="getColumnWidth1('supperlier')" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.supperlierName')" prop="supperlier_name"
+          :min-width="getColumnWidth1('supperlier_name')" show-overflow-tooltip />
         <template #empty>
           <div class="flex items-center justify-center h-100%">
             <el-empty />
           </div>
         </template>
       </el-table>
+      <div class="mt-2">
+        <el-pagination :size="'small'" background @size-change="handleDetailSizeChange"
+          @current-change="handleDetailCurrentChange" :pager-count="5"
+          :current-page="detailPage.PageIndex" :page-size="detailPage.PageSize"
+          :page-sizes="[30, 50, 100, 200, 300]" layout="total,sizes, prev, pager, next"
+          :total="detailPage.total" />
+      </div>
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { QueryReturnMaterials, QueryReturnMaterialDetails, IssueMaterials } from "@/api/Scheduling/WorkOrderIssue";
+import { QueryReturnMaterials, QueryReturnMaterialDetails, IssueMaterials, ResetIssueData, SendIssueData } from "@/api/Scheduling/WorkOrderIssue";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
-import { ref, reactive, nextTick, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, reactive, nextTick, onMounted, onBeforeUnmount, watch, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import dayjs from "dayjs";
@@ -157,6 +176,15 @@ const masterTableHeight = ref(0);
 const detailTableHeight = ref(0);
 const tableData = ref<any[]>([]);
 const detailData = ref<any[]>([]);
+const detailPage = reactive({
+  PageIndex: 1,
+  PageSize: 50,
+  total: 0,
+});
+const pagedDetailData = computed(() => {
+  const start = (detailPage.PageIndex - 1) * detailPage.PageSize;
+  return detailData.value.slice(start, start + detailPage.PageSize);
+});
 const total = ref(0);
 const currentRow = reactive<any>({});
 
@@ -242,6 +270,8 @@ const queryReturnMaterials = () => {
 const clearDetail = () => {
   Object.keys(currentRow).forEach(k => delete currentRow[k]);
   detailData.value = [];
+  detailPage.PageIndex = 1;
+  detailPage.total = 0;
 };
 
 const handleRowClick = (row: any) => {
@@ -256,13 +286,28 @@ const queryDetail = (group_order: string) => {
     .then((res: any) => {
       if (res.Success && Array.isArray(res.Data)) {
         detailData.value = res.Data;
+        detailPage.total = res.Data.length;
+        detailPage.PageIndex = 1;
       } else {
         detailData.value = [];
+        detailPage.total = 0;
+        detailPage.PageIndex = 1;
       }
     })
     .catch(() => {
       detailData.value = [];
+      detailPage.total = 0;
+      detailPage.PageIndex = 1;
     });
+};
+
+const handleDetailSizeChange = (val: number) => {
+  detailPage.PageSize = val;
+  detailPage.PageIndex = 1;
+};
+
+const handleDetailCurrentChange = (val: number) => {
+  detailPage.PageIndex = val;
 };
 
 const resetQuery = () => {
@@ -315,6 +360,78 @@ const issueMaterials = (group_order: string) => {
     .catch(() => { });
 };
 
+const handleResetIssue = (row: any) => {
+  console.log(row);
+  const group_order = row?.group_order;
+  if (!group_order) {
+    ElMessage.warning(t("Scheduling.WorkOrderIssue.pleaseInputGroupOrder"));
+    return;
+  }
+  ElMessageBox.confirm(
+    t("Scheduling.WorkOrderIssue.confirmResetIssueData", [group_order]),
+    t("publicText.tip"),
+    {
+      confirmButtonText: t("publicText.confirm"),
+      cancelButtonText: t("publicText.cancel"),
+      type: "warning",
+    }
+  )
+    .then(() => {
+      resetIssueData(group_order);
+    })
+    .catch(() => { });
+};
+
+const resetIssueData = (group_order: string) => {
+  ResetIssueData({ group_order })
+    .then((res: any) => {
+      if (res.Success) {
+        ElMessage.success(res.Message || t("Scheduling.WorkOrderIssue.resetSuccess"));
+        queryReturnMaterials();
+      } else {
+        ElMessage.error(res.Message || t("Scheduling.WorkOrderIssue.resetFailure"));
+      }
+    })
+    .catch(() => { });
+};
+
+const handleSendIssue = (row: any) => {
+  const group_order = row?.group_order;
+  if (!group_order) {
+    ElMessage.warning(t("Scheduling.WorkOrderIssue.pleaseInputGroupOrder"));
+    return;
+  }
+  ElMessageBox.confirm(
+    t("Scheduling.WorkOrderIssue.confirmSendIssueData", [group_order]),
+    t("publicText.tip"),
+    {
+      confirmButtonText: t("publicText.confirm"),
+      cancelButtonText: t("publicText.cancel"),
+      type: "warning",
+    }
+  )
+    .then(() => {
+      sendIssueData(group_order);
+    })
+    .catch(() => { });
+};
+
+const sendIssueData = (group_order: string) => {
+  SendIssueData({
+    group_order,
+    operator_name: userStore.getUserInfo || "",
+  })
+    .then((res: any) => {
+      if (res.Success) {
+        ElMessage.success(res.Message || t("Scheduling.WorkOrderIssue.sendSuccess"));
+        queryReturnMaterials();
+      } else {
+        ElMessage.error(res.Message || t("Scheduling.WorkOrderIssue.sendFailure"));
+      }
+    })
+    .catch(() => { });
+};
+
 const handleSizeChange = (val: number) => {
   getForm.PageSize = val;
   getForm.PageIndex = 1;
@@ -328,9 +445,9 @@ const handleCurrentChange = (val: number) => {
 
 const getScreenHeight = () => {
   nextTick(() => {
-    const availableHeight = window.innerHeight - 190;
+    const availableHeight = window.innerHeight - 180;
     masterTableHeight.value = Math.max(Math.floor(availableHeight * 0.4), 180);
-    detailTableHeight.value = Math.max(availableHeight - masterTableHeight.value - 40, 200);
+    detailTableHeight.value = Math.max(availableHeight - masterTableHeight.value - 80, 200);
   });
 };
 
