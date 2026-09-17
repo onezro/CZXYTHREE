@@ -143,7 +143,7 @@
 
         <!-- 检验弹窗（录入实测值/选择结果） -->
         <el-dialog :title="isInspected ? t('publicText.detail') : t('incomingManage.deliveryNote.inspectTitle')"
-            v-model="inspectDialogVisible" width="1200px" @close="closeInspectDialog" align-center
+            v-model="inspectDialogVisible" width="85%" @close="closeInspectDialog" align-center
             :append-to-body="true" :close-on-click-modal="false" :close-on-press-escape="false">
             <el-form :model="inspectForm" size="small" :inline="true" label-width="90px" class="inspect-form">
                 <el-form-item :label="t('incomingManage.deliveryNote.iqcNo')">
@@ -176,10 +176,10 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="上传报告"> <el-upload v-if="!isInspected" :auto-upload="false" :limit="1"
+                        <el-form-item label="上传图片"> <el-upload v-if="!isInspected" :auto-upload="false" :limit="1"
                                 :on-change="handleAttachmentChange" :on-remove="handleAttachmentRemove"
-                                :on-exceed="handleAttachmentExceed" :file-list="attachmentFileList" accept=".pdf">
-                                <el-button type="primary" size="small">选择PDF</el-button>
+                                :on-exceed="handleAttachmentExceed" :file-list="attachmentFileList" accept="image/*">
+                                <el-button type="primary" size="small">选择图片</el-button>
                             </el-upload>
                             <template v-if="existingAttachments.length > 0">
                                 <div v-for="file in existingAttachments" :key="file.AttachmentId"
@@ -209,14 +209,17 @@
                         <el-option :label="t('incomingManage.deliveryNote.unqualified')" :value="2" />
                     </el-select>
                 </el-form-item>
-                <el-table :data="inspectForm.Details" border size="small" style="width: 100%" height="400">
+                <el-table :data="inspectForm.Details" ref="inspectTableRef" border size="small" style="width: 100%"
+                    height="400">
                     <el-table-column :label="t('incomingManage.inspectionItem.gaugeCode')" prop="InspectionCode"
-                        width="120" />
+                        :min-width="getInspectColumnWidth('InspectionCode')" />
                     <el-table-column :label="t('incomingManage.inspectionItem.gaugeName')" prop="InspectionName"
-                        min-width="180" />
-                    <el-table-column label="检验项类型" prop="InspectionItemType" width="100" />
-                    <el-table-column label="检验工具" prop="InspectionTool" width="100" />
-                    <el-table-column label="检测方法" prop="DetectionMethod" width="120" />
+                        :min-width="getInspectColumnWidth('InspectionName')" />
+                    <el-table-column label="检验项类型" prop="InspectionItemType"
+                        :min-width="getInspectColumnWidth('InspectionItemType')" />
+                    <el-table-column label="检验工具" prop="InspectionTool"
+                        :min-width="getInspectColumnWidth('InspectionTool')" />
+                    <el-table-column label="检测方法" prop="DetectionMethod" width="280" />
                     <el-table-column :label="t('incomingManage.inspectionRule.lowerLimit')" prop="LowerLimit" width="90"
                         align="right" />
                     <el-table-column :label="t('incomingManage.inspectionRule.upperLimit')" prop="UpperLimit" width="90"
@@ -232,7 +235,7 @@
                         </template>
                     </el-table-column>
                     <!-- 检验结果列 -->
-                    <el-table-column :label="t('incomingManage.deliveryNote.detailResult')" width="100" align="center">
+                    <el-table-column :label="t('incomingManage.deliveryNote.detailResult')" width="100" align="center" fixed="right">
                         <template #default="{ row }">
                             <!-- 定性检验：手动选择结果 -->
                             <el-select v-if="row.InspectionType === 1" v-model="row.Result" size="small"
@@ -313,7 +316,7 @@
             </template>
         </el-dialog>
 
-        <!-- PDF预览弹窗 -->
+        <!-- 文件预览弹窗 -->
         <el-dialog v-model="previewVisible" width="85%" align-center :append-to-body="true"
             :close-on-click-modal="false" @close="closePreview" class="preview-dialog">
             <template #header>
@@ -331,7 +334,10 @@
                     </el-icon>
                     <span class="loading-text">文件加载中...</span>
                 </div>
-                <VuePdfEmbed v-if="previewUrl" :source="previewUrl" class="pdf-preview-frame"
+                <el-image v-if="previewUrl && previewIsImage" :src="previewUrl" class="image-preview-frame"
+                    fit="contain" :preview-src-list="[previewUrl]" :preview-teleported="true"
+                    @load="previewLoading = false" @error="handlePreviewFailed" />
+                <VuePdfEmbed v-else-if="previewUrl" :source="previewUrl" class="pdf-preview-frame"
                     @loaded="previewLoading = false" @loading-failed="handlePreviewFailed"
                     @rendered="previewLoading = false" />
                 <el-empty v-if="!previewUrl && !previewLoading" description="暂无文件" />
@@ -363,6 +369,7 @@ import { useI18n } from "vue-i18n";
 const userStore = useUserStoreWithOut();
 const { t } = useI18n();
 const eltableRef = ref();
+const inspectTableRef = ref();
 const tableHeight = ref(0);
 const tableData = ref<any[]>([]);
 const total = ref(0);
@@ -645,8 +652,8 @@ const handleAttachmentExceed = () => {
 const handleAttachmentChange = (file: any) => {
     const raw = file.raw as File;
     if (!raw) return;
-    if (!raw.name.toLowerCase().endsWith(".pdf")) {
-        ElMessage.error("仅限PDF文件");
+    if (!(raw.type.startsWith("image/") || isImageFile(raw.name))) {
+        ElMessage.error("仅限图片文件");
         attachmentFileList.value = [];
         return;
     }
@@ -688,6 +695,14 @@ const previewFileName = ref("");
 const previewLoading = ref(false);
 const currentPreviewFile = ref<any>(null);
 const currentPreviewType = ref<"attachment" | "inspection">("attachment");
+const previewIsImage = ref(false);
+
+const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"];
+const isImageFile = (fileName: string) => {
+    if (!fileName) return false;
+    const lower = fileName.toLowerCase();
+    return IMAGE_EXTENSIONS.some((ext) => lower.endsWith(ext));
+};
 
 // 查询已上传附件
 const loadExistingAttachments = async () => {
@@ -728,6 +743,7 @@ const previewInspectionFile = async (file: any) => {
         currentPreviewFile.value = file;
         currentPreviewType.value = "inspection";
         previewFileName.value = file.OriginalFileName;
+        previewIsImage.value = isImageFile(file.OriginalFileName);
         previewVisible.value = true;
         previewLoading.value = true;
         previewUrl.value = "";
@@ -758,12 +774,13 @@ const downloadInspectionFile = async (file: any) => {
     }
 };
 
-// 预览附件（PDF）
+// 预览附件
 const previewAttachment = async (file: any) => {
     try {
         currentPreviewFile.value = file;
         currentPreviewType.value = "attachment";
         previewFileName.value = file.OriginalFileName;
+        previewIsImage.value = isImageFile(file.OriginalFileName);
         previewVisible.value = true;
         previewLoading.value = true;
         previewUrl.value = "";
@@ -830,6 +847,7 @@ const closePreview = () => {
     }
     previewFileName.value = "";
     previewLoading.value = false;
+    previewIsImage.value = false;
     currentPreviewFile.value = null;
 };
 
@@ -887,6 +905,11 @@ const closeReviewDialog = () => {
 // ==================== 列宽自适应 ====================
 const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {
     excludeLabels: [t('publicText.index'), t('publicText.operation')]
+});
+
+const inspectTableData = computed(() => inspectForm.Details);
+const { getColumnWidth: getInspectColumnWidth } = useTableColumnWidth(inspectTableRef, inspectTableData, {
+    excludeTypes: ['selection', 'index']
 });
 const getScreenHeight = () => {
     nextTick(() => {
@@ -1045,5 +1068,16 @@ onBeforeUnmount(() => window.removeEventListener("resize", getScreenHeight));
     border: none;
     display: block;
     background: #fff;
+}
+
+.image-preview-frame {
+    width: 100%;
+    height: 65vh;
+    display: block;
+    background: #fff;
+}
+
+.image-preview-frame :deep(img) {
+    object-fit: contain;
 }
 </style>

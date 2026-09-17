@@ -196,15 +196,8 @@
                                 <template #default="{ row }">
                                     <el-select v-model="row.InspectionTool" size="small" filterable clearable
                                         placeholder="请选择" style="width: 100%">
-                                        <el-option label="积分球" value="积分球" />
-                                        <el-option label="塞尺" value="塞尺" />
-                                        <el-option label="量棒" value="量棒" />
-                                        <el-option label="二次元/投影仪" value="二次元/投影仪" />
-                                        <el-option label="大理石平台" value="大理石平台" />
-                                        <el-option label="数字电桥" value="数字电桥" />
-                                        <el-option label="游标卡尺" value="游标卡尺" />
-                                        <el-option label="通止规" value="通止规" />
-                                        <el-option label="电子秤" value="电子秤" />
+                                        <el-option v-for="item in inspectionToolOptions" :key="item" :label="item"
+                                            :value="item" />
                                     </el-select>
                                 </template>
                             </el-table-column>
@@ -295,6 +288,23 @@ import { useI18n } from "vue-i18n";
 
 const userStore = useUserStoreWithOut();
 const { t } = useI18n();
+
+// 检验工具下拉选项
+const inspectionToolOptions = [
+    "积分球",
+    "塞尺",
+    "量棒",
+    "二次元/投影仪",
+    "大理石平台",
+    "数字电桥",
+    "游标卡尺",
+    "通止规",
+    "电子秤",
+    "目视",
+    "显微镜",
+    "供应商提供报告",
+    "委外第三方检测",
+];
 
 // 表格高度自适应
 const tableHeight = ref(0);

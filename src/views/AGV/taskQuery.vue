@@ -10,7 +10,7 @@
                             :placeholder="t('AGV.taskQuery.inputBoxNo')" />
                     </el-form-item>
                     <el-form-item :label="t('AGV.taskQuery.insertDate')" prop="TimeRange" class="mb-2">
-                        <el-date-picker style="width: 350px;" v-model="queryTime" type="datetimerange" range-separator="-"
+                        <el-date-picker style="width: 330px;" v-model="queryTime" type="datetimerange" range-separator="-"
                             start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD HH:mm:ss"
                             :shortcuts="shortcuts1" :default-time="[
                                 new Date(2000, 1, 1, 0, 0, 0),
@@ -19,13 +19,20 @@
                     </el-form-item>
                     <el-form-item :label="t('AGV.taskQuery.startPoint')" prop="StartPoint" class="mb-2">
                         <el-input v-model="searchForm.StartPoint" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 160px"
+                            @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('AGV.taskQuery.inputStartPoint')" />
                     </el-form-item>
                     <el-form-item :label="t('AGV.taskQuery.endPoint')" prop="EndPoint" class="mb-2">
                         <el-input v-model="searchForm.EndPoint" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 160px"
+                            @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('AGV.taskQuery.inputEndPoint')" />
+                    </el-form-item>
+                    <el-form-item :label="t('AGV.taskQuery.lineName')" prop="LineName" class="mb-2">
+                        <el-select v-model="searchForm.LineName" clearable filterable @change="handleSearch"
+                            style="width: 180px" :placeholder="t('AGV.taskQuery.selectLineName')">
+                            <el-option v-for="(item, idx) in lineList" :key="'ln-' + idx" :label="getLineLabel(item)"
+                                :value="getLineValue(item)" />
+                        </el-select>
                     </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button type="primary" @click="handleSearch">{{ t("publicText.query") }}</el-button>
@@ -88,17 +95,76 @@
                 </el-table-column>
                 <el-table-column prop="Point" :label="t('AGV.taskQuery.point')"
                     :min-width="getColumnWidth('Point')" show-overflow-tooltip />
+                <el-table-column prop="PointName" :label="t('AGV.taskQuery.pointName')"
+                    :min-width="getColumnWidth('PointName')" show-overflow-tooltip />
                 <el-table-column prop="StartPoint" :label="t('AGV.taskQuery.startPoint')"
                     :min-width="getColumnWidth('StartPoint')" show-overflow-tooltip />
+                <el-table-column prop="StartPointName" :label="t('AGV.taskQuery.startPointName')"
+                    :min-width="getColumnWidth('StartPointName')" show-overflow-tooltip />
                 <el-table-column prop="EndPoint" :label="t('AGV.taskQuery.endPoint')"
                     :min-width="getColumnWidth('EndPoint')" show-overflow-tooltip />
+                <el-table-column prop="EndPointName" :label="t('AGV.taskQuery.endPointName')"
+                    :min-width="getColumnWidth('EndPointName')" show-overflow-tooltip />
+                <el-table-column prop="LineName" :label="t('AGV.taskQuery.lineName')"
+                    :min-width="getColumnWidth('LineName')" show-overflow-tooltip />
+                <el-table-column prop="DeviceNo" :label="t('AGV.taskQuery.deviceNo')"
+                    :min-width="getColumnWidth('DeviceNo')" show-overflow-tooltip />
+                <el-table-column prop="WorkOrder" :label="t('AGV.taskQuery.workOrder')"
+                    :min-width="getColumnWidth('WorkOrder')" show-overflow-tooltip />
+                <el-table-column prop="Side" :label="t('AGV.taskQuery.side')"
+                    :min-width="getColumnWidth('Side')" align="center" />
+                <el-table-column prop="Product" :label="t('AGV.taskQuery.product')"
+                    :min-width="getColumnWidth('Product')" show-overflow-tooltip />
+                <el-table-column prop="IsMesTask" :label="t('AGV.taskQuery.isMesTask')"
+                    :min-width="getColumnWidth('IsMesTask')" align="center">
+                    <template #default="{ row }">
+                        <el-tag v-if="row.IsMesTask === 1" type="success" size="small">
+                            {{ t('AGV.taskQuery.isMesTaskY') }}
+                        </el-tag>
+                        <el-tag v-else-if="row.IsMesTask === 0" type="info" size="small">
+                            {{ t('AGV.taskQuery.isMesTaskN') }}
+                        </el-tag>
+                        <el-tag v-else type="info" size="small">
+                            {{ row.IsMesTask }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="InStoreType" :label="t('AGV.taskQuery.inStoreType')"
+                    :min-width="getColumnWidth('InStoreType')" align="center" />
                 <el-table-column prop="InsertDate" :label="t('AGV.taskQuery.insertDate')"
                     :min-width="getColumnWidth('InsertDate')">
                     <template #default="{ row }">
                         {{ formatDate(row.InsertDate) }}
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('publicText.operation')" :fixed="'right'" width="120" align="center">
+                <el-table-column prop="AgvStartDate" :label="t('AGV.taskQuery.agvStartDate')"
+                    :min-width="getColumnWidth('AgvStartDate')">
+                    <template #default="{ row }">
+                        {{ formatDate(row.AgvStartDate) }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="AgvEndDate" :label="t('AGV.taskQuery.agvEndDate')"
+                    :min-width="getColumnWidth('AgvEndDate')">
+                    <template #default="{ row }">
+                        {{ formatDate(row.AgvEndDate) }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="CylinderDate" :label="t('AGV.taskQuery.cylinderDate')"
+                    :min-width="getColumnWidth('CylinderDate')">
+                    <template #default="{ row }">
+                        {{ formatDate(row.CylinderDate) }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="ReturnMsg" :label="t('AGV.taskQuery.returnMsg')"
+                    :min-width="getColumnWidth('ReturnMsg')" show-overflow-tooltip />
+                <el-table-column :label="t('AGV.taskQuery.message')" :fixed="'right'" width="110" align="center">
+                    <template #default="{ row }">
+                        <el-button type="primary" size="small" @click="viewMessage(row)">
+                            {{ t('AGV.taskQuery.viewMessage') }}
+                        </el-button>
+                    </template>
+                </el-table-column>
+                <el-table-column :label="t('publicText.operation')" :fixed="'right'" width="80" align="center">
                     <template #default="{ row }">
                         <el-tooltip :content="[1, -1].includes(row.ReturnStatus) ? t('AGV.taskQuery.cancelTaskDisabled') : t('AGV.taskQuery.cancelTask')" placement="top">
                             <el-button size="small" type="danger" icon="Close"
@@ -122,11 +188,82 @@
                     layout="total, sizes, prev, pager, next" :total="total" />
             </div>
         </el-card>
+
+        <el-dialog v-model="messageDialogVisible" :title="t('AGV.taskQuery.taskDetail')" width="80%" top="5vh"
+            :close-on-click-modal="false" align-center>
+            <div class="dialog-info-bar">
+                <div class="info-item">
+                    <span class="info-label">{{ t('AGV.taskQuery.taskGuid') }}:</span>
+                    <el-tag type="primary" effect="plain">{{ currentRow.TaskGuid }}</el-tag>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">{{ t('AGV.taskQuery.boxNo') }}:</span>
+                    <el-tag type="primary" effect="plain">{{ currentRow.BoxNo }}</el-tag>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">{{ t('AGV.taskQuery.point') }}:</span>
+                    <el-tag type="primary" effect="plain">{{ currentRow.PointName || currentRow.Point }}</el-tag>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">{{ t('AGV.taskQuery.lineName') }}:</span>
+                    <el-tag type="primary" effect="plain">{{ currentRow.LineName }}</el-tag>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">{{ t('AGV.taskQuery.workOrder') }}:</span>
+                    <el-tag type="primary" effect="plain">{{ currentRow.WorkOrder }}</el-tag>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">{{ t('AGV.taskQuery.returnMsg') }}:</span>
+                    <el-tag type="primary" effect="plain">{{ currentRow.ReturnMsg }}</el-tag>
+                </div>
+            </div>
+            <el-tabs v-model="activeMessageTab">
+                <el-tab-pane :label="t('AGV.taskQuery.requestJson')" name="RequestJson">
+                    <div class="json-header">
+                        <span>{{ t('AGV.taskQuery.requestJson') }}</span>
+                        <el-button type="success" size="small" @click="copyMessageJson(formattedRequestJson)">
+                            {{ t('publicText.copy') }}
+                        </el-button>
+                    </div>
+                    <pre class="json-pre">{{ formattedRequestJson }}</pre>
+                </el-tab-pane>
+                <el-tab-pane :label="t('AGV.taskQuery.returnJsonStart')" name="ReturnJsonStart">
+                    <div class="json-header">
+                        <span>{{ t('AGV.taskQuery.returnJsonStart') }}</span>
+                        <el-button type="success" size="small" @click="copyMessageJson(formattedReturnJsonStart)">
+                            {{ t('publicText.copy') }}
+                        </el-button>
+                    </div>
+                    <pre class="json-pre">{{ formattedReturnJsonStart }}</pre>
+                </el-tab-pane>
+                <el-tab-pane :label="t('AGV.taskQuery.returnJson')" name="ReturnJson">
+                    <div class="json-header">
+                        <span>{{ t('AGV.taskQuery.returnJson') }}</span>
+                        <el-button type="success" size="small" @click="copyMessageJson(formattedReturnJson)">
+                            {{ t('publicText.copy') }}
+                        </el-button>
+                    </div>
+                    <pre class="json-pre">{{ formattedReturnJson }}</pre>
+                </el-tab-pane>
+                <el-tab-pane :label="t('AGV.taskQuery.cylinderJson')" name="CylinderJson">
+                    <div class="json-header">
+                        <span>{{ t('AGV.taskQuery.cylinderJson') }}</span>
+                        <el-button type="success" size="small" @click="copyMessageJson(formattedCylinderJson)">
+                            {{ t('publicText.copy') }}
+                        </el-button>
+                    </div>
+                    <pre class="json-pre">{{ formattedCylinderJson }}</pre>
+                </el-tab-pane>
+            </el-tabs>
+            <template #footer>
+                <el-button @click="messageDialogVisible = false">{{ t('publicText.close') }}</el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup lang="ts">
-import { QueryAgvTaskPage, GiveAgvTask } from "@/api/AGV/index";
+import { QueryAgvTaskPage, GiveAgvTask, GetAllValorLine } from "@/api/AGV/index";
 import { shortcuts1 } from "@/utils/dataMenu";
 import {
     ref,
@@ -159,7 +296,24 @@ const searchForm = reactive({
     EndTime: "",
     StartPoint: "",
     EndPoint: "",
+    LineName: "",
 });
+
+const lineList = ref<any[]>([]);
+
+const getLineValue = (item: any) => {
+    if (!item) return "";
+    return typeof item === "object" ? (item.line ?? "") : String(item);
+};
+const getLineLabel = (item: any) => getLineValue(item);
+
+const loadLines = () => {
+    GetAllValorLine({}).then((res: any) => {
+        if (res.Data && Array.isArray(res.Data)) {
+            lineList.value = res.Data;
+        }
+    });
+};
 
 const pageObj = reactive({
     currentPage: 1,
@@ -167,7 +321,7 @@ const pageObj = reactive({
 });
 
 const formatDate = (dateStr: string) => {
-    if (!dateStr || dateStr === "1900-01-01T00:00:00") return "-";
+    if (!dateStr || dateStr === "1900-01-01T00:00:00") return "";
     return dayjs(dateStr).format("YYYY-MM-DD HH:mm:ss");
 };
 
@@ -195,6 +349,7 @@ const getData = () => {
         EndTime: searchForm.EndTime || "",
         StartPoint: searchForm.StartPoint || "",
         EndPoint: searchForm.EndPoint || "",
+        LineName: searchForm.LineName || "",
         PageIndex: pageObj.currentPage,
         PageSize: pageObj.pageSize,
     };
@@ -237,6 +392,7 @@ const handleReset = () => {
     searchForm.BoxNo = "";
     searchForm.StartPoint = "";
     searchForm.EndPoint = "";
+    searchForm.LineName = "";
     pageObj.currentPage = 1;
     getData();
 };
@@ -276,6 +432,84 @@ const handleCancelTask = (row: any) => {
         });
 };
 
+const messageDialogVisible = ref(false);
+const activeMessageTab = ref("RequestJson");
+const formattedRequestJson = ref("");
+const formattedReturnJsonStart = ref("");
+const formattedReturnJson = ref("");
+const formattedCylinderJson = ref("");
+const currentRow = reactive({
+    TaskGuid: "",
+    BoxNo: "",
+    Point: "",
+    PointName: "",
+    LineName: "",
+    WorkOrder: "",
+    ReturnMsg: "",
+});
+
+const formatJsonStr = (jsonStr: string) => {
+    if (!jsonStr) return "";
+    try {
+        return JSON.stringify(JSON.parse(jsonStr), null, 2);
+    } catch {
+        return jsonStr;
+    }
+};
+
+const viewMessage = (row: any) => {
+    currentRow.TaskGuid = row.TaskGuid || "";
+    currentRow.BoxNo = row.BoxNo || "";
+    currentRow.Point = row.Point || "";
+    currentRow.PointName = row.PointName || "";
+    currentRow.LineName = row.LineName || "";
+    currentRow.WorkOrder = row.WorkOrder || "";
+    currentRow.ReturnMsg = row.ReturnMsg || "";
+    formattedRequestJson.value = formatJsonStr(row.RequestJson);
+    formattedReturnJsonStart.value = formatJsonStr(row.ReturnJsonStart);
+    formattedReturnJson.value = formatJsonStr(row.ReturnJson);
+    formattedCylinderJson.value = formatJsonStr(row.CylinderJson);
+    activeMessageTab.value = "RequestJson";
+    messageDialogVisible.value = true;
+};
+
+const fallbackCopy = (text: string) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        const successful = document.execCommand("copy");
+        if (successful) {
+            ElMessage.success(t("publicText.copySuccess"));
+        } else {
+            ElMessage.error(t("publicText.copyFailure"));
+        }
+    } catch {
+        ElMessage.error(t("publicText.copyFailure"));
+    } finally {
+        document.body.removeChild(textarea);
+    }
+};
+
+const copyMessageJson = (text: string) => {
+    if (!text) {
+        ElMessage.warning(t("publicText.empty"));
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            ElMessage.success(t("publicText.copySuccess"));
+        }).catch(() => {
+            fallbackCopy(text);
+        });
+    } else {
+        fallbackCopy(text);
+    }
+};
+
 const handleSizeChange = (val: number) => {
     pageObj.pageSize = val;
     pageObj.currentPage = 1;
@@ -289,7 +523,7 @@ const handleCurrentChange = (val: number) => {
 
 const getScreenHeight = () => {
     nextTick(() => {
-        tableHeight.value = window.innerHeight - 180;
+        tableHeight.value = window.innerHeight - 220;
     });
 };
 
@@ -303,6 +537,7 @@ watch(
 onMounted(() => {
     getScreenHeight();
     window.addEventListener("resize", getScreenHeight);
+    loadLines();
     handleReset();
 });
 
@@ -314,5 +549,55 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .el-pagination {
     justify-content: center;
+}
+
+.dialog-info-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 12px 16px;
+    background-color: #f5f7fa;
+    border-radius: 4px;
+    // margin-bottom: 16px;
+    border: 1px solid #ebeef5;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-label {
+    font-size: 13px;
+    color: #606266;
+    font-weight: 500;
+}
+
+.json-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: #f0f2f5;
+    border-radius: 4px 4px 0 0;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.json-pre {
+    font-family: "Consolas", "Monaco", "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+    padding: 12px;
+    border-radius: 0 0 4px 4px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    max-height: 400px;
+    overflow: auto;
+    border-top: 1px solid #e4e7ed;
 }
 </style>

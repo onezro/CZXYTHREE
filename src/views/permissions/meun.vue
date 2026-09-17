@@ -62,7 +62,7 @@
 
       </div>
     </el-card>
-    <el-dialog :append-to-body="true" :close-on-click-modal="false" v-model="addVisible" align-center title="新增"
+    <el-dialog :append-to-body="true"  :close-on-click-modal="false" v-model="addVisible" align-center title="新增"
       width="40%" @close="addCancel">
       <el-form ref="formRef" :model="form" label-position="left" label-width="auto">
         <el-form-item label="类型" prop="type">
@@ -86,9 +86,9 @@
         </el-form-item>
         <el-form-item label="菜单名称" prop="title"><el-input v-model="form.title" placeholder="请输入" /></el-form-item>
         <el-form-item label="图标" prop="icon">
-          <el-popover placement="bottom-start" :width="300" trigger="click" v-model:visible="iconPopoverVisible">
+          <el-popover placement="bottom-start" :width="350" trigger="click" v-model:visible="iconPopoverVisible">
             <template #reference>
-              <el-input v-model="form.icon" placeholder="请选择图标" readonly style="width: 240px; cursor: pointer">
+              <el-input v-model="form.icon" placeholder="请选择图标" readonly style=" cursor: pointer">
                 <template #prefix>
                   <el-icon v-if="getIconComponent(form.icon)" :size="16">
                     <component :is="getIconComponent(form.icon)" />
@@ -133,7 +133,7 @@
         </span>
       </template>
     </el-dialog>
-    <el-dialog title="修改" :append-to-body="true" :close-on-click-modal="false" @close="editCancel()"
+    <el-dialog title="修改" :append-to-body="true" :close-on-click-modal="false"  align-center @close="editCancel()"
       v-model="editVisible" width="50%">
       <el-form :model="editForm" label-width="auto">
         <el-form-item label="父级菜单">
@@ -163,9 +163,9 @@
           <el-input v-model="editForm.MenuName" placeholder="name"></el-input>
         </el-form-item>
         <el-form-item label="图标" prop="icon">
-          <el-popover placement="bottom-start" :width="300" trigger="click" v-model:visible="editIconPopoverVisible">
+          <el-popover placement="bottom-start" :width="350" trigger="click" v-model:visible="editIconPopoverVisible">
             <template #reference>
-              <el-input v-model="editForm.icon" placeholder="请选择图标" readonly style="width: 240px; cursor: pointer">
+              <el-input v-model="editForm.icon" placeholder="请选择图标" readonly style="cursor: pointer">
                 <template #prefix>
                   <el-icon v-if="getIconComponent(editForm.icon)" :size="16">
                     <component :is="getIconComponent(editForm.icon)" />
@@ -203,7 +203,7 @@
         </span>
       </template>
     </el-dialog>
-    <el-dialog title="复制" :append-to-body="true" :close-on-click-modal="false" @close="copyCancel()"
+    <el-dialog title="复制" :append-to-body="true" :close-on-click-modal="false"  align-center @close="copyCancel()"
       v-model="copyVisible" width="50%">
       <el-form :model="copyform" label-width="auto" ref="copyRef">
         <el-form-item label="父级菜单">
@@ -233,9 +233,9 @@
           <el-input v-model="copyform.MenuName" placeholder="组件名称"></el-input>
         </el-form-item>
         <el-form-item label="图标" prop="icon">
-          <el-popover placement="bottom-start" :width="300" trigger="click" v-model:visible="copyIconPopoverVisible">
+          <el-popover placement="bottom-start" :width="350" trigger="click" v-model:visible="copyIconPopoverVisible">
             <template #reference>
-              <el-input v-model="copyform.icon" placeholder="请选择图标" readonly style="width: 240px; cursor: pointer">
+              <el-input v-model="copyform.icon" placeholder="请选择图标" readonly style="cursor: pointer">
                 <template #prefix>
                   <el-icon v-if="getIconComponent(copyform.icon)" :size="16">
                     <component :is="getIconComponent(copyform.icon)" />

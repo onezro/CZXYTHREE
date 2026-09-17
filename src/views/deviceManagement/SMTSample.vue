@@ -10,10 +10,10 @@
                     </el-form-item>
                     <el-form-item :label="t('deviceManage.smtSample.sampleType')" class="mb-2">
                         <el-select v-model="searchForm.sample_type" clearable
-                            :placeholder="t('deviceManage.smtSample.sampleTypePlaceholder')"
-                            style="width: 140px" size="small" @change="handleSearch">
-                            <el-option v-for="item in sampleTypeOptions" :key="item.value"
-                                :label="item.label" :value="item.value" />
+                            :placeholder="t('deviceManage.smtSample.sampleTypePlaceholder')" style="width: 140px"
+                            size="small" @change="handleSearch">
+                            <el-option v-for="item in sampleTypeOptions" :key="item.value" :label="item.label"
+                                :value="item.value" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('deviceManage.smtSample.finishedCode')" class="mb-2">
@@ -28,8 +28,8 @@
                     </el-form-item>
                     <el-form-item :label="t('deviceManage.smtSample.version')" class="mb-2">
                         <el-input v-model="searchForm.version"
-                            :placeholder="t('deviceManage.smtSample.versionPlaceholder')" clearable
-                            style="width: 120px" size="small" @keyup.enter="handleSearch" />
+                            :placeholder="t('deviceManage.smtSample.versionPlaceholder')" clearable style="width: 120px"
+                            size="small" @keyup.enter="handleSearch" />
                     </el-form-item>
                     <el-form-item :label="t('deviceManage.smtSample.location')" class="mb-2">
                         <el-input v-model="searchForm.location"
@@ -37,24 +37,27 @@
                             style="width: 120px" size="small" @keyup.enter="handleSearch" />
                     </el-form-item>
                     <el-form-item class="mb-2">
-                        <el-button type="primary" size="small" @click="handleSearch">{{ t("publicText.query") }}</el-button>
+                        <el-button type="primary" size="small" @click="handleSearch">{{ t("publicText.query")
+                            }}</el-button>
                         <el-button size="small" @click="resetSearch">{{ t("publicText.reset") }}</el-button>
                         <el-button type="warning" size="small" @click="openAdd">{{ t("publicText.add") }}</el-button>
-                        <el-button type="success" size="small" @click="importDialogVisible = true">{{ t("publicText.import") }}</el-button>
+                        <el-button type="success" size="small" @click="importDialogVisible = true">{{
+                            t("publicText.import") }}</el-button>
                         <el-button type="info" size="small" :disabled="selectedRows.length === 0"
                             @click="handleClearCell">
                             {{ t("deviceManage.smtSample.clearCell") }}
                         </el-button>
                         <el-button size="small" type="danger" :disabled="selectedRows.length === 0"
-                        @click="handleBatchDelete">
-                        {{ t("publicText.batchDelete") }}
-                    </el-button>
+                            @click="handleBatchDelete">
+                            {{ t("publicText.batchDelete") }}
+                        </el-button>
                     </el-form-item>
                 </el-form>
             </div>
 
-            <el-table :data="tableData" ref="tableRef" border :height="tableHeight"
-                stripe size="small" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }" @selection-change="handleSelectionChange" >
+            <el-table :data="tableData" ref="tableRef" border :height="tableHeight" stripe size="small"
+                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }"
+                @selection-change="handleSelectionChange">
                 <el-table-column type="selection" width="40" align="center" />
                 <el-table-column type="index" :label="t('publicText.index')" width="55" fixed="left" align="center">
                     <template #default="{ $index }">
@@ -73,8 +76,8 @@
                     :min-width="getColumnWidth('finished_code')" show-overflow-tooltip />
                 <el-table-column prop="product_name" :label="t('deviceManage.smtSample.productName')"
                     :min-width="getColumnWidth('product_name')" show-overflow-tooltip />
-                <el-table-column prop="defect_content" :label="t('deviceManage.smtSample.defectContent')"
-                    :min-width="getColumnWidth('defect_content')" show-overflow-tooltip />
+                <!-- <el-table-column prop="defect_content" :label="t('deviceManage.smtSample.defectContent')"
+                    :min-width="getColumnWidth('defect_content')" show-overflow-tooltip /> -->
                 <el-table-column prop="seal_content" :label="t('deviceManage.smtSample.sealContent')"
                     :min-width="getColumnWidth('seal_content')" show-overflow-tooltip />
                 <el-table-column prop="version" :label="t('deviceManage.smtSample.version')"
@@ -130,10 +133,8 @@
 
             <div class="mt-2 ">
                 <el-pagination size="small" background @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange" :current-page="currentPage"
-                    :page-size="pageSize"
-                    :page-sizes="[10, 20, 50, 100]"
-                    layout="total, sizes, prev, pager, next, jumper" :total="total" />
+                    @current-change="handleCurrentChange" :current-page="currentPage" :page-size="pageSize"
+                    :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" :total="total" />
             </div>
         </el-card>
 
@@ -151,9 +152,10 @@
                     <el-col :span="8">
                         <el-form-item :label="t('deviceManage.smtSample.sampleType')" prop="sample_type">
                             <el-select v-model="addForm.sample_type"
-                                :placeholder="t('deviceManage.smtSample.sampleTypePlaceholder')" style="width: 100%">
-                                <el-option v-for="item in sampleTypeOptions" :key="item.value"
-                                    :label="item.label" :value="item.value" />
+                                :placeholder="t('deviceManage.smtSample.sampleTypePlaceholder')" style="width: 100%"
+                                @change="handleAddSampleTypeChange">
+                                <el-option v-for="item in sampleTypeOptions" :key="item.value" :label="item.label"
+                                    :value="item.value" />
                             </el-select>
                         </el-form-item>
                     </el-col>
@@ -179,41 +181,35 @@
                     </el-col>
                     <el-col :span="8">
                         <el-form-item :label="t('deviceManage.smtSample.sealDate')" prop="seal_date">
-                            <el-date-picker v-model="addForm.seal_date" type="date"
-                                format="YYYY-MM-DD" value-format="YYYY-MM-DD"
-                                :placeholder="t('deviceManage.smtSample.selectDateTime')" style="width: 100%" />
+                            <el-date-picker v-model="addForm.seal_date" type="date" format="YYYY-MM-DD"
+                                value-format="YYYY-MM-DD" :placeholder="t('deviceManage.smtSample.selectDateTime')"
+                                style="width: 100%" />
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="8">
                         <el-form-item :label="t('deviceManage.smtSample.refreshDate')" prop="refresh_date">
-                            <el-date-picker v-model="addForm.refresh_date" type="date"
-                                format="YYYY-MM-DD" value-format="YYYY-MM-DD"
-                                :placeholder="t('deviceManage.smtSample.selectDateTime')" style="width: 100%" />
+                            <el-date-picker v-model="addForm.refresh_date" type="date" format="YYYY-MM-DD"
+                                value-format="YYYY-MM-DD" :placeholder="t('deviceManage.smtSample.selectDateTime')"
+                                style="width: 100%" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item :label="t('deviceManage.smtSample.validPeriod')" prop="valid_period">
-                            <el-input v-model="addForm.valid_period"
-                                :placeholder="t('deviceManage.smtSample.validPeriodPlaceholder')" />
+                            <el-select v-model="addForm.valid_period"
+                                :placeholder="t('deviceManage.smtSample.validPeriodPlaceholder')" style="width: 100%">
+                                <el-option v-for="item in validPeriodOptions" :key="item" :label="item" :value="item" />
+                            </el-select>
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <el-row :gutter="20">
-                    <el-col :span="12">
-                        <el-form-item :label="t('deviceManage.smtSample.defectContent')" prop="defect_content">
-                            <el-input v-model="addForm.defect_content" type="textarea" :rows="2"
-                                :placeholder="t('deviceManage.smtSample.defectContentPlaceholder')" />
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item :label="t('deviceManage.smtSample.sealContent')" prop="seal_content">
-                            <el-input v-model="addForm.seal_content" type="textarea" :rows="2"
-                                :placeholder="t('deviceManage.smtSample.sealContentPlaceholder')" />
-                        </el-form-item>
-                    </el-col>
-                </el-row>
+
+                <el-form-item :label="t('deviceManage.smtSample.sealContent')" prop="seal_content">
+                    <el-input v-model="addForm.seal_content" type="textarea" :rows="2"
+                        :placeholder="t('deviceManage.smtSample.sealContentPlaceholder')" />
+                </el-form-item>
+
                 <el-form-item :label="t('deviceManage.smtSample.remark')" prop="remark">
                     <el-input v-model="addForm.remark" type="textarea" :rows="2"
                         :placeholder="t('deviceManage.smtSample.remarkPlaceholder')" />
@@ -221,7 +217,8 @@
             </el-form>
             <template #footer>
                 <el-button @click="addDialogVisible = false">{{ t('publicText.cancel') }}</el-button>
-                <el-button type="primary" :loading="submitLoading" @click="submitAdd">{{ t('publicText.confirm') }}</el-button>
+                <el-button type="primary" :loading="submitLoading" @click="submitAdd">{{ t('publicText.confirm')
+                    }}</el-button>
             </template>
         </el-dialog>
 
@@ -239,8 +236,8 @@
                         <el-form-item :label="t('deviceManage.smtSample.sampleType')" prop="sample_type">
                             <el-select v-model="editForm.sample_type"
                                 :placeholder="t('deviceManage.smtSample.sampleTypePlaceholder')" style="width: 100%">
-                                <el-option v-for="item in sampleTypeOptions" :key="item.value"
-                                    :label="item.label" :value="item.value" />
+                                <el-option v-for="item in sampleTypeOptions" :key="item.value" :label="item.label"
+                                    :value="item.value" />
                             </el-select>
                         </el-form-item>
                     </el-col>
@@ -266,41 +263,34 @@
                     </el-col>
                     <el-col :span="8">
                         <el-form-item :label="t('deviceManage.smtSample.sealDate')" prop="seal_date">
-                            <el-date-picker v-model="editForm.seal_date" type="date"
-                                format="YYYY-MM-DD" value-format="YYYY-MM-DD"
-                                :placeholder="t('deviceManage.smtSample.selectDateTime')" style="width: 100%" />
+                            <el-date-picker v-model="editForm.seal_date" type="date" format="YYYY-MM-DD"
+                                value-format="YYYY-MM-DD" :placeholder="t('deviceManage.smtSample.selectDateTime')"
+                                style="width: 100%" />
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="8">
                         <el-form-item :label="t('deviceManage.smtSample.refreshDate')" prop="refresh_date">
-                            <el-date-picker v-model="editForm.refresh_date" type="date"
-                                format="YYYY-MM-DD" value-format="YYYY-MM-DD"
-                                :placeholder="t('deviceManage.smtSample.selectDateTime')" style="width: 100%" />
+                            <el-date-picker v-model="editForm.refresh_date" type="date" format="YYYY-MM-DD"
+                                value-format="YYYY-MM-DD" :placeholder="t('deviceManage.smtSample.selectDateTime')"
+                                style="width: 100%" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
                         <el-form-item :label="t('deviceManage.smtSample.validPeriod')" prop="valid_period">
-                            <el-input v-model="editForm.valid_period"
-                                :placeholder="t('deviceManage.smtSample.validPeriodPlaceholder')" />
+                            <el-select v-model="editForm.valid_period"
+                                :placeholder="t('deviceManage.smtSample.validPeriodPlaceholder')" style="width: 100%">
+                                <el-option v-for="item in validPeriodOptions" :key="item" :label="item" :value="item" />
+                            </el-select>
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <el-row :gutter="20">
-                    <el-col :span="12">
-                        <el-form-item :label="t('deviceManage.smtSample.defectContent')" prop="defect_content">
-                            <el-input v-model="editForm.defect_content" type="textarea" :rows="2"
-                                :placeholder="t('deviceManage.smtSample.defectContentPlaceholder')" />
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item :label="t('deviceManage.smtSample.sealContent')" prop="seal_content">
-                            <el-input v-model="editForm.seal_content" type="textarea" :rows="2"
-                                :placeholder="t('deviceManage.smtSample.sealContentPlaceholder')" />
-                        </el-form-item>
-                    </el-col>
-                </el-row>
+
+                <el-form-item :label="t('deviceManage.smtSample.sealContent')" prop="seal_content">
+                    <el-input v-model="editForm.seal_content" type="textarea" :rows="2"
+                        :placeholder="t('deviceManage.smtSample.sealContentPlaceholder')" />
+                </el-form-item>
                 <el-form-item :label="t('deviceManage.smtSample.remark')" prop="remark">
                     <el-input v-model="editForm.remark" type="textarea" :rows="2"
                         :placeholder="t('deviceManage.smtSample.remarkPlaceholder')" />
@@ -308,7 +298,8 @@
             </el-form>
             <template #footer>
                 <el-button @click="editDialogVisible = false">{{ t('publicText.cancel') }}</el-button>
-                <el-button type="primary" :loading="submitLoading" @click="submitEdit">{{ t('publicText.confirm') }}</el-button>
+                <el-button type="primary" :loading="submitLoading" @click="submitEdit">{{ t('publicText.confirm')
+                    }}</el-button>
             </template>
         </el-dialog>
 
@@ -317,9 +308,8 @@
             :close-on-click-modal="false" @closed="handleImportDialogClosed">
             <el-form :model="importForm" label-width="100px" size="small">
                 <el-form-item :label="t('deviceManage.smtSample.file')">
-                    <el-upload :auto-upload="false" :limit="1" accept=".xlsx,.xls"
-                        :on-change="handleFileChange" :show-file-list="true"
-                        :file-list="fileList" style="width: 100%">
+                    <el-upload :auto-upload="false" :limit="1" accept=".xlsx,.xls" :on-change="handleFileChange"
+                        :show-file-list="true" :file-list="fileList" style="width: 100%">
                         <el-button size="small">{{ t('deviceManage.smtSample.selectFile') }}</el-button>
                     </el-upload>
                     <div class="el-form-item__error" style="position: static; margin-top: 4px;">
@@ -352,6 +342,7 @@ import { useI18n } from "vue-i18n";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import dayjs from "dayjs";
+import { el } from "element-plus/es/locale/index.mjs";
 
 const { t } = useI18n();
 const userStore = useUserStoreWithOut();
@@ -372,6 +363,15 @@ const sampleTypeOptions = [
     { label: "合格样件", value: "合格样件" },
     { label: "缺陷样件", value: "缺陷样件" },
 ];
+
+// 有效期周期选项
+const validPeriodOptions = ["3个月", "6个月", "1年", "2年", "3年"];
+// 有效期默认周期
+const DEFAULT_VALID_PERIOD = "1年";
+// 合格样件类型
+const PASS_SAMPLE_TYPE = "合格样件";
+// 合格样件默认封样内容
+const PASS_SAMPLE_SEAL_CONTENT = "外观、性能";
 
 const searchForm = reactive({
     sample_no: "",
@@ -429,6 +429,16 @@ const resetAddForm = () => {
 const openAdd = () => {
     resetAddForm();
     addDialogVisible.value = true;
+};
+
+// 样件类型切换：有效期默认周期为 1年；合格样件自动填写封样内容
+const handleAddSampleTypeChange = (val: string) => {
+    addForm.valid_period = DEFAULT_VALID_PERIOD;
+    if (val === PASS_SAMPLE_TYPE) {
+        addForm.seal_content = PASS_SAMPLE_SEAL_CONTENT;
+    } else {
+        addForm.seal_content = "";
+    }
 };
 
 const handleAddDialogClosed = () => {
@@ -783,7 +793,7 @@ const formatDate = (dateStr: string) => {
 
 const getScreenHeight = () => {
     nextTick(() => {
-        tableHeight.value = window.innerHeight - 220;
+        tableHeight.value = window.innerHeight - 230;
     });
 };
 
@@ -802,6 +812,4 @@ onBeforeUnmount(() => {
 .el-pagination {
     justify-content: center;
 }
-
-
 </style>

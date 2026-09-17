@@ -15,8 +15,8 @@
                     </el-form-item>
                 </el-form>
                 <div>
-                    <el-button type="warning" size="small" @click="openAddProduct">
-                        {{ t('smtSpotCheck.CraftBase.addProduct') }}
+                    <el-button type="warning" size="small" @click="openAddStep()">
+                        {{ t('smtSpotCheck.CraftBase.addStep') }}
                     </el-button>
                 </div>
             </div>
@@ -51,6 +51,10 @@
                                     <el-tooltip :content="t('smtSpotCheck.CraftBase.addStep')" placement="top">
                                         <el-button size="small" type="warning" icon="Plus"
                                             @click.stop="openAddStep(row)" />
+                                    </el-tooltip>
+                                    <el-tooltip :content="t('publicText.delete')" placement="top">
+                                        <el-button size="small" type="danger" icon="Delete"
+                                            @click.stop="handleDeleteProduct(row)" />
                                     </el-tooltip>
                                 </template>
                                 <!-- 工序节点操作 -->
@@ -88,7 +92,7 @@
                 <!-- 右侧明细区域（显示选中工序的子检测项） -->
                 <el-col :span="14">
                     <div class="detail-header" v-if="currentStepNode">
-                        <span>{{ t('smtSpotCheck.CraftBase.subItemList') }} - {{ currentStepNode.product }} / {{
+                        <span>{{ t('smtSpotCheck.CraftBase.subItemList') }}: {{ currentStepNode.product }} - {{
                             currentStepNode.label
                             }}</span>
                     </div>
@@ -118,13 +122,6 @@
 
                         </el-table-column> -->
 
-                        <el-table-column :label="$t('publicText.operation')" width="80" align="center">
-                            <template #default="{ $index }">
-                                <el-button type="danger" size="small" link @click="deleteSubItem($index)">
-                                    {{ t('publicText.delete') }}
-                                </el-button>
-                            </template>
-                        </el-table-column>
                         <template #empty>
                             <el-empty :description="t('smtSpotCheck.CraftBase.noSubItem')" />
                         </template>
@@ -133,31 +130,17 @@
             </el-row>
         </el-card>
 
-        <!-- 新增产品弹窗 -->
-        <el-dialog :title="t('smtSpotCheck.CraftBase.addProduct')" v-model="addProductDialogVisible" width="30%"
-            @close="addProductDialogCancel" align-center>
-            <el-form :model="addProductForm" ref="addProductFormRef" label-width="100px" :rules="addProductRules">
-                <el-form-item :label="t('smtSpotCheck.CraftBase.product')" prop="Product">
-                    <el-input v-model="addProductForm.Product"
-                        :placeholder="t('smtSpotCheck.CraftBase.productPlaceholder')" />
-                </el-form-item>
-            </el-form>
-            <template #footer>
-                <el-button @click="addProductDialogCancel">{{ t('publicText.cancel') }}</el-button>
-                <el-button type="primary" @click="submitAddProduct">{{ t('publicText.confirm') }}</el-button>
-            </template>
-        </el-dialog>
-
-        <!-- 工序弹窗（新增/编辑共用） -->
-        <el-dialog :title="stepDialogTitle" v-model="stepDialogVisible" width="80%" @close="stepDialogCancel"
-            align-center :append-to-body="true" :close-on-click-modal="false">
-            <el-form :model="stepForm" ref="stepFormRef" label-width="120px" :rules="stepFormRules">
+        <!-- 新增工序弹窗 -->
+        <el-dialog :title="t('smtSpotCheck.CraftBase.addStep')" v-model="addStepDialogVisible" width="80%"
+            @close="addStepDialogCancel" align-center :append-to-body="true" :close-on-click-modal="false">
+            <el-form :model="addStepForm" ref="addStepFormRef" label-width="120px" :rules="stepFormRules">
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item :label="t('smtSpotCheck.CraftBase.product')" prop="Product">
-                            <el-select v-model="stepForm.Product"
+                            <el-select v-model="addStepForm.Product"
                                 :placeholder="t('smtSpotCheck.CraftBase.productPlaceholder')" filterable
-                                style="width: 100%" :disabled="isEditStepMode" @change="onStepProductChange">
+                                allow-create default-first-option style="width: 100%" :disabled="isAddSubItemMode"
+                                @change="onAddStepProductChange">
                                 <el-option v-for="item in productOptions" :key="item.value" :label="item.label"
                                     :value="item.value" />
                             </el-select>
@@ -165,24 +148,20 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item :label="t('smtSpotCheck.CraftBase.step')" prop="Step">
-                            <el-input-number v-model="stepForm.Step" :min="1" style="width: 100%"
-                                :placeholder="t('smtSpotCheck.CraftBase.stepPlaceholder')" :disabled="isEditStepMode" />
+                            <el-input-number v-model="addStepForm.Step" :min="1" style="width: 100%"
+                                :placeholder="t('smtSpotCheck.CraftBase.stepPlaceholder')" :disabled="isAddSubItemMode" />
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-form-item :label="t('smtSpotCheck.CraftBase.name')" prop="Name">
-                    <el-input v-model="stepForm.Name" :placeholder="t('smtSpotCheck.CraftBase.namePlaceholder')"
-                        clearable />
+                    <el-input v-model="addStepForm.Name" :placeholder="t('smtSpotCheck.CraftBase.namePlaceholder')"
+                        clearable :disabled="isAddSubItemMode" />
                 </el-form-item>
-                <!-- <el-form-item :label="t('smtSpotCheck.CraftBase.inspectContent')" prop="InspectContent">
-                    <el-input v-model="stepForm.InspectContent" type="textarea" :rows="2"
-                        :placeholder="t('smtSpotCheck.CraftBase.inspectContentPlaceholder')" />
-                </el-form-item> -->
 
-                <el-button type="primary" size="small" @click="addDetailRow" class="mb-2" v-if="!isEditStepMode">
+                <el-button type="primary" size="small" @click="addAddDetailRow" class="mb-2">
                     {{ t('publicText.add') }}{{ t('smtSpotCheck.CraftBase.subItem') }}
                 </el-button>
-                <el-table :data="stepForm.StepItemList" border size="small" style="width: 100%" height="400">
+                <el-table :data="addStepForm.StepItemList" border size="small" style="width: 100%" height="400">
                     <el-table-column :label="t('smtSpotCheck.CraftBase.subItem')" width="80" prop="SubItem"
                         align="center" />
                     <el-table-column :label="t('smtSpotCheck.CraftBase.subItemName')" min-width="140">
@@ -209,26 +188,93 @@
                                 :placeholder="t('smtSpotCheck.CraftBase.subItemBasicPlaceholder')" />
                         </template>
                     </el-table-column>
-                    <!-- <el-table-column :label="t('smtSpotCheck.CraftBase.subItemSolution')" min-width="120">
-                        <template #default="{ row }">
-                            <el-input v-model="row.SubItemSolution" size="small" type="textarea"
-                                :placeholder="t('smtSpotCheck.CraftBase.subItemSolutionPlaceholder')" />
-                        </template>
-                    </el-table-column> -->
-
                     <el-table-column :label="$t('publicText.operation')" width="80" align="center">
                         <template #default="{ $index }">
-                            <el-button type="danger" size="small" v-if="!isEditStepMode" link
-                                @click="removeDetailRow($index)">
+                            <el-button type="danger" size="small" link @click="removeAddDetailRow($index)">
                                 {{ t('publicText.delete') }}
                             </el-button>
                         </template>
                     </el-table-column>
+                    <template #empty>
+                        <el-empty :description="t('smtSpotCheck.CraftBase.noSubItem')" />
+                    </template>
                 </el-table>
             </el-form>
             <template #footer>
-                <el-button @click="stepDialogCancel">{{ t('publicText.cancel') }}</el-button>
-                <el-button type="primary" @click="submitStep">{{ t('publicText.confirm') }}</el-button>
+                <el-button @click="addStepDialogCancel">{{ t('publicText.cancel') }}</el-button>
+                <el-button type="primary" @click="handleSubmitAddStep">{{ t('publicText.confirm') }}</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 编辑工序弹窗 -->
+        <el-dialog :title="t('publicText.edit') + t('smtSpotCheck.CraftBase.step')" v-model="editStepDialogVisible"
+            width="80%" @close="editStepDialogCancel" align-center :append-to-body="true"
+            :close-on-click-modal="false">
+            <el-form :model="editStepForm" ref="editStepFormRef" label-width="120px" :rules="stepFormRules">
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('smtSpotCheck.CraftBase.product')" prop="Product">
+                            <el-select v-model="editStepForm.Product"
+                                :placeholder="t('smtSpotCheck.CraftBase.productPlaceholder')" filterable
+                                style="width: 100%" disabled>
+                                <el-option v-for="item in productOptions" :key="item.value" :label="item.label"
+                                    :value="item.value" />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('smtSpotCheck.CraftBase.step')" prop="Step">
+                            <el-input-number v-model="editStepForm.Step" :min="1" style="width: 100%"
+                                :placeholder="t('smtSpotCheck.CraftBase.stepPlaceholder')" disabled />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item :label="t('smtSpotCheck.CraftBase.name')" prop="Name">
+                    <el-input v-model="editStepForm.Name" :placeholder="t('smtSpotCheck.CraftBase.namePlaceholder')"
+                        clearable />
+                </el-form-item>
+                <el-table :data="editStepForm.StepItemList" border size="small" style="width: 100%" height="400">
+                    <el-table-column :label="t('smtSpotCheck.CraftBase.subItem')" width="80" prop="SubItem"
+                        align="center" />
+                    <el-table-column :label="t('smtSpotCheck.CraftBase.subItemName')" min-width="140">
+                        <template #default="{ row }">
+                            <el-input v-model="row.SubItemName" size="small"
+                                :placeholder="t('smtSpotCheck.CraftBase.subItemNamePlaceholder')" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="t('smtSpotCheck.CraftBase.subItemMethod')" min-width="120">
+                        <template #default="{ row }">
+                            <el-input v-model="row.SubItemMethod" size="small"
+                                :placeholder="t('smtSpotCheck.CraftBase.subItemMethodPlaceholder')" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="t('smtSpotCheck.CraftBase.subItemAim')" min-width="120">
+                        <template #default="{ row }">
+                            <el-input v-model="row.SubItemAim" size="small"
+                                :placeholder="t('smtSpotCheck.CraftBase.subItemAimPlaceholder')" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="t('smtSpotCheck.CraftBase.subItemBasic')" min-width="120">
+                        <template #default="{ row }">
+                            <el-input v-model="row.SubItemBasic" size="small"
+                                :placeholder="t('smtSpotCheck.CraftBase.subItemBasicPlaceholder')" />
+                        </template>
+                    </el-table-column>
+                    <el-table-column :label="$t('publicText.operation')" width="80" align="center">
+                        <template #default="{ $index }">
+                            <el-button type="danger" size="small" link @click="removeEditDetailRow($index)">
+                                {{ t('publicText.delete') }}
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                    <template #empty>
+                        <el-empty :description="t('smtSpotCheck.CraftBase.noSubItem')" />
+                    </template>
+                </el-table>
+            </el-form>
+            <template #footer>
+                <el-button @click="editStepDialogCancel">{{ t('publicText.cancel') }}</el-button>
+                <el-button type="primary" @click="handleSubmitEditStep">{{ t('publicText.confirm') }}</el-button>
             </template>
         </el-dialog>
     </div>
@@ -278,33 +324,45 @@ const productOptions = computed(() => {
 })
 
 // ---------- 弹窗控制 ----------
-// 新增产品
-const addProductDialogVisible = ref(false)
-const addProductFormRef = ref()
-const addProductForm = reactive({ Product: '' })
-const addProductRules = {
-    Product: [{ required: true, message: t('smtSpotCheck.CraftBase.productRequired'), trigger: 'blur' }],
+// 工序表单校验规则（新增/编辑共用）
+const stepFormRules = {
+    Product: [{ required: true, message: t('smtSpotCheck.CraftBase.productRequired'), trigger: 'change' }],
+    Step: [{ required: true, message: t('smtSpotCheck.CraftBase.stepRequired'), trigger: 'blur' }],
+    Name: [{ required: true, message: t('smtSpotCheck.CraftBase.nameRequired'), trigger: 'blur' }],
 }
+const createEmptySubItem = (subItem: number) => ({
+    SubItem: subItem,
+    SubItemName: '',
+    SubItemMethod: '',
+    SubItemBasic: '',
+    SubItemSolution: '',
+    SubItemAim: '',
+    SubItemStatus: 'I',
+})
 
-// 工序弹窗（新增/编辑共用）
-const stepDialogVisible = ref(false)
-const stepFormRef = ref()
-const stepForm = reactive({
+// 新增工序弹窗（同时用于为已有工序新增子项）
+const addStepDialogVisible = ref(false)
+const addStepFormRef = ref()
+const addStepForm = reactive({
     Product: '',
     Step: 0,
     Name: '',
     InspectContent: '',
     StepItemList: [] as any[],
 })
-const stepFormRules = {
-    Product: [{ required: true, message: t('smtSpotCheck.CraftBase.productRequired'), trigger: 'change' }],
-    Step: [{ required: true, message: t('smtSpotCheck.CraftBase.stepRequired'), trigger: 'blur' }],
-    Name: [{ required: true, message: t('smtSpotCheck.CraftBase.nameRequired'), trigger: 'blur' }],
-}
-const isEditStepMode = ref(false)
-const stepDialogTitle = computed(() =>
-    isEditStepMode.value ? t('publicText.edit') + t('smtSpotCheck.CraftBase.step') : t('publicText.add') + t('smtSpotCheck.CraftBase.step')
-)
+// 为已有工序新增子项时，产品、工序编号、工序名称不可修改
+const isAddSubItemMode = ref(false)
+
+// 编辑工序弹窗
+const editStepDialogVisible = ref(false)
+const editStepFormRef = ref()
+const editStepForm = reactive({
+    Product: '',
+    Step: 0,
+    Name: '',
+    InspectContent: '',
+    StepItemList: [] as any[],
+})
 
 // ---------- 辅助函数：构建树形数据（产品 -> 工序） ----------
 // 从扁平数据构建树（只构建到工序层级，子项不包含在树中）
@@ -352,24 +410,21 @@ const filterTree = (tree: any[], productKeyword: string, stepNameKeyword: string
     if (!productKeyword && !stepNameKeyword) return tree
     return tree
         .map(node => {
-            if (node.type === 'product') {
-                const productMatch = productKeyword ? node.product.includes(productKeyword) : true
-                let filteredChildren: any[] = []
-                if (node.children) {
-                    filteredChildren = filterTree(node.children, productKeyword, stepNameKeyword)
-                }
-                // 如果产品名匹配，展示所有子节点；否则只展示匹配的子节点
-                if (productMatch) {
-                    return { ...node, children: node.children }
-                } else if (filteredChildren.length) {
-                    return { ...node, children: filteredChildren }
-                }
-                return null
-            } else if (node.type === 'step') {
-                const stepMatch = stepNameKeyword ? node.label.includes(stepNameKeyword) : true
-                return stepMatch ? node : null
+            if (node.type !== 'product') return null
+            const children = node.children || []
+            const productMatch = productKeyword ? node.product.includes(productKeyword) : true
+            const matchedChildren = stepNameKeyword
+                ? children.filter((child: any) => child.label?.includes(stepNameKeyword))
+                : []
+            // 产品编码不匹配：仅当其下存在匹配工序名称的工序时才保留
+            if (!productMatch) {
+                return matchedChildren.length ? { ...node, children: matchedChildren } : null
             }
-            return null
+            // 产品编码匹配且填写了工序名称：只展示匹配的工序
+            if (stepNameKeyword) {
+                return matchedChildren.length ? { ...node, children: matchedChildren } : null
+            }
+            return { ...node, children }
         })
         .filter(Boolean) as any[]
 }
@@ -455,10 +510,8 @@ const handleRowClick = (row: any) => {
     }
 }
 
-// 当前选中工序的子项列表
-const currentSubItems = computed(() => {
-    if (!currentStepNode.value) return []
-    const { product, step } = currentStepNode.value
+// 根据产品+工序获取子项列表
+const getSubItemsByProductAndStep = (product: string, step: number) => {
     return rawFlatData.value
         .filter(item => item.Product === product && item.Step === step)
         .map(item => ({
@@ -471,6 +524,13 @@ const currentSubItems = computed(() => {
             SubItemStatus: item.SubItemStatus || 'I',
         }))
         .sort((a, b) => a.SubItem - b.SubItem)
+}
+
+// 当前选中工序的子项列表
+const currentSubItems = computed(() => {
+    if (!currentStepNode.value) return []
+    const { product, step } = currentStepNode.value
+    return getSubItemsByProductAndStep(product, step)
 })
 
 // 获取某个产品下某工序的最大子项编号
@@ -488,121 +548,70 @@ const getNextStepNumberByProduct = (product: string) => {
     return maxStep + 1
 }
 
-// ---------- 新增产品 ----------
-const openAddProduct = () => {
-    addProductForm.Product = ''
-    addProductDialogVisible.value = true
-}
-const addProductDialogCancel = () => {
-    addProductDialogVisible.value = false
-    addProductFormRef.value?.resetFields()
-}
-const submitAddProduct = () => {
-    addProductFormRef.value.validate((valid: boolean) => {
-        if (!valid) return
-        const newProduct = addProductForm.Product
-        if (fullTreeData.value.some(node => node.product === newProduct)) {
-            ElMessage.warning(t('smtSpotCheck.CraftBase.productExists', { product: newProduct }))
-            return
-        }
-        // 新增产品节点（无工序）
-        const newProductNode = {
-            id: `product_${newProduct}`,
-            type: 'product',
-            product: newProduct,
-            label: newProduct,
-            inspectContent: '',
-            children: [],
-        }
-        fullTreeData.value.push(newProductNode)
-        searchData()
-        addProductDialogVisible.value = false
-        ElMessage.success(t('publicText.addSuccess'))
-    })
-}
-
 // ---------- 工序操作 ----------
-// 添加工序
-const openAddStep = (productNode: any) => {
-    isEditStepMode.value = false
-    stepForm.Product = productNode.product
-    stepForm.Step = getNextStepNumberByProduct(productNode.product)
-    stepForm.Name = ''
-    stepForm.InspectContent = ''
-    stepForm.StepItemList = [
-        { SubItem: 1, SubItemName: '', SubItemMethod: '', SubItemBasic: '', SubItemSolution: '', SubItemAim: '', SubItemStatus: 'I' },
-    ]
-    stepDialogVisible.value = true
+// 新增工序（不传产品节点时，由用户在弹窗中选择产品）
+const openAddStep = (productNode?: any) => {
+    isAddSubItemMode.value = false
+    addStepForm.Product = productNode?.product || ''
+    addStepForm.Step = productNode ? getNextStepNumberByProduct(productNode.product) : 1
+    addStepForm.Name = ''
+    addStepForm.InspectContent = ''
+    addStepForm.StepItemList = [createEmptySubItem(1)]
+    addStepDialogVisible.value = true
 }
 
 // 为已有工序新增子项
 const openAddSubItem = (stepNode: any) => {
-    isEditStepMode.value = false
-    stepForm.Product = stepNode.product
-    stepForm.Step = stepNode.step
-    stepForm.Name = stepNode.label
-    stepForm.InspectContent = stepNode.inspectContent || ''
-    // const existingSubItems = currentSubItems.value
-    // stepForm.StepItemList = existingSubItems.map(item => ({ ...item }))
-    const maxSubItem = getMaxSubItemByProductAndStep(stepNode.product, stepNode.step)
-    stepForm.StepItemList.push({
-        SubItem: maxSubItem + 1,
-        SubItemName: '',
-        SubItemMethod: '',
-        SubItemBasic: '',
-        SubItemSolution: '',
-        SubItemAim: '',
-        SubItemStatus: 'I',
-    })
-    stepDialogVisible.value = true
+    isAddSubItemMode.value = true
+    addStepForm.Product = stepNode.product
+    addStepForm.Step = stepNode.step
+    addStepForm.Name = stepNode.label
+    addStepForm.InspectContent = stepNode.inspectContent || ''
+    addStepForm.StepItemList = [createEmptySubItem(getMaxSubItemByProductAndStep(stepNode.product, stepNode.step) + 1)]
+    addStepDialogVisible.value = true
 }
 
 // 编辑工序
 const openEditStep = (stepNode: any) => {
-    isEditStepMode.value = true
-    stepForm.Product = stepNode.product
-    stepForm.Step = stepNode.step
-    stepForm.Name = stepNode.label
-    stepForm.InspectContent = stepNode.inspectContent || ''
-    stepForm.StepItemList = currentSubItems.value.map(item => ({ ...item }))
-    stepDialogVisible.value = true
+    editStepForm.Product = stepNode.product
+    editStepForm.Step = stepNode.step
+    editStepForm.Name = stepNode.label
+    editStepForm.InspectContent = stepNode.inspectContent || ''
+    editStepForm.StepItemList = getSubItemsByProductAndStep(stepNode.product, stepNode.step)
+    editStepDialogVisible.value = true
 }
 
-// 工序弹窗中产品切换时自动计算工序编号（仅新增模式）
-const onStepProductChange = (val: string) => {
-    if (!isEditStepMode.value && val) {
-        stepForm.Step = getNextStepNumberByProduct(val)
+// 新增工序弹窗中产品切换时自动计算工序编号
+const onAddStepProductChange = (val: string) => {
+    if (val) {
+        addStepForm.Step = getNextStepNumberByProduct(val)
     }
 }
 
-const addDetailRow = () => {
-    let maxSubItem = 1
-    if (stepForm.StepItemList.length > 0) {
-        maxSubItem = Math.max(...stepForm.StepItemList.map(item => item.SubItem || 0)) + 1
-    }
-    stepForm.StepItemList.push({
-        SubItem: maxSubItem,
-        SubItemName: '',
-        SubItemMethod: '',
-        SubItemBasic: '',
-        SubItemSolution: '',
-        SubItemAim: '',
-        SubItemStatus: 'I',
-    })
+const addAddDetailRow = () => {
+    const list = addStepForm.StepItemList
+    const maxSubItem = list.length > 0 ? Math.max(...list.map(item => item.SubItem || 0)) + 1 : 1
+    list.push(createEmptySubItem(maxSubItem))
 }
 
-const removeDetailRow = (index: number) => {
-    if (stepForm.StepItemList.length <= 1) {
+const removeAddDetailRow = (index: number) => {
+    if (addStepForm.StepItemList.length <= 1) {
         ElMessage.warning(t('smtSpotCheck.CraftBase.cannotDeleteLastSubItem'))
         return
     }
-    stepForm.StepItemList.splice(index, 1)
+    addStepForm.StepItemList.splice(index, 1)
 }
 
-const stepDialogCancel = () => {
-    stepDialogVisible.value = false
-     stepForm.StepItemList = []
-    stepFormRef.value?.resetFields()
+const addStepDialogCancel = () => {
+    addStepDialogVisible.value = false
+    addStepForm.StepItemList = []
+    addStepFormRef.value?.resetFields()
+}
+
+const editStepDialogCancel = () => {
+    editStepDialogVisible.value = false
+    editStepForm.StepItemList = []
+    editStepFormRef.value?.resetFields()
 }
 
 const validateSubItemUnique = (list: any[]) => {
@@ -610,75 +619,88 @@ const validateSubItemUnique = (list: any[]) => {
     return subItems.length === new Set(subItems).size
 }
 
-const submitStep = () => {
-    stepFormRef.value.validate(async (valid: boolean) => {
+const buildStepRequestData = (form: any) => {
+    const stepItemList = form.StepItemList.map((item: any) => ({
+        SubItemName: item.SubItemName,
+        SubItem: item.SubItem,
+        SubItemMethod: item.SubItemMethod || '',
+        SubItemBasic: item.SubItemBasic || '',
+        SubItemSolution: item.SubItemSolution || '',
+        SubItemAim: item.SubItemAim || '',
+        SubItemStatus: 'I',
+    }))
+    return {
+        Product: form.Product,
+        InspectType: '',
+        StepList: [
+            {
+                Step: form.Step,
+                Status: '',
+                Name: form.Name,
+                InspectContent: form.InspectContent,
+                StepItemList: stepItemList,
+            },
+        ],
+    }
+}
+
+const validateStepSubItems = (list: any[]) => {
+    if (!list.length) {
+        ElMessage.warning(t('smtSpotCheck.CraftBase.atLeastOneSubItem'))
+        return false
+    }
+    for (let i = 0; i < list.length; i++) {
+        if (!list[i].SubItemName) {
+            ElMessage.warning(t('smtSpotCheck.CraftBase.subItemNameRequired', { index: i + 1 }))
+            return false
+        }
+    }
+    if (!validateSubItemUnique(list)) {
+        ElMessage.warning(t('smtSpotCheck.CraftBase.subItemUnique'))
+        return false
+    }
+    return true
+}
+
+const submitStep = async (form: any, isEdit: boolean) => {
+    if (!validateStepSubItems(form.StepItemList)) return
+    const requestData = buildStepRequestData(form)
+    try {
+        let res: any
+        if (isEdit) {
+            res = await UpdateCraftInspectData(requestData)
+        } else {
+            res = await InserCraftInspectData(requestData)
+        }
+        if (res.Success) {
+            ElMessage.success(res.Msg || (isEdit ? t('publicText.updateSuccess') : t('publicText.addSuccess')))
+            if (isEdit) {
+                editStepDialogVisible.value = false
+            } else {
+                addStepDialogVisible.value = false
+            }
+            getData()
+        } else {
+            ElMessage.error(res.Msg || (isEdit ? t('publicText.updateFailed') : t('publicText.addFailed')))
+        }
+    } catch {
+        ElMessage.error(isEdit ? t('publicText.updateFailed') : t('publicText.addFailed'))
+    }
+}
+
+// 新增工序弹窗提交
+const handleSubmitAddStep = () => {
+    addStepFormRef.value.validate((valid: boolean) => {
         if (!valid) return
-        if (!stepForm.StepItemList.length) {
-            ElMessage.warning(t('smtSpotCheck.CraftBase.atLeastOneSubItem'))
-            return
-        }
-        for (let i = 0; i < stepForm.StepItemList.length; i++) {
-            if (!stepForm.StepItemList[i].SubItemName) {
-                ElMessage.warning(t('smtSpotCheck.CraftBase.subItemNameRequired', { index: i + 1 }))
-                return
-            }
-        }
-        if (!validateSubItemUnique(stepForm.StepItemList)) {
-            ElMessage.warning(t('smtSpotCheck.CraftBase.subItemUnique'))
-            return
-        }
+        submitStep(addStepForm, false)
+    })
+}
 
-        // 新增模式下校验工序编号唯一性
-        // if (!isEditStepMode.value) {
-        //     const productNode = fullTreeData.value.find(node => node.product === stepForm.Product)
-        //     const exists = productNode?.children?.some((child: any) => child.step === stepForm.Step)
-        //     if (exists) {
-        //         ElMessage.warning(t('smtSpotCheck.CraftBase.stepExists', { step: stepForm.Step, product: stepForm.Product }))
-        //         return
-        //     }
-        // }
-
-        const stepItemList = stepForm.StepItemList.map(item => ({
-            SubItemName: item.SubItemName,
-            SubItem: item.SubItem,
-            SubItemMethod: item.SubItemMethod || '',
-            SubItemBasic: item.SubItemBasic || '',
-            SubItemSolution: item.SubItemSolution || '',
-            SubItemAim: item.SubItemAim || '',
-            SubItemStatus: 'I',
-        }))
-
-        const requestData = {
-            Product: stepForm.Product,
-            InspectType: '',
-            StepList: [
-                {
-                    Step: stepForm.Step,
-                    Status: '',
-                    Name: stepForm.Name,
-                    InspectContent: stepForm.InspectContent,
-                    StepItemList: stepItemList,
-                },
-            ],
-        }
-
-        try {
-            let res: any
-            if (isEditStepMode.value) {
-                res = await UpdateCraftInspectData(requestData)
-            } else {
-                res = await InserCraftInspectData(requestData)
-            }
-            if (res.Success) {
-                ElMessage.success(res.Msg || (isEditStepMode.value ? t('publicText.updateSuccess') : t('publicText.addSuccess')))
-                stepDialogVisible.value = false
-                getData()
-            } else {
-                ElMessage.error(res.Msg || (isEditStepMode.value ? t('publicText.updateFailed') : t('publicText.addFailed')))
-            }
-        } catch {
-            ElMessage.error(isEditStepMode.value ? t('publicText.updateFailed') : t('publicText.addFailed'))
-        }
+// 编辑工序弹窗提交
+const handleSubmitEditStep = () => {
+    editStepFormRef.value.validate((valid: boolean) => {
+        if (!valid) return
+        submitStep(editStepForm, true)
     })
 }
 
@@ -732,41 +754,79 @@ const handleDeleteStep = (stepNode: any) => {
         .catch(() => ElMessage.info(t('publicText.cancel')))
 }
 
-// 右侧明细删除子项
-const deleteSubItem = (index: number) => {
-    const subItems = currentSubItems.value
-    const deletedItem = subItems[index]
-    console.log(deletedItem);
+// 删除产品（连同其下所有工序）
+const handleDeleteProduct = (productNode: any) => {
+    ElMessageBox.confirm(
+        `${t('publicText.confirmDelete')}【${productNode.product}】${t('smtSpotCheck.CraftBase.deleteProductTip')}?`,
+        t('publicText.confirm'),
+        { confirmButtonText: t('publicText.confirm'), cancelButtonText: t('publicText.cancel'), type: 'warning' }
+    )
+        .then(() => {
+            const productSubItems = rawFlatData.value.filter(item => item.Product === productNode.product)
+            const stepMap = new Map<number, any>()
+            productSubItems.forEach(item => {
+                if (!stepMap.has(item.Step)) {
+                    stepMap.set(item.Step, {
+                        Step: item.Step,
+                        Status: '',
+                        Name: item.Name,
+                        InspectContent: item.InspectContent || '',
+                        StepItemList: [],
+                    })
+                }
+                stepMap.get(item.Step).StepItemList.push({
+                    SubItemName: item.SubItemName,
+                    SubItem: item.SubItem,
+                    SubItemMethod: item.SubItemMethod || '',
+                    SubItemBasic: item.SubItemBasic || '',
+                    SubItemSolution: item.SubItemSolution || '',
+                    SubItemAim: item.SubItemAim || '',
+                    SubItemStatus: 'D'  // 标记删除
+                })
+            })
+            const requestData = {
+                Product: productNode.product,
+                InspectType: '',
+                StepList: Array.from(stepMap.values()).sort((a, b) => a.Step - b.Step),
+            }
+            DeleteCraftInspectData(requestData).then((res: any) => {
+                if (res.Success) {
+                    ElMessage.success(res.Msg || t('publicText.deleteSuccess'))
+                    if (currentStepNode.value?.product === productNode.product) currentStepNode.value = null
+                    getData()
+                } else {
+                    ElMessage.error(res.Msg || t('publicText.deleteFailed'))
+                }
+            }).catch(() => ElMessage.error(t('publicText.deleteFailed')))
+        })
+        .catch(() => ElMessage.info(t('publicText.cancel')))
+}
 
+// 修改弹窗内删除子项
+const removeEditDetailRow = (index: number) => {
+    const subItems = editStepForm.StepItemList
+    const deletedItem = subItems[index]
     ElMessageBox.confirm(
         `${t('publicText.confirmDelete')}【${deletedItem.SubItemName}】?`,
         t('publicText.confirm'),
         { confirmButtonText: t('publicText.confirm'), cancelButtonText: t('publicText.cancel'), type: 'warning' }
     )
         .then(() => {
-            // const newSubItems = subItems.filter((_, idx) => idx !== index).map(item => ({
-            //     SubItemName: item.SubItemName,
-            //     SubItem: item.SubItem,
-            //     SubItemMethod: item.SubItemMethod || '',
-            //     SubItemBasic: item.SubItemBasic || '',
-            //     SubItemSolution: item.SubItemSolution || '',
-            //     SubItemAim: item.SubItemAim || '',
-            //     SubItemStatus: 'I',
-            // }))
             const requestData = {
-                Product: currentStepNode.value.product,
+                Product: editStepForm.Product,
                 InspectType: '',
                 StepList: [{
-                    Step: currentStepNode.value.step,
+                    Step: editStepForm.Step,
                     Status: '',
-                    Name: currentStepNode.value.label,
-                    InspectContent: currentStepNode.value.inspectContent || '',
+                    Name: editStepForm.Name,
+                    InspectContent: editStepForm.InspectContent || '',
                     StepItemList: [deletedItem],
                 }]
             };
             DeleteCraftInspectData(requestData).then((res: any) => {
                 if (res.Success) {
                     ElMessage.success(res.Msg || t('publicText.deleteSuccess'))
+                    subItems.splice(index, 1)
                     getData()
                 } else {
                     ElMessage.error(res.Msg || t('publicText.deleteFailed'))

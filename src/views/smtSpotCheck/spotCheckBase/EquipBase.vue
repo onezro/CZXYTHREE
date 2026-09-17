@@ -27,7 +27,7 @@
                             :min-width="getColumnWidth1('Name')" />
                         <el-table-column prop="InspectContent" :label="t('smtSpotCheck.firstBase.inspectContent')"
                             :min-width="getColumnWidth1('InspectContent')" show-overflow-tooltip />
-                        <el-table-column :label="$t('publicText.operation')" fixed="right" width="120" align="center">
+                        <el-table-column :label="$t('publicText.operation')" fixed="right" width="160" align="center">
                             <template #default="{ row }">
                                 <el-tooltip :content="$t('publicText.add')" placement="top">
                                     <el-button size="small" type="warning" icon="Plus"
@@ -36,6 +36,10 @@
                                 <el-tooltip :content="$t('publicText.edit')" placement="top">
                                     <el-button size="small" type="primary" icon="Edit"
                                         @click.stop="openEdit(row)"></el-button>
+                                </el-tooltip>
+                                <el-tooltip :content="$t('publicText.delete')" placement="top">
+                                    <el-button size="small" type="danger" icon="Delete"
+                                        @click.stop="handleDelete(row)"></el-button>
                                 </el-tooltip>
                             </template>
                         </el-table-column>
@@ -518,12 +522,25 @@ const removeEditDetailRow = async (index: number) => {
 
 // ==================== 删除工序 ====================
 const handleDelete = (row: any) => {
-    ElMessageBox.confirm(`${t('publicText.confirmDelete')}【${row.Step}】?`, t("publicText.confirm"), {
+    ElMessageBox.confirm(`${t('publicText.confirmDelete')}【${row.Name}】?`, t("publicText.confirm"), {
         confirmButtonText: t("publicText.confirm"),
         cancelButtonText: t("publicText.cancel"),
         type: "warning",
     }).then(() => {
-        DeleteEquipInspectData({ Step: row.Step }).then((res: any) => {
+        const requestData = {
+            Product: "",
+            InspectType: "",
+            StepList: [
+                {
+                    Step: row.Step,
+                    Status: "",
+                    Name: row.Name,
+                    InspectContent: row.InspectContent || "",
+                    StepItemList: getSubItemsByStep(row.Step),
+                }
+            ]
+        };
+        DeleteEquipInspectData(requestData).then((res: any) => {
             if (res.Success) {
                 ElMessage.success(res.Msg || "删除成功");
                 getData();

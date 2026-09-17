@@ -63,14 +63,14 @@
         </el-table-column>
         <el-table-column :label="t('publicText.operation')" fixed="right" width="320" align="center">
           <template #default="{ row }">
-            <el-button type="success" size="small" @click.stop="handleIssue(row)">
+             <el-button type="primary" size="small" @click.stop="handleCalculateIssue(row)">
+              {{ t('Scheduling.WorkOrderIssue.sendIssueData') }}
+            </el-button>
+            <el-button type="success" size="small" @click.stop="handleSendIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.issueMaterials') }}
             </el-button>
-            <el-button type="warning" size="small" @click.stop="handleResetIssue(row)">
+            <el-button type="danger" size="small" @click.stop="handleResetIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.resetIssueData') }}
-            </el-button>
-            <el-button type="primary" size="small" @click.stop="handleSendIssue(row)">
-              {{ t('Scheduling.WorkOrderIssue.sendIssueData') }}
             </el-button>
           </template>
         </el-table-column>
@@ -94,15 +94,15 @@
         </span>
       </div>
       <el-table :data="pagedDetailData" size="small" :style="{ width: '100%' }" :height="detailTableHeight"
-        :tooltip-effect="'dark'" border fit ref="detailTableRef"
+        :tooltip-effect="'dark'" border fit ref="detailTableRef" :row-class-name="detailRowClassName"
         :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
           <template #default="scope">
             {{ scope.$index + (detailPage.PageIndex - 1) * detailPage.PageSize + 1 }}
           </template>
         </el-table-column>
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.programMerge')" prop="program_merge"
-          :min-width="150" show-overflow-tooltip fixed="left" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.programMerge')" prop="program_merge" :min-width="150"
+          show-overflow-tooltip fixed="left" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.planStartTime')" prop="plan_start_time"
           :min-width="getColumnWidth1('plan_start_time')">
           <template #default="{ row }">
@@ -141,6 +141,7 @@
           :min-width="getColumnWidth1('supperlier')" show-overflow-tooltip />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.supperlierName')" prop="supperlier_name"
           :min-width="getColumnWidth1('supperlier_name')" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.status')" prop="status" width="100" align="center" />
         <template #empty>
           <div class="flex items-center justify-center h-100%">
             <el-empty />
@@ -149,9 +150,8 @@
       </el-table>
       <div class="mt-2">
         <el-pagination :size="'small'" background @size-change="handleDetailSizeChange"
-          @current-change="handleDetailCurrentChange" :pager-count="5"
-          :current-page="detailPage.PageIndex" :page-size="detailPage.PageSize"
-          :page-sizes="[30, 50, 100, 200, 300]" layout="total,sizes, prev, pager, next"
+          @current-change="handleDetailCurrentChange" :pager-count="5" :current-page="detailPage.PageIndex"
+          :page-size="detailPage.PageSize" :page-sizes="[30, 50, 100, 200, 300]" layout="total,sizes, prev, pager, next"
           :total="detailPage.total" />
       </div>
     </el-card>
@@ -166,7 +166,6 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import dayjs from "dayjs";
 import { useI18n } from "vue-i18n";
-import { shortcuts1 } from "@/utils/dataMenu";
 
 const userStore = useUserStoreWithOut();
 const { t } = useI18n();
@@ -185,6 +184,19 @@ const pagedDetailData = computed(() => {
   const start = (detailPage.PageIndex - 1) * detailPage.PageSize;
   return detailData.value.slice(start, start + detailPage.PageSize);
 });
+
+const isUnusedStatus = (row: any) => row?.status === "未使用";
+
+const sortDetailData = (list: any[]) => {
+  return [...list].sort((a, b) => {
+    const aFirst = isUnusedStatus(a) ? 0 : 1;
+    const bFirst = isUnusedStatus(b) ? 0 : 1;
+    return aFirst - bFirst;
+  });
+};
+
+const detailRowClassName = ({ row }: any) => (isUnusedStatus(row) ? "unused-row" : "");
+
 const total = ref(0);
 const currentRow = reactive<any>({});
 
@@ -285,8 +297,8 @@ const queryDetail = (group_order: string) => {
   QueryReturnMaterialDetails({ group_order })
     .then((res: any) => {
       if (res.Success && Array.isArray(res.Data)) {
-        detailData.value = res.Data;
-        detailPage.total = res.Data.length;
+        detailData.value = sortDetailData(res.Data);
+        detailPage.total = detailData.value.length;
         detailPage.PageIndex = 1;
       } else {
         detailData.value = [];
@@ -321,14 +333,14 @@ const resetQuery = () => {
   clearDetail();
 };
 
-const handleIssue = (row: any) => {
+const handleCalculateIssue = (row: any) => {
   const group_order = row?.group_order;
   if (!group_order) {
     ElMessage.warning(t("Scheduling.WorkOrderIssue.pleaseInputGroupOrder"));
     return;
   }
   ElMessageBox.confirm(
-    t("Scheduling.WorkOrderIssue.confirmAllPointed"),
+    t("Scheduling.WorkOrderIssue.confirmSendIssueData", [group_order]),
     t("publicText.tip"),
     {
       confirmButtonText: t("publicText.confirm"),
@@ -337,12 +349,12 @@ const handleIssue = (row: any) => {
     }
   )
     .then(() => {
-      issueMaterials(group_order);
+      calculateIssue(group_order);
     })
     .catch(() => { });
 };
 
-const issueMaterials = (group_order: string) => {
+const calculateIssue = (group_order: string) => {
   IssueMaterials({
     group_order: group_order,
     operator_name: userStore.getUserInfo || "",
@@ -402,7 +414,7 @@ const handleSendIssue = (row: any) => {
     return;
   }
   ElMessageBox.confirm(
-    t("Scheduling.WorkOrderIssue.confirmSendIssueData", [group_order]),
+    t("Scheduling.WorkOrderIssue.confirmAllPointed"),
     t("publicText.tip"),
     {
       confirmButtonText: t("publicText.confirm"),
@@ -491,5 +503,10 @@ onBeforeUnmount(() => {
   /* color: #fff; */
   /* background-color: #006487; */
   border-radius: 4px 4px 0 0;
+}
+
+:deep(.el-table .unused-row > td.el-table__cell) {
+  background-color: #f56c6c !important;
+  color: #fff;
 }
 </style>
