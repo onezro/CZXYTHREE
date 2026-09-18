@@ -69,7 +69,7 @@
     <el-dialog :title="dialogTitle" v-model="dialogVisible" width="500px" align-center :close-on-click-modal="false"
       @closed="handleDialogClosed">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" size="small">
-        <el-form-item :label="t('esd.checkFrequency.frequency')" prop="CheckFrequency" required>
+        <el-form-item :label="t('esd.checkFrequency.frequency')" prop="CheckFrequency" >
           <el-input v-model="formData.CheckFrequency" :placeholder="t('esd.checkFrequency.frequencyPlaceholder')" />
         </el-form-item>
       </el-form>
@@ -114,7 +114,7 @@ const formData = reactive({
 });
 
 const formRules = {
-  CheckFrequency: [{ required: true, message: t('message.pleaseInput') + t('esd.checkFrequency.frequency'), trigger: 'blur' }],
+  // CheckFrequency: [{ required: true, message: t('message.pleaseInput') + t('esd.checkFrequency.frequency'), trigger: 'blur' }],
 };
 
 const dialogTitle = computed(() => (isEdit.value ? t('publicText.edit') : t('publicText.add')));

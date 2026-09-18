@@ -63,7 +63,7 @@
     <el-dialog :title="dialogTitle" v-model="dialogVisible" width="500px" align-center :close-on-click-modal="false"
       @closed="handleDialogClosed">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" size="small">
-        <el-form-item :label="t('esd.measureDevice.device')" prop="MeasureDevice" required>
+        <el-form-item :label="t('esd.measureDevice.device')" prop="MeasureDevice" >
           <el-input v-model="formData.MeasureDevice" :placeholder="t('esd.measureDevice.devicePlaceholder')" />
         </el-form-item>
       </el-form>
@@ -108,7 +108,7 @@ const formData = reactive({
 });
 
 const formRules = {
-  MeasureDevice: [{ required: true, message: t('message.pleaseInput') + t('esd.measureDevice.device'), trigger: 'blur' }],
+  // MeasureDevice: [{ required: true, message: t('message.pleaseInput') + t('esd.measureDevice.device'), trigger: 'blur' }],
 };
 
 const dialogTitle = computed(() => (isEdit.value ? t('publicText.edit') : t('publicText.add')));

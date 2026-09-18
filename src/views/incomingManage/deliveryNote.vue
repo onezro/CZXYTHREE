@@ -337,9 +337,8 @@
                 <el-image v-if="previewUrl && previewIsImage" :src="previewUrl" class="image-preview-frame"
                     fit="contain" :preview-src-list="[previewUrl]" :preview-teleported="true"
                     @load="previewLoading = false" @error="handlePreviewFailed" />
-                <VuePdfEmbed v-else-if="previewUrl" :source="previewUrl" class="pdf-preview-frame"
-                    @loaded="previewLoading = false" @loading-failed="handlePreviewFailed"
-                    @rendered="previewLoading = false" />
+                <iframe v-else-if="previewUrl" :src="previewUrl" class="pdf-preview-frame"
+                    @load="previewLoading = false" @error="handlePreviewFailed" />
                 <el-empty v-if="!previewUrl && !previewLoading" description="暂无文件" />
             </div>
             <template #footer>
@@ -360,7 +359,6 @@ import { QueryArrivalInspectionList, QueryArrivalInspectionDetailList, SaveInspe
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Document, Loading, Download } from "@element-plus/icons-vue";
-import VuePdfEmbed from "vue-pdf-embed";
 import dayjs from "dayjs";
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -738,6 +736,14 @@ const loadInspectionFile = async () => {
 };
 
 // 预览检验文件
+const toPreviewBlob = (blob: Blob, fileName: string) => {
+    const isPdf = (fileName || "").toLowerCase().endsWith(".pdf");
+    if (isPdf && blob.type !== "application/pdf") {
+        return new Blob([blob], { type: "application/pdf" });
+    }
+    return blob;
+};
+
 const previewInspectionFile = async (file: any) => {
     try {
         currentPreviewFile.value = file;
@@ -748,7 +754,7 @@ const previewInspectionFile = async (file: any) => {
         previewLoading.value = true;
         previewUrl.value = "";
         const blob = await DownloadInspectionFile(file.AttachmentId);
-        previewUrl.value = window.URL.createObjectURL(blob);
+        previewUrl.value = window.URL.createObjectURL(toPreviewBlob(blob, file.OriginalFileName));
     } catch (e: any) {
         ElMessage.error(e.message || "预览失败");
         previewLoading.value = false;
@@ -785,7 +791,7 @@ const previewAttachment = async (file: any) => {
         previewLoading.value = true;
         previewUrl.value = "";
         const blob = await DownloadArrivalAttachment(file.AttachmentId);
-        previewUrl.value = window.URL.createObjectURL(blob);
+        previewUrl.value = window.URL.createObjectURL(toPreviewBlob(blob, file.OriginalFileName));
     } catch (e: any) {
         ElMessage.error(e.message || "预览失败");
         previewLoading.value = false;

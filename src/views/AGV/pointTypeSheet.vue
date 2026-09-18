@@ -25,13 +25,13 @@
                         <el-select v-model="searchForm.status" clearable style="width: 140px"
                             :placeholder="t('AGV.pointTypeSheet.statusPlaceholder')" @change="handleSearch">
                             <el-option :label="t('AGV.pointTypeSheet.status0')" value="0" />
-                            <el-option :label="t('AGV.pointTypeSheet.status1')" value="1" />
+                            <el-option :label="t('AGV.pointTypeSheet.status1')" value="-1" />
                         </el-select>
                     </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button type="primary" @click="handleSearch">{{ t("publicText.query") }}</el-button>
                         <el-button @click="handleReset">{{ t("publicText.reset") }}</el-button>
-                          <el-button size="small" type="primary" icon="Plus" @click="openAdd">
+                          <el-button size="small" type="warning"  @click="openAdd">
                     {{ t("publicText.add") }}
                 </el-button>
                     </el-form-item>
@@ -39,7 +39,7 @@
             </div>
 
             <!-- 表格 -->
-            <el-table :data="tableData" size="small" ref="eltableRef" v-loading="loading" :style="{ width: '100%' }"
+            <el-table :data="tableData" size="small" ref="eltableRef"  :style="{ width: '100%' }"
                 :height="tableHeight" border fit highlight-current-row
                 :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="60">
@@ -72,12 +72,21 @@
                         {{ raw(row.magazine_pointtypeName, row.endpointtype_name, '-') }}
                     </template>
                 </el-table-column>
-                <el-table-column prop="status" :label="t('AGV.pointTypeSheet.status')" width="110" align="center"
+                <el-table-column prop="pointType2" :label="t('AGV.pointTypeSheet.pointType2')"
+                    :min-width="getColumnWidth('pointType2')" width="120" align="center">
+                    <template #default="{ row }">
+                        <el-link v-if="parseLineList(row.pointType2).length" type="primary" :underline="false"
+                            @click="openLineDetail(row)">
+                            {{ t('AGV.pointTypeSheet.lineCount', { n: parseLineList(row.pointType2).length }) }}
+                        </el-link>
+                        <span v-else>-</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="status" :label="t('AGV.pointTypeSheet.status')" width="110" align="center" :fixed="'right'"
                     :min-width="getColumnWidth('status')">
                     <template #default="{ row }">
                         <el-switch :model-value="isStatusEnabled(row.status)" :loading="row._toggleLoading"
-                            inline-prompt :active-text="t('AGV.pointTypeSheet.status0')"
-                            :inactive-text="t('AGV.pointTypeSheet.status1')"
+                          
                             @change="(val: boolean) => handleToggleStatus(row, val)" />
                     </template>
                 </el-table-column>
@@ -155,11 +164,20 @@
                             :label="`${item.pointtype_no} ${item.pointtype_name ?? ''}`" />
                     </el-select>
                 </el-form-item>
+                <el-form-item :label="t('AGV.pointTypeSheet.lineList')" prop="linelist">
+                    <el-select v-model="form.linelist" multiple clearable filterable collapse-tags
+                        collapse-tags-tooltip style="width: 100%"
+                        :placeholder="t('AGV.pointTypeSheet.lineListPlaceholder')" @change="handleLineChange">
+                        <el-option :label="t('AGV.pointTypeSheet.selectAll')" :value="ALL_LINE" />
+                        <el-option v-for="item in lineOptions" :key="'dl-' + item.line" :value="item.line"
+                            :label="item.line" />
+                    </el-select>
+                </el-form-item>
                 <el-form-item :label="t('AGV.pointTypeSheet.status')" prop="status">
                     <el-select v-model="form.status" style="width: 100%"
                         :placeholder="t('AGV.pointTypeSheet.statusPlaceholder')">
                         <el-option :label="t('AGV.pointTypeSheet.status0')" value="0" />
-                        <el-option :label="t('AGV.pointTypeSheet.status1')" value="1" />
+                        <el-option :label="t('AGV.pointTypeSheet.status1')" value="-1" />
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="t('AGV.pointTypeSheet.remark')" prop="remark">
@@ -173,6 +191,27 @@
                     @click="handleSubmit">{{ t("publicText.confirm") }}</el-button>
             </template>
         </el-dialog>
+
+        <!-- 线体明细弹窗 -->
+        <el-dialog v-model="lineDetailVisible" :title="t('AGV.pointTypeSheet.lineDetail')" width="520px" top="12vh"
+            @closed="resetLineDetail">
+            <div class="line-detail-info">
+                <span class="line-detail-info-label">{{ t('AGV.pointTypeSheet.startpointtype') }}</span>
+                <span class="line-detail-info-value">{{ raw(lineDetailRow?.pointtypeID, lineDetailRow?.startpointtype, '-') }}</span>
+                <span class="line-detail-info-arrow">→</span>
+                <span class="line-detail-info-label">{{ t('AGV.pointTypeSheet.magazine_pointtypeId') }}</span>
+                <span class="line-detail-info-value">{{ raw(lineDetailRow?.magazine_pointtypeId, lineDetailRow?.endpointtype, '-') }}</span>
+            </div>
+            <el-table :data="lineDetailRows" size="small" border stripe max-height="360" style="width: 100%">
+                <el-table-column type="index" :label="t('publicText.index')" width="70" align="center" />
+                <el-table-column prop="line" :label="t('AGV.pointTypeSheet.lineList')" />
+            </el-table>
+            <template #footer>
+                <el-button size="small" type="primary" @click="lineDetailVisible = false">
+                    {{ t("publicText.close") }}
+                </el-button>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -182,6 +221,7 @@ import {
     DeletePointTypeSheet,
     QueryPointTypeSheet,
     GetEnablePointType,
+    GetAllValorLine,
 } from "@/api/AGV/index";
 import {
     ref,
@@ -210,6 +250,7 @@ const dialogVisible = ref(false);
 const isEdit = ref(false);
 const formRef = ref<any>(null);
 const pointTypeOptions = ref<any[]>([]);
+const lineOptions = ref<any[]>([]);
 
 const searchForm = reactive({
     startpointtype: "",
@@ -225,6 +266,7 @@ const pageObj = reactive({
 const form = reactive({
     startpointtype: "",
     endpointtype: "",
+    linelist: [] as string[],
     status: "0",
     remark: "",
 });
@@ -261,13 +303,67 @@ const isStatusEnabled = (value: any) => {
     return s === "0" || s === "Y" || s.toLowerCase() === "enabled";
 };
 
+const ALL_LINE = "__ALL__";
+
+const parseLineList = (value: any): string[] => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map((v) => String(v)).filter(Boolean);
+    return String(value).split(";").map((s) => s.trim()).filter(Boolean);
+};
+
+const lineDetailVisible = ref(false);
+const lineDetailRows = ref<{ line: string }[]>([]);
+const lineDetailRow = ref<any>(null);
+
+const openLineDetail = (row: any) => {
+    lineDetailRow.value = row;
+    lineDetailRows.value = parseLineList(row.pointType2).map((line) => ({ line }));
+    lineDetailVisible.value = true;
+};
+
+const resetLineDetail = () => {
+    lineDetailRows.value = [];
+    lineDetailRow.value = null;
+};
+
+const enabledLineValues = () => lineOptions.value.map((item) => item.line).filter(Boolean);
+
+const buildLineSelection = (value: any): string[] => {
+    const parsed = parseLineList(value);
+    const allLines = enabledLineValues();
+    if (allLines.length > 0 && allLines.every((line) => parsed.includes(line))) {
+        return [ALL_LINE, ...allLines];
+    }
+    return parsed;
+};
+
+const prevLineValue = ref<string[]>([]);
+
+const handleLineChange = (val: string[]) => {
+    const selected = Array.isArray(val) ? [...val] : [];
+    const allLines = enabledLineValues();
+    const hasAll = selected.includes(ALL_LINE);
+    const hadAll = prevLineValue.value.includes(ALL_LINE);
+    const currentLines = selected.filter((v) => v !== ALL_LINE);
+    let next = selected;
+    if (hasAll && !hadAll) {
+        next = [ALL_LINE, ...allLines];
+    } else if (hadAll) {
+        next = currentLines;
+    }
+    form.linelist = next;
+    prevLineValue.value = [...next];
+};
+
 const resetForm = () => {
     Object.assign(form, {
         startpointtype: "",
         endpointtype: "",
+        linelist: [] as string[],
         status: "0",
         remark: "",
     });
+    prevLineValue.value = [];
 };
 
 const loadPointTypeOptions = () => {
@@ -279,6 +375,18 @@ const loadPointTypeOptions = () => {
         }
     }).catch(() => {
         pointTypeOptions.value = [];
+    });
+};
+
+const loadLineOptions = () => {
+    return GetAllValorLine({}).then((res: any) => {
+        if (res && Array.isArray(res.Data)) {
+            lineOptions.value = res.Data;
+        } else {
+            lineOptions.value = [];
+        }
+    }).catch(() => {
+        lineOptions.value = [];
     });
 };
 
@@ -350,9 +458,11 @@ const openEdit = (row: any) => {
     Object.assign(form, {
         startpointtype: raw(row.pointtypeID, row.startpointtype, ""),
         endpointtype: raw(row.magazine_pointtypeId, row.endpointtype, ""),
-        status: (st === "1" || st === "N" || st.toLowerCase() === "disabled") ? "1" : "0",
+        linelist: buildLineSelection(row.pointType2),
+        status: (st === "-1" || st === "N" || st.toLowerCase() === "disabled") ? "-1" : "0",
         remark: raw(row.remark, ""),
     });
+    prevLineValue.value = [...form.linelist];
     dialogVisible.value = true;
 };
 
@@ -362,6 +472,7 @@ const handleSubmit = () => {
         const params = {
             startpointtype: form.startpointtype,
             endpointtype: form.endpointtype,
+            linelist: form.linelist.filter((v) => v !== ALL_LINE),
             remark: form.remark,
             status: String(form.status),
             UserNo: userStore.getUserInfo || "",
@@ -388,9 +499,7 @@ const handleSubmit = () => {
 const handleDelete = (row: any) => {
     const start = raw(row.pointtypeID, row.startpointtype, "");
     const end = raw(row.magazine_pointtypeId, row.endpointtype, "");
-    const text = t("AGV.pointTypeSheet.deleteConfirm")
-        .replace("{start}", String(start))
-        .replace("{end}", String(end));
+    const text = t("AGV.pointTypeSheet.deleteConfirm", { start: String(start), end: String(end) });
     ElMessageBox.confirm(text, t("publicText.tip"), {
         confirmButtonText: t("publicText.confirm"),
         cancelButtonText: t("publicText.cancel"),
@@ -427,12 +536,13 @@ const handleDelete = (row: any) => {
 
 const handleToggleStatus = (row: any, enabled: boolean) => {
     const prevStatus = row.status;
-    const targetStatus = enabled ? "0" : "1";
+    const targetStatus = enabled ? "0" : "-1";
     if (isStatusEnabled(prevStatus) === enabled) return;
     row._toggleLoading = true;
     InsertUpdatePointTypeSheet({
         startpointtype: raw(row.pointtypeID, row.startpointtype, ""),
         endpointtype: raw(row.magazine_pointtypeId, row.endpointtype, ""),
+        linelist: parseLineList(row.pointType2),
         remark: raw(row.remark, ""),
         status: targetStatus,
         UserNo: userStore.getUserInfo || "",
@@ -467,7 +577,7 @@ const onResize = () => getScreenHeight();
 onMounted(async () => {
     getScreenHeight();
     window.addEventListener("resize", onResize);
-    await loadPointTypeOptions();
+    await Promise.all([loadPointTypeOptions(), loadLineOptions()]);
     getData();
 });
 
@@ -475,3 +585,31 @@ onBeforeUnmount(() => {
     window.removeEventListener("resize", onResize);
 });
 </script>
+
+<style scoped>
+.line-detail-info {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    background-color: #f5f7fa;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.line-detail-info-label {
+    color: #909399;
+}
+
+.line-detail-info-value {
+    color: #303133;
+    font-weight: 600;
+}
+
+.line-detail-info-arrow {
+    color: #909399;
+    padding: 0 4px;
+}
+</style>

@@ -58,10 +58,10 @@
     <el-dialog :title="dialogTitle" v-model="dialogVisible" width="500px" align-center :close-on-click-modal="false"
       @closed="handleDialogClosed">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" size="small">
-        <el-form-item :label="t('esd.checkContent.content')" prop="CheckContent" required>
+        <el-form-item :label="t('esd.checkContent.content')" prop="CheckContent" >
           <el-input v-model="formData.CheckContent" :placeholder="t('esd.checkContent.contentPlaceholder')" />
         </el-form-item>
-        <el-form-item :label="t('esd.checkContent.checkMethod')" prop="CheckMethod" required>
+        <el-form-item :label="t('esd.checkContent.checkMethod')" prop="CheckMethod" >
           <el-input v-model="formData.CheckMethod" type="textarea" :placeholder="t('esd.checkContent.checkMethodPlaceholder')" />
         </el-form-item>
       </el-form>
@@ -107,7 +107,7 @@ const formData = reactive({
 });
 
 const formRules = {
-  CheckContent: [{ required: true, message: t('message.pleaseInput') + t('esd.checkContent.content'), trigger: 'blur' }],
+  // CheckContent: [{ required: true, message: t('message.pleaseInput') + t('esd.checkContent.content'), trigger: 'blur' }],
 };
 
 const dialogTitle = computed(() => (isEdit.value ? t('publicText.edit') : t('publicText.add')));

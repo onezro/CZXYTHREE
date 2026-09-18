@@ -7,40 +7,40 @@
                     <el-form-item :label="t('AGV.plateBaseData.mcNo')" prop="agvmcid_no" class="mb-2">
                         <el-select v-model="searchForm.agvmcid_no" clearable filterable style="width: 180px"
                             :placeholder="t('AGV.plateBaseData.selectMcNo')">
-                            <el-option v-for="(item, idx) in equipmentList" :key="'eq-' + idx"
-                                :label="getEqLabel(item)" :value="getEqValue(item)" />
+                            <el-option v-for="(item, idx) in equipmentList" :key="'eq-' + idx" :label="getEqLabel(item)"
+                                :value="getEqValue(item)" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('AGV.plateBaseData.point')" prop="agvmcid_Point" class="mb-2">
                         <el-select v-model="searchForm.agvmcid_Point" clearable filterable style="width: 180px"
                             :placeholder="t('AGV.plateBaseData.selectPoint')">
-                            <el-option v-for="(item, idx) in pointList" :key="'pt-' + idx"
-                                :label="getPtLabel(item)" :value="getPtValue(item)" />
+                            <el-option v-for="(item, idx) in pointList" :key="'pt-' + idx" :label="getPtLabel(item)"
+                                :value="getPtValue(item)" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('AGV.plateBaseData.lineName')" prop="agvmcid_LineName" class="mb-2">
-                        <el-select v-model="searchForm.agvmcid_LineName" clearable filterable style="width: 150px"
+                        <el-select v-model="searchForm.agvmcid_LineName" clearable filterable style="width: 180px"
                             :placeholder="t('AGV.plateBaseData.selectLineName')">
-                            <el-option v-for="(item, idx) in lineList" :key="'ln-' + idx"
-                                :label="getLineLabel(item)" :value="getLineValue(item)" />
+                            <el-option v-for="(item, idx) in lineList" :key="'ln-' + idx" :label="getLineLabel(item)"
+                                :value="getLineValue(item)" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('AGV.plateBaseData.type')" prop="agvmcid_Type" class="mb-2">
-                        <el-select v-model="searchForm.agvmcid_Type" clearable style="width: 130px"
+                        <el-select v-model="searchForm.agvmcid_Type" clearable style="width: 180px"
                             :placeholder="t('AGV.plateBaseData.selectType')">
                             <el-option :label="t('AGV.plateBaseData.typeLoader')" :value="1" />
                             <el-option :label="t('AGV.plateBaseData.typeUnloader')" :value="2" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('AGV.plateBaseData.operate')" prop="agvmcid_Operate" class="mb-2">
-                        <el-select v-model="searchForm.agvmcid_Operate" clearable style="width: 130px"
+                        <el-select v-model="searchForm.agvmcid_Operate" clearable style="width: 180px"
                             :placeholder="t('AGV.plateBaseData.selectOperate')">
                             <el-option :label="t('AGV.plateBaseData.operateIn')" :value="1" />
                             <el-option :label="t('AGV.plateBaseData.operateOut')" :value="2" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('AGV.plateBaseData.sts')" prop="agvmcid_Stts" class="mb-2">
-                        <el-select v-model="searchForm.agvmcid_Stts" clearable style="width: 110px"
+                        <el-select v-model="searchForm.agvmcid_Stts" clearable style="width: 180px"
                             :placeholder="t('AGV.plateBaseData.selectSts')">
                             <el-option :label="t('publicText.enable')" value="Y" />
                             <el-option :label="t('publicText.disable')" value="N" />
@@ -94,7 +94,7 @@
                     </template>
                 </el-table-column>
                 <el-table-column prop="agvmcid_Stts" :label="t('AGV.plateBaseData.sts')"
-                    :min-width="getColumnWidth('agvmcid_Stts')" align="center">
+                    :min-width="getColumnWidth('agvmcid_Stts')" align="center" fixed="right">
                     <template #default="{ row }">
                         <el-switch v-model="row.agvmcid_Stts" active-value="Y" inactive-value="N"
                             :loading="row._statusLoading" @change="handleStatusChange(row)" />
@@ -232,8 +232,8 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item :label="t('AGV.plateBaseData.side')" prop="agvmcid_Side">
-                            <el-input v-model="addForm.agvmcid_Side"
-                                :placeholder="t('AGV.plateBaseData.inputSide')" clearable />
+                            <el-input v-model="addForm.agvmcid_Side" :placeholder="t('AGV.plateBaseData.inputSide')"
+                                clearable />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -269,7 +269,7 @@
                     <el-button @click="addVisible = false">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{
                         t("publicText.confirm")
-                    }}</el-button>
+                        }}</el-button>
                 </div>
             </template>
         </el-dialog>
@@ -352,14 +352,13 @@
                     <el-col :span="12">
                         <el-form-item :label="t('AGV.plateBaseData.address')" prop="agvmcid_Address">
                             <el-input-number v-model="editForm.agvmcid_Address" :min="0" controls-position="right"
-                                style="width: 100%" disabled
-                                :placeholder="t('AGV.plateBaseData.inputAddress')" />
+                                style="width: 100%" disabled :placeholder="t('AGV.plateBaseData.inputAddress')" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item :label="t('AGV.plateBaseData.side')" prop="agvmcid_Side">
-                            <el-input v-model="editForm.agvmcid_Side"
-                                :placeholder="t('AGV.plateBaseData.inputSide')" clearable />
+                            <el-input v-model="editForm.agvmcid_Side" :placeholder="t('AGV.plateBaseData.inputSide')"
+                                clearable />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -395,7 +394,7 @@
                     <el-button @click="editVisible = false">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitEdit" :loading="submitLoading">{{
                         t("publicText.confirm")
-                    }}</el-button>
+                        }}</el-button>
                 </div>
             </template>
         </el-dialog>

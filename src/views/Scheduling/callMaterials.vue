@@ -112,12 +112,13 @@
         </el-card>
 
         <!-- 详情弹窗 -->
-        <el-dialog :title="t('Scheduling.CallMaterials.Detail')" v-model="detailVisible" width="90%" align-center
+        <el-dialog :title="t('Scheduling.CallMaterials.ListTitle')" v-model="detailVisible" width="90%" align-center
             @close="closeDetail" :close-on-click-modal="false">
-            <div class="mb-2 font-bold">{{ t('Scheduling.CallMaterials.ListTitle') }}</div>
+            <!-- <div class="mb-2 font-bold">{{ t('Scheduling.CallMaterials.ListTitle')t('Scheduling.CallMaterials.Detail') }}</div> -->
             <el-table :data="detailData.list" size="small" border fit style="width: 100%" height="250"
                 ref="detailListRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
-                <el-table-column prop="MaterialRequestList_No" :label="t('Scheduling.CallMaterials.CallOrder')"
+               
+                <el-table-column fixed prop="MaterialRequestList_No" :label="t('Scheduling.CallMaterials.CallOrder')"
                     :min-width="getListColumnWidth('MaterialRequestList_No')" show-overflow-tooltip />
                 <el-table-column prop="MaterialRequestList_WO" :label="t('Scheduling.CallMaterials.WorkOrder')"
                     :min-width="getListColumnWidth('MaterialRequestList_WO')" show-overflow-tooltip />
@@ -126,13 +127,18 @@
                 <el-table-column prop="name" :label="t('Scheduling.CallMaterials.PNName')"
                     :min-width="getListColumnWidth('name')" show-overflow-tooltip />
                 <el-table-column prop="pn_spec" :label="t('Scheduling.CallMaterials.PNDesc')"
-                    :min-width="getListColumnWidth('pn_spec')" show-overflow-tooltip />
+                    :min-width="200" show-overflow-tooltip />
                 <el-table-column prop="MaterialRequestList_Qty" :label="t('Scheduling.CallMaterials.RequiredQty')"
                     :min-width="getListColumnWidth('MaterialRequestList_Qty')" align="right" />
                 <el-table-column prop="MaterialRequestList_ActiveQty" :label="t('Scheduling.CallMaterials.ActiveQty')"
                     :min-width="getListColumnWidth('MaterialRequestList_ActiveQty')" align="right" />
-                <el-table-column prop="MaterialRequestList_LotNumber" :label="t('Scheduling.CallMaterials.LotNumber')"
-                    :min-width="getListColumnWidth('MaterialRequestList_LotNumber')" show-overflow-tooltip />
+                <el-table-column fixed="right" :label="t('Scheduling.CallMaterials.Result')" :min-width="getListColumnWidth('MaterialRequestList_Result')" align="center">
+                    <template #default="{ row }">
+                        <el-tag :type="row.MaterialRequestList_ActiveQty > row.MaterialRequestList_Qty ? 'success' : 'danger'" size="small">
+                            {{ row.MaterialRequestList_ActiveQty > row.MaterialRequestList_Qty ? t('Scheduling.CallMaterials.Satisfied') : t('Scheduling.CallMaterials.NotSatisfied') }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
                 <el-table-column :label="t('Scheduling.CallMaterials.IsDisabled')" :min-width="getListColumnWidth('MaterialRequestList_IsDisabled')" align="center">
                     <template #default="{ row }">
                         <el-tag :type="getIsDisabledType(row.MaterialRequestList_IsDisabled)" size="small">
@@ -148,9 +154,17 @@
                     </template>
                 </el-table-column>
             </el-table>
-            <div class="mt-4 mb-2 font-bold">{{ t('Scheduling.CallMaterials.DetailTitle') }}</div>
-            <el-table :data="detailData.detail" size="small" border fit style="width: 100%" height="300"
-                v-loading="detailLoading" ref="detailDetailRef">
+            <div class="mt-2 text-sm flex justify-end items-center">
+                {{ t('Scheduling.CallMaterials.Statistics') }}：
+                {{ t('Scheduling.CallMaterials.TotalRows') }} {{ listStatistics.total }} {{ t('Scheduling.CallMaterials.Rows') }}，
+                <el-tag type="success" size="small" effect="plain">{{ t('Scheduling.CallMaterials.Satisfied') }} {{ listStatistics.satisfied }} {{ t('Scheduling.CallMaterials.Rows') }}</el-tag>，
+                <el-tag type="danger" size="small" effect="plain">{{ t('Scheduling.CallMaterials.NotSatisfied') }} {{ listStatistics.notSatisfied }} {{ t('Scheduling.CallMaterials.Rows') }}</el-tag>
+            </div>
+            <div class="mt-1 mb-2 font-bold">{{ t('Scheduling.CallMaterials.DetailTitle') }}</div>
+            <el-table :data="detailData.detail" size="small" border fit style="width: 100%" height="280"
+                 ref="detailDetailRef">
+                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
+                </el-table-column>
                 <!-- <el-table-column prop="MaterialRequestDetail_No" :label="t('Scheduling.CallMaterials.CallOrder')"
                     :min-width="getDetailColumnWidth('MaterialRequestDetail_No')" show-overflow-tooltip /> -->
                 <el-table-column prop="MaterialRequestDetail_ReelId" :label="t('Scheduling.CallMaterials.ReelId')"
@@ -235,6 +249,15 @@ const detailLoading = ref(false);
 const detailData = reactive({
     list: [] as any[],
     detail: [] as any[],
+});
+
+// 料号明细统计
+const listStatistics = computed(() => {
+    const total = detailData.list.length;
+    const satisfied = detailData.list.filter(
+        (row: any) => row.MaterialRequestList_ActiveQty > row.MaterialRequestList_Qty
+    ).length;
+    return { total, satisfied, notSatisfied: total - satisfied };
 });
 
 const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {

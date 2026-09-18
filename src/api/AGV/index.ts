@@ -189,6 +189,8 @@ export { QueryPlateLoaderUnloader, InsertUpdatePlateLoaderUnloader, DeletePlateL
 export { AddPlateBaseData, UpdatePlateBaseData, DeletePlateBaseData, QueryPlateBaseData, GetEquipment, GetPoint, GetAllValorLine } from './plateBaseData';
 export { QueryContainerBoxPage } from './containerBox';
 
+export { QueryMagazineOutTaskPage, GetExecutionPoints } from './magazineOutTask';
+
 // AGV任务查询分页
 export function QueryAgvTaskPage(data: any) {
   return request({

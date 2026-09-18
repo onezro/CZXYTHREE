@@ -18,7 +18,7 @@
 
             <el-table ref="tableRef" :data="tableData" border :height="tableHeight" style="width: 100%" size="small"
                 stripe highlight-current-row tooltip-effect="dark"
-                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }" v-loading="loading">
+                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }" >
                 <el-table-column type="index" :label="t('publicText.index')" width="55" align="center" fixed="left">
                     <template #default="{ $index }">
                         {{ $index + 1 + (currentPage - 1) * pageSize }}
@@ -28,7 +28,7 @@
                     :min-width="getColumnWidth('pointtype_no')" show-overflow-tooltip fixed="left" />
                 <el-table-column prop="pointtype_name" :label="t('AGV.pointType.pointtype_name')" width="180"
                     :min-width="getColumnWidth('pointtype_name')" show-overflow-tooltip />
-                <el-table-column prop="pointtype_type" :label="t('AGV.pointType.pointtype_type')" width="120"
+                <el-table-column prop="pointtype_type" :label="t('AGV.pointType.pointtype_type')" width="170"
                     :min-width="getColumnWidth('pointtype_type')" align="center">
                     <template #default="{ row }">
                         <el-tag :type="getTypeTagType(row.pointtype_type)">
@@ -37,7 +37,7 @@
                     </template>
                 </el-table-column>
                 <el-table-column prop="pointtype_status" :label="t('AGV.pointType.pointtype_status')" width="120"
-                    :min-width="getColumnWidth('pointtype_status')" align="center">
+                    :min-width="getColumnWidth('pointtype_status')" align="center" fixed="right">
                     <template #default="{ row }">
                         <el-switch :model-value="isStatusEnabled(row.pointtype_status)" :loading="row._toggleLoading"
                          
@@ -105,16 +105,15 @@
                     <el-col :span="12">
                         <el-form-item :label="t('AGV.pointType.pointtype_type')" prop="pointtype_type">
                             <el-select v-model="form.pointtype_type" :placeholder="t('AGV.pointType.typePlaceholder')"
-                                style="width: 100%" clearable>
-                                <el-option :label="t('AGV.pointType.typeSMT')" value="SMT" />
-                                <el-option :label="t('AGV.pointType.typeICT')" value="ICT" />
-                                <el-option :label="t('AGV.pointType.typeXianBan')" value="铣板" />
+                                style="width: 100%" clearable filterable>
+                                <el-option v-for="item in pointTypeTypeOptions" :key="item.value" :label="item.label"
+                                    :value="item.value" />
                             </el-select>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item :label="t('AGV.pointType.pointtype_status')" prop="pointtype_status">
-                            <el-switch v-model="form.pointtype_status" active-value="Y" inactive-value="N" />
+                            <el-switch v-model="form.pointtype_status" active-value="0" inactive-value="-1" />
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -142,7 +141,7 @@ import {
     DeletePointType,
     QueryPointType,
 } from "@/api/AGV/index";
-import { ref, reactive, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useI18n } from "vue-i18n";
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -177,7 +176,7 @@ const form = reactive({
     pointtype_name: "",
     pointtype_type: "",
     remark: "",
-    pointtype_status: "Y",
+    pointtype_status: "0",
 });
 
 const formRules = {
@@ -191,7 +190,7 @@ const resetForm = () => {
         pointtype_name: "",
         pointtype_type: "",
         remark: "",
-        pointtype_status: "Y",
+        pointtype_status: "0",
     });
 };
 
@@ -203,13 +202,13 @@ const openAdd = () => {
 
 const openEdit = (row: any) => {
     isEdit.value = true;
-    const st = String(row.pointtype_status ?? "Y").toUpperCase();
+    const st = String(row.pointtype_status ?? "0").toUpperCase();
     Object.assign(form, {
         pointtype_no: row.pointtype_no ?? "",
         pointtype_name: row.pointtype_name ?? "",
-        pointtype_type: row.pointtype_type ?? "",
+        pointtype_type: toTypeValue(row.pointtype_type),
         remark: row.remark ?? "",
-        pointtype_status: (st === "Y" || st === "0") ? "Y" : "N",
+        pointtype_status: (st === "0" || st === "Y") ? "0" : "-1",
     });
     dialogVisible.value = true;
 };
@@ -227,7 +226,7 @@ const handleSubmit = async () => {
             pointtype_no: form.pointtype_no,
             pointtype_name: form.pointtype_name,
             pointtype_type: form.pointtype_type,
-            pointtype_status: String(form.pointtype_status).toUpperCase(),
+            pointtype_status: String(form.pointtype_status),
             UserNo: userStore.getUserInfo || "",
         };
         const res: any = await InsertUpdatePointType(params);
@@ -333,44 +332,76 @@ const handleCurrentChange = (val: number) => {
     getData();
 };
 
-const getTypeText = (value: string) => {
-    switch (value) {
-        case "SMT": return t("AGV.pointType.typeSMT");
-        case "ICT": return t("AGV.pointType.typeICT");
-        case "铣板": return t("AGV.pointType.typeXianBan");
-        default: return value ?? "";
-    }
+const POINT_TYPE_TYPE_KEYS = [
+    "type0",
+    "type1",
+    "type2",
+    "type3",
+    "type4",
+    "type5",
+    "type6",
+    "type7",
+    "type8",
+    "type9",
+    "type10",
+    "type11",
+    "type12",
+    "type13",
+];
+
+const pointTypeTypeOptions = computed(() =>
+    POINT_TYPE_TYPE_KEYS.map((key, index) => ({
+        value: index,
+        label: t(`AGV.pointType.${key}`),
+    }))
+);
+
+const TYPE_TAG_TYPES = ["primary", "success", "warning", "danger", "info"];
+
+const toTypeValue = (value: any) => {
+    if (value === null || value === undefined || value === "") return "";
+    const num = Number(value);
+    return Number.isNaN(num) ? value : num;
 };
-const getTypeTagType = (value: string) => {
-    switch (value) {
-        case "SMT": return "success";
-        case "ICT": return "warning";
-        case "铣板": return "primary";
-        default: return "info";
+
+const getTypeText = (value: any) => {
+    if (value === null || value === undefined || value === "") return "";
+    const idx = Number(value);
+    if (Number.isInteger(idx) && idx >= 0 && idx < POINT_TYPE_TYPE_KEYS.length) {
+        return t(`AGV.pointType.${POINT_TYPE_TYPE_KEYS[idx]}`);
     }
+    return String(value);
+};
+
+const getTypeTagType = (value: any) => {
+    const idx = Number(value);
+    if (Number.isInteger(idx) && idx >= 0 && idx < POINT_TYPE_TYPE_KEYS.length) {
+        return TYPE_TAG_TYPES[idx % TYPE_TAG_TYPES.length];
+    }
+    return "info";
 };
 const isStatusEnabled = (value: any) => {
-    const s = String(value ?? "").toUpperCase();
-    return s === "Y" || s === "0";
+    const s = String(value ?? "0").toUpperCase();
+    return s === "0" || s === "Y";
 };
 
 const getStatusText = (value: any) => {
     const s = String(value).toUpperCase();
-    if (s === "Y" || s === "0") return t("AGV.pointType.statusY");
-    if (s === "N" || s === "1") return t("AGV.pointType.statusN");
+    if (s === "0" || s === "Y") return t("AGV.pointType.statusY");
+    if (s === "-1" || s === "N") return t("AGV.pointType.statusN");
     return value ?? "-";
 };
 
 const handleToggleStatus = async (row: any, enabled: boolean) => {
     const prevStatus = row.pointtype_status;
-    const targetStatus = enabled ? "Y" : "N";
+    const targetStatus = enabled ? "0" : "-1";
     if (isStatusEnabled(prevStatus) === enabled) return;
     row._toggleLoading = true;
     try {
         const res: any = await InsertUpdatePointType({
             pointtype_no: row.pointtype_no,
             pointtype_name: row.pointtype_name ?? "",
-            pointtype_type: row.pointtype_type ?? "",
+            pointtype_type: toTypeValue(row.pointtype_type),
             pointtype_status: targetStatus,
             UserNo: userStore.getUserInfo || "",
         });

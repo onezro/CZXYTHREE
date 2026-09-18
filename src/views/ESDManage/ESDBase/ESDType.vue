@@ -98,10 +98,10 @@
         <el-form-item :label="t('esd.device.factory')" prop="Factory">
           <el-input v-model="formData.Factory" :placeholder="t('esd.device.factoryPlaceholder')" />
         </el-form-item>
-        <el-form-item :label="t('esd.device.workshop')" prop="Workshop" required>
+        <el-form-item :label="t('esd.device.workshop')" prop="Workshop" >
           <el-input v-model="formData.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" />
         </el-form-item>
-        <el-form-item :label="t('esd.device.lineName')" prop="LineName" required>
+        <el-form-item :label="t('esd.device.lineName')" prop="LineName" >
           <el-select v-model="formData.LineName" :placeholder="t('esd.device.lineNamePlaceholder')" filterable>
             <el-option v-for="item in lineList" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
@@ -139,10 +139,10 @@
         <el-form-item :label="t('esd.device.factory')" prop="Factory">
           <el-input v-model="formData.Factory" :placeholder="t('esd.device.factoryPlaceholder')" />
         </el-form-item>
-        <el-form-item :label="t('esd.device.workshop')" prop="Workshop" required>
+        <el-form-item :label="t('esd.device.workshop')" prop="Workshop" >
           <el-input v-model="formData.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" />
         </el-form-item>
-        <el-form-item :label="t('esd.device.lineName')" prop="LineName" required>
+        <el-form-item :label="t('esd.device.lineName')" prop="LineName" >
           <el-select v-model="formData.LineName" :placeholder="t('esd.device.lineNamePlaceholder')" filterable>
             <el-option v-for="item in lineList" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
@@ -239,34 +239,34 @@ const formData = reactive({
 
 // 表单验证规则（新增字段未做必填，可根据需要添加）
 const formRules = {
-  Workshop: [
-    {
-      required: true,
-      message: t("message.pleaseInput") + t("esd.device.workshop"),
-      trigger: "blur",
-    },
-  ],
-  LineName: [
-    {
-      required: true,
-      message: t("message.pleaseInput") + t("esd.device.lineName"),
-      trigger: "blur",
-    },
-  ],
-  EsdCategory: [
-    {
-      required: true,
-      message: t("message.pleaseInput") + t("esd.device.esdCategory"),
-      trigger: "blur",
-    },
-  ],
-  EsdType: [
-    {
-      required: true,
-      message: t("message.pleaseInput") + t("esd.device.esdType"),
-      trigger: "blur",
-    },
-  ],
+  // Workshop: [
+  //   {
+  //     required: true,
+  //     message: t("message.pleaseInput") + t("esd.device.workshop"),
+  //     trigger: "blur",
+  //   },
+  // ],
+  // LineName: [
+  //   {
+  //     required: true,
+  //     message: t("message.pleaseInput") + t("esd.device.lineName"),
+  //     trigger: "blur",
+  //   },
+  // ],
+  // EsdCategory: [
+  //   {
+  //     required: true,
+  //     message: t("message.pleaseInput") + t("esd.device.esdCategory"),
+  //     trigger: "blur",
+  //   },
+  // ],
+  // EsdType: [
+  //   {
+  //     required: true,
+  //     message: t("message.pleaseInput") + t("esd.device.esdType"),
+  //     trigger: "blur",
+  //   },
+  // ],
 };
 
 // 表格列宽自动计算
@@ -488,8 +488,8 @@ const GetLineList = () => {
   }).then((res: any) => {
     if (res.Success) {
       lineList.value = res.Data.map((item: any) => ({
-        label: item.MfgLineName,
-        value: item.MfgLineName,
+        label: item.name,
+        value: item.name,
       })) || [];
     }
   })

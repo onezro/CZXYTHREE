@@ -105,6 +105,9 @@
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="铣板自动报工" prop="IsXbauto">
+          <el-switch v-model="form.IsXbauto" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -263,6 +266,7 @@ const form = ref({
   id: 0,
   roleId: "",
   roleIdArr:[],
+  IsXbauto: false,
   IsDelete: "",
   CreateBy: userStore.getUserInfo,
   CreateDate: "",
@@ -554,6 +558,7 @@ const handleEdit = (row: any) => {
   roleName.value = row.fullName;
   // form.value.roleId = row.RoleId;
   form.value.employeeName = row.employeeName;
+  form.value.IsXbauto = false;
   findEmployeeRoles(row.employeeName).then((data: any) => {
     if (data.Data == null ||data.Data == undefined) {
       hasRole.value = [];
@@ -573,31 +578,19 @@ console.log(val);
 
 }
 const onSubmit = () => {
-  form.value.roleId= form.value.roleIdArr.join(",")
-  if (
-    form.value.roleId == "" ||
-    form.value.roleId == undefined ||
-    form.value.roleId == null
-  ) {
+  form.value.roleId = form.value.roleIdArr.join(",")
+  addEmployeeRole(form.value).then((res: any) => {
+    if (res.Success) {
+      ElNotification({
+        title: "提示",
+        message: res.Message,
+        type: "success",
+      });
+      getData();
+    }
     addVisible.value = false;
     formRef.value.resetFields();
-  } else {
-    // console.log(form.value);
-
-    addEmployeeRole(form.value).then((res:any) => {
-      // getData();
-      if(res.Success){
-        ElNotification({
-            title: "提示",
-            message: res.Message,
-            type: "success",
-          });
-            getData();
-      }
-      addVisible.value = false;
-      formRef.value.resetFields();
-    });
-  }
+  });
 };
 
 const handleClose = (tag: any) => {

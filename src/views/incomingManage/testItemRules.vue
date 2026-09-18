@@ -573,9 +573,9 @@
                     <el-icon class="is-loading" :size="40" color="#006487"><Loading /></el-icon>
                     <span class="loading-text">文件加载中...</span>
                 </div>
-                <VuePdfEmbed v-if="previewUrl" :source="previewUrl"
-                    class="pdf-preview-frame" @loaded="previewLoading = false"
-                    @loading-failed="handlePreviewFailed" @rendered="previewLoading = false" />
+
+                <iframe v-if="previewUrl" :src="previewUrl" class="pdf-preview-frame" @load="previewLoading = false"
+                    @error="handlePreviewFailed" />
                 <el-empty v-if="!previewUrl && !previewLoading" description="暂无文件" />
             </div>
             <template #footer>
@@ -617,7 +617,6 @@ import {
 } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Document, Loading, Download, Delete } from "@element-plus/icons-vue";
-import VuePdfEmbed from "vue-pdf-embed";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useI18n } from "vue-i18n";
 
@@ -1214,6 +1213,14 @@ const formatFileSize = (bytes: number) => {
 };
 
 // 预览检验文件
+const toPreviewBlob = (blob: Blob, fileName: string) => {
+    const isPdf = (fileName || "").toLowerCase().endsWith(".pdf");
+    if (isPdf && blob.type !== "application/pdf") {
+        return new Blob([blob], { type: "application/pdf" });
+    }
+    return blob;
+};
+
 const previewInspectionFile = async (file: any) => {
     try {
         currentPreviewFile.value = file;
@@ -1222,7 +1229,7 @@ const previewInspectionFile = async (file: any) => {
         previewLoading.value = true;
         previewUrl.value = "";
         const blob = await DownloadInspectionFile(file.AttachmentId);
-        previewUrl.value = window.URL.createObjectURL(blob);
+        previewUrl.value = window.URL.createObjectURL(toPreviewBlob(blob, file.OriginalFileName));
     } catch (e: any) {
         ElMessage.error(e.message || "预览失败");
         previewLoading.value = false;

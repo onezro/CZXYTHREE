@@ -56,7 +56,10 @@
                 <el-table-column prop="ReturnStatus" :label="t('AGV.taskQuery.returnStatus')"
                     :min-width="getColumnWidth('ReturnStatus')" align="center">
                     <template #default="{ row }">
-                        <el-tag v-if="row.ReturnStatus === -1" type="danger" size="small">
+                        <el-tag v-if="row.ReturnStatus === -2" type="danger" size="small">
+                            {{ t('AGV.taskQuery.returnStatusFailed') }}
+                        </el-tag>
+                        <el-tag v-else-if="row.ReturnStatus === -1" type="danger" size="small">
                             {{ t('AGV.taskQuery.returnStatusCanceled') }}
                         </el-tag>
                         <el-tag v-else-if="row.ReturnStatus === 0" type="info" size="small">
@@ -76,7 +79,10 @@
                 <el-table-column prop="CylinderStatus" :label="t('AGV.taskQuery.cylinderStatus')"
                     :min-width="getColumnWidth('CylinderStatus')" align="center">
                     <template #default="{ row }">
-                        <el-tag v-if="row.CylinderStatus === -1" type="danger" size="small">
+                        <el-tag v-if="row.CylinderStatus === -2" type="danger" size="small">
+                            {{ t('AGV.taskQuery.cylinderStatusFailed') }}
+                        </el-tag>
+                        <el-tag v-else-if="row.CylinderStatus === -1" type="danger" size="small">
                             {{ t('AGV.taskQuery.cylinderStatusCanceled') }}
                         </el-tag>
                         <el-tag v-else-if="row.CylinderStatus === 0" type="info" size="small">

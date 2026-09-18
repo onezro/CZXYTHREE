@@ -127,7 +127,7 @@
                                         <el-input v-model="scope.row.finished_code" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.boxType.boxType')" width="120">
+                                <el-table-column :label="t('baseData.puzzlesBase.boxType')" width="120">
                                     <template #default="scope">
                                         <el-select v-model="scope.row.boxtype" size="small" clearable filterable
                                             >
@@ -246,7 +246,7 @@
                                         <el-input v-model="scope.row.finished_code" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.boxType.boxType')" width="120">
+                                <el-table-column :label="t('baseData.puzzlesBase.boxType')" width="120">
                                     <template #default="scope">
                                         <el-select v-model="scope.row.boxtype" size="small" clearable filterable
                                            >
