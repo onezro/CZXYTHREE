@@ -24,11 +24,11 @@
                         {{ $index + 1 + (currentPage - 1) * pageSize }}
                     </template>
                 </el-table-column>
-                <el-table-column prop="pointtype_no" :label="t('AGV.pointType.pointtype_no')" width="130"
+                <el-table-column prop="pointtype_no" :label="t('AGV.pointType.pointtype_no')" 
                     :min-width="getColumnWidth('pointtype_no')" show-overflow-tooltip fixed="left" />
-                <el-table-column prop="pointtype_name" :label="t('AGV.pointType.pointtype_name')" width="180"
+                <el-table-column prop="pointtype_name" :label="t('AGV.pointType.pointtype_name')" 
                     :min-width="getColumnWidth('pointtype_name')" show-overflow-tooltip />
-                <el-table-column prop="pointtype_type" :label="t('AGV.pointType.pointtype_type')" width="170"
+                <el-table-column prop="pointtype_type" :label="t('AGV.pointType.pointtype_type')" 
                     :min-width="getColumnWidth('pointtype_type')" align="center">
                     <template #default="{ row }">
                         <el-tag :type="getTypeTagType(row.pointtype_type)">
@@ -44,16 +44,17 @@
                             @change="(val: boolean) => handleToggleStatus(row, val)" />
                     </template>
                 </el-table-column>
-                <el-table-column prop="startpointtype" :label="t('AGV.pointType.startpointtype')" width="150"
-                    :min-width="getColumnWidth('startpointtype')" show-overflow-tooltip />
-                <el-table-column prop="endpointtype" :label="t('AGV.pointType.endpointtype')" width="150"
-                    :min-width="getColumnWidth('endpointtype')" show-overflow-tooltip />
-                <el-table-column prop="remark" :label="t('AGV.pointType.remark')" width="200"
-                    :min-width="getColumnWidth('remark')" show-overflow-tooltip />
-               
-                <el-table-column prop="pointtype_updateuser" :label="t('AGV.pointType.updateuser')" width="110"
+                <el-table-column prop="pointtype_insertuser" :label="t('AGV.pointType.insertuser')" 
+                    :min-width="getColumnWidth('pointtype_insertuser')" />
+                <el-table-column prop="pointtype_insertdt" :label="t('AGV.pointType.insertdt')" 
+                    :min-width="getColumnWidth('pointtype_insertdt')">
+                    <template #default="{ row }">
+                        {{ formatDateTime(row.pointtype_insertdt) }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="pointtype_updateuser" :label="t('AGV.pointType.updateuser')" 
                     :min-width="getColumnWidth('pointtype_updateuser')" />
-                <el-table-column prop="pointtype_updatedt" :label="t('AGV.pointType.updatedt')" width="160"
+                <el-table-column prop="pointtype_updatedt" :label="t('AGV.pointType.updatedt')" 
                     :min-width="getColumnWidth('pointtype_updatedt')">
                     <template #default="{ row }">
                         {{ formatDateTime(row.pointtype_updatedt) }}
@@ -258,7 +259,7 @@ const handleDelete = (row: any) => {
                     UserNo: userStore.getUserInfo || "",
                 });
                 if (res.Success) {
-                    ElMessage.success(t("message.deleteSuccess"));
+                    ElMessage.success(res.Message || res.Msg ||t("message.deleteSuccess"));
                     if (tableData.value.length === 1 && currentPage.value > 1) currentPage.value--;
                     getData();
                 } else {

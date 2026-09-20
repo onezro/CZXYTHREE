@@ -409,8 +409,8 @@ const handleDelete = (row: any) => {
                 Userno: userStore.getUserInfo || "",
             })
                 .then((res: any) => {
-                    if (res.Code === 100200 || res.Code === 100300) {
-                        ElMessage.success(t("message.deleteSuccess"));
+                    if (res.Success) {
+                        ElMessage.success(res.Message || res.Msg || t("message.deleteSuccess"));
                         if (tableData.value.length === 1 && pageObj.currentPage > 1) {
                             pageObj.currentPage--;
                         }

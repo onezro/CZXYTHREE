@@ -3,16 +3,17 @@
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <div class="flex justify-between">
                 <el-form ref="formRef" :model="searchForm" label-width="auto" :inline="true" :size="'small'"
-                    @submit.native.prevent>
-                    <el-form-item :label="$t('AGV.point.point')" prop="point" class="mb-2">
-                        <el-input v-model="searchForm.point" clearable @clear="handleSearch"
-                            @keyup.enter.native="handleSearch" style="width: 200px"
-                            :placeholder="$t('AGV.point.inputPoint')" />
+                    @submit.prevent>
+                    <el-form-item :label="t('AGV.pointLine.startPoint')" prop="point" class="mb-2">
+                        <el-select v-model="searchForm.point" clearable filterable style="width: 260px"
+                            :placeholder="t('AGV.pointLine.searchPointPlaceholder')" @change="handleSearch">
+                            <el-option v-for="item in pointData" :key="'qs-' + item.pointID"
+                                :label="`${item.pointID} ${item.pointName ?? ''}`" :value="item.pointID" />
+                        </el-select>
                     </el-form-item>
                     <el-form-item class="mb-2">
-                        <el-button :type="'primary'" @click="handleSearch">{{
-                            t("publicText.query")
-                            }}</el-button>
+                        <el-button :type="'primary'" @click="handleSearch">{{ t("publicText.query") }}</el-button>
+                        <el-button @click="handleReset">{{ t("publicText.reset") }}</el-button>
                     </el-form-item>
                 </el-form>
                 <div>
@@ -24,29 +25,34 @@
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
                 :tooltip-effect="'dark'" border fit highlight-current-row
                 :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
-                <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
+                <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
                     <template #default="scope">
-                        <span>{{
-                            scope.$index + pageObj.pageSize * (pageObj.currentPage - 1) + 1
-                            }}</span>
+                        <span>{{ scope.$index + pageObj.pageSize * (pageObj.currentPage - 1) + 1 }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="pointID" fixed :label="$t('AGV.pointLine.startPoint')"
-                    :min-width="getColumnWidth('pointID')" />
-                <el-table-column prop="pointName" :label="$t('AGV.pointLine.startPointName')" 
-                    :min-width="getColumnWidth('pointName')" />
-                <el-table-column prop="magazine_pointId" :label="$t('AGV.pointLine.endPoint')" 
-                    :min-width="getColumnWidth('magazine_pointId')" />
-                <el-table-column prop="magazine_pointName" :label="$t('AGV.pointLine.endPointName')" 
-                    :min-width="getColumnWidth('magazine_pointName')" />
-                <el-table-column prop="remark" :label="$t('AGV.pointLine.remark')" 
-                    :min-width="getColumnWidth('remark')" />
-                <el-table-column :label="$t('publicText.operation')" :fixed="'right'" width="130" align="center">
+                <el-table-column prop="pointID" fixed :label="t('AGV.pointLine.startPoint')"
+                    :min-width="getColumnWidth('pointID')" show-overflow-tooltip />
+                <el-table-column prop="pointName" :label="t('AGV.pointLine.startPointName')"
+                    :min-width="getColumnWidth('pointName')" show-overflow-tooltip />
+                <el-table-column prop="magazine_pointId" :label="t('AGV.pointLine.endPoint')"
+                    :min-width="getColumnWidth('magazine_pointId')" show-overflow-tooltip />
+                <el-table-column prop="magazine_pointName" :label="t('AGV.pointLine.endPointName')"
+                    :min-width="getColumnWidth('magazine_pointName')" show-overflow-tooltip />
+                <el-table-column prop="status" :label="t('AGV.pointLine.status')" width="110" align="center"
+                    :min-width="getColumnWidth('status')" fixed="right">
                     <template #default="{ row }">
-                        <el-tooltip :content="$t('publicText.edit')" placement="top">
-                            <el-button size="small" type="primary" @click="openEdit(row)" icon="Edit"/>
+                        <el-switch :model-value="isStatusEnabled(row.status)" :loading="row._toggleLoading"
+                            @change="(val: boolean) => handleToggleStatus(row, val)" />
+                    </template>
+                </el-table-column>
+                <el-table-column prop="remark" :label="t('AGV.pointLine.remark')"
+                    :min-width="getColumnWidth('remark')" show-overflow-tooltip />
+                <el-table-column :label="t('publicText.operation')" :fixed="'right'" width="130" align="center">
+                    <template #default="{ row }">
+                        <el-tooltip :content="t('publicText.edit')" placement="top">
+                            <el-button size="small" type="primary" @click="openEdit(row)" icon="Edit" />
                         </el-tooltip>
-                        <el-tooltip :content="$t('publicText.delete')" placement="top">
+                        <el-tooltip :content="t('publicText.delete')" placement="top">
                             <el-button size="small" type="danger" @click="handleDelete(row)" icon="Delete" />
                         </el-tooltip>
                     </template>
@@ -66,26 +72,26 @@
             </div>
         </el-card>
 
-        <el-dialog :title="t('publicText.add')" v-model="addVisible" width="600px" :close-on-click-modal="false"
-            @closed="handleAddDialogClosed">
-            <el-form ref="addFormRef" :model="addForm" :rules="formRules" label-width="auto">
-                <el-form-item :label="$t('AGV.pointLine.startPoint')" prop="startpoint">
-                    <el-select v-model="addForm.startpoint" clearable filterable
-                        :placeholder="$t('AGV.pointLine.selectStartPoint')">
-                        <el-option v-for="item in pointData" :key="item.pointID" 
+        <el-dialog :title="t('publicText.add')" v-model="addVisible" width="600px" top="12vh"
+            :close-on-click-modal="false" @closed="handleAddDialogClosed">
+            <el-form ref="addFormRef" :model="addForm" :rules="formRules" label-width="140px">
+                <el-form-item :label="t('AGV.pointLine.startPoint')" prop="startpoint">
+                    <el-select v-model="addForm.startpoint" clearable filterable style="width: 100%"
+                        :placeholder="t('AGV.pointLine.selectStartPoint')" @change="handleAddStartChange">
+                        <el-option v-for="item in pointData" :key="'as-' + item.pointID"
                             :label="`${item.pointID} - ${item.pointName}`" :value="item.pointID" />
                     </el-select>
                 </el-form-item>
-                <el-form-item :label="$t('AGV.pointLine.endPoint')" prop="endpoint">
-                    <el-select v-model="addForm.endpoint" clearable filterable
-                        :placeholder="$t('AGV.pointLine.selectEndPoint')">
-                        <el-option v-for="item in pointData" :key="item.pointID" 
+                <el-form-item :label="t('AGV.pointLine.endPoint')" prop="endpoint">
+                    <el-select v-model="addForm.endpoint" clearable filterable style="width: 100%"
+                        :placeholder="t('AGV.pointLine.selectEndPoint')">
+                        <el-option v-for="item in addEndPointOptions" :key="'ae-' + item.pointID"
                             :label="`${item.pointID} - ${item.pointName}`" :value="item.pointID" />
                     </el-select>
                 </el-form-item>
-                <el-form-item :label="$t('AGV.pointLine.remark')" prop="remark">
-                    <el-input v-model="addForm.remark"
-                        :placeholder="$t('AGV.pointLine.inputRemark')" clearable type="textarea" />
+                <el-form-item :label="t('AGV.pointLine.remark')" prop="remark">
+                    <el-input v-model="addForm.remark" :placeholder="t('AGV.pointLine.inputRemark')" clearable
+                        type="textarea" :rows="2" resize="none" />
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -98,32 +104,38 @@
             </template>
         </el-dialog>
 
-        <el-dialog :title="t('publicText.edit')" v-model="editVisible" width="600px" :close-on-click-modal="false"
-            @closed="handleEditDialogClosed">
-            <el-form ref="editFormRef" :model="editForm" :rules="formRules" label-width="auto">
-                <el-form-item :label="$t('AGV.pointLine.startPoint')" prop="startpoint">
-                    <el-select v-model="editForm.startpoint" clearable filterable disabled
-                        :placeholder="$t('AGV.pointLine.selectStartPoint')">
-                        <el-option v-for="item in pointData" :key="item.pointID" 
+        <el-dialog :title="t('publicText.edit')" v-model="editVisible" width="600px" top="12vh"
+            :close-on-click-modal="false" @closed="handleEditDialogClosed">
+            <el-form ref="editFormRef" :model="editForm" :rules="formRules" label-width="140px">
+                <el-form-item :label="t('AGV.pointLine.startPoint')" prop="startpoint">
+                    <el-select v-model="editForm.startpoint" clearable filterable disabled style="width: 100%"
+                        :placeholder="t('AGV.pointLine.selectStartPoint')">
+                        <el-option v-for="item in pointData" :key="'es-' + item.pointID"
                             :label="`${item.pointID} - ${item.pointName}`" :value="item.pointID" />
                     </el-select>
                 </el-form-item>
-                <el-form-item :label="$t('AGV.pointLine.endPoint')" prop="endpoint">
-                    <el-select v-model="editForm.endpoint" clearable filterable disabled
-                        :placeholder="$t('AGV.pointLine.selectEndPoint')">
-                        <el-option v-for="item in pointData" :key="item.pointID" 
+                <el-form-item :label="t('AGV.pointLine.endPoint')" prop="endpoint">
+                    <el-select v-model="editForm.endpoint" clearable filterable disabled style="width: 100%"
+                        :placeholder="t('AGV.pointLine.selectEndPoint')">
+                        <el-option v-for="item in pointData" :key="'ee-' + item.pointID"
                             :label="`${item.pointID} - ${item.pointName}`" :value="item.pointID" />
                     </el-select>
                 </el-form-item>
-                <el-form-item :label="$t('AGV.pointLine.remark')" prop="remark">
-                    <el-input v-model="editForm.remark"
-                        :placeholder="$t('AGV.pointLine.inputRemark')" clearable type="textarea" />
+                <el-form-item :label="t('AGV.pointLine.status')" prop="status">
+                    <el-switch v-model="editForm.status" active-value="0" inactive-value="-1" />
+                    <span class="ml-2 text-xs text-gray-500">
+                        {{ isStatusEnabled(editForm.status) ? t('AGV.pointLine.statusEnabled') : t('AGV.pointLine.statusDisabled') }}
+                    </span>
+                </el-form-item>
+                <el-form-item :label="t('AGV.pointLine.remark')" prop="remark">
+                    <el-input v-model="editForm.remark" :placeholder="t('AGV.pointLine.inputRemark')" clearable
+                        type="textarea" :rows="2" resize="none" />
                 </el-form-item>
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
-                    <el-button @click="editVisible = false" size="small">{{ t("publicText.cancel") }}</el-button>
-                    <el-button type="primary" @click="submitEdit" size="small" :loading="submitLoading">{{
+                    <el-button @click="editVisible = false">{{ t("publicText.cancel") }}</el-button>
+                    <el-button type="primary" @click="submitEdit" :loading="submitLoading">{{
                         t("publicText.confirm")
                         }}</el-button>
                 </div>
@@ -134,14 +146,16 @@
 
 <script setup lang="ts">
 import {
-  SelectPoint,
-  InsertUpdatePointSheet,
-  DeletePointSheet,
-  QueryPointSheet,
+    GetEnablePoint,
+    InsertUpdatePointSheet,
+    UpdatePointSheetStatus,
+    DeletePointSheet,
+    QueryPointSheet,
 } from "@/api/AGV/index";
 import {
     ref,
     reactive,
+    computed,
     nextTick,
     onMounted,
     onBeforeMount,
@@ -150,7 +164,6 @@ import {
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
-import dayjs from 'dayjs';
 import { useI18n } from "vue-i18n";
 
 const userStore = useUserStoreWithOut();
@@ -183,6 +196,7 @@ const addForm = reactive({
 const editForm = reactive({
     startpoint: "",
     endpoint: "",
+    status: "0",
     remark: "",
 });
 
@@ -212,17 +226,25 @@ const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {
     excludeLabels: [t('publicText.index'), t('publicText.operation')]
 });
 
-const getPointData = () => {
-    SelectPoint({ point: "" })
-        .then((res: any) => {
-            if ( res.Data) {
-                pointData.value = res.Data;
-            }
-        });
+const isStatusEnabled = (value: any) => {
+    const s = String(value ?? "0");
+    return s === "0" || s === "Y" || s.toLowerCase() === "enabled";
+};
+
+const addEndPointOptions = computed(() =>
+    pointData.value.filter((item) => String(item.pointID) !== String(addForm.startpoint))
+);
+
+const loadPointOptions = () => {
+    return GetEnablePoint({}).then((res: any) => {
+        pointData.value = Array.isArray(res?.Data) ? res.Data : [];
+    }).catch(() => {
+        pointData.value = [];
+    });
 };
 
 const getData = () => {
-
+    loading.value = true;
     const params = {
         point: searchForm.point || "",
         PageIndex: pageObj.currentPage,
@@ -243,9 +265,18 @@ const getData = () => {
             tableData.value = [];
             total.value = 0;
         })
+        .finally(() => {
+            loading.value = false;
+        });
 };
 
 const handleSearch = () => {
+    pageObj.currentPage = 1;
+    getData();
+};
+
+const handleReset = () => {
+    searchForm.point = "";
     pageObj.currentPage = 1;
     getData();
 };
@@ -272,10 +303,16 @@ const handleAddDialogClosed = () => {
     addFormRef.value?.resetFields();
 };
 
+const handleAddStartChange = (val: any) => {
+    if (addForm.endpoint && String(addForm.endpoint) === String(val)) {
+        addForm.endpoint = "";
+    }
+};
+
 const submitAdd = () => {
     addFormRef.value.validate((valid: boolean) => {
         if (valid) {
-            if (addForm.startpoint === addForm.endpoint) {
+            if (String(addForm.startpoint) === String(addForm.endpoint)) {
                 ElMessage.warning(t("AGV.pointLine.startEndSame"));
                 return;
             }
@@ -289,13 +326,16 @@ const submitAdd = () => {
             InsertUpdatePointSheet(params)
                 .then((res: any) => {
                     if (res.Success) {
-                        ElMessage.success(t("message.addSuccess"));
+                        ElMessage.success(res.Message || res.Msg || t("message.addSuccess"));
                         addVisible.value = false;
                         pageObj.currentPage = 1;
                         getData();
                     } else {
-                        ElMessage.error(res.Message || t("message.addFailure"));
+                        ElMessage.error(res.Message || res.Msg || t("message.addFailure"));
                     }
+                })
+                .catch(() => {
+                    ElMessage.error(t("message.addFailure"));
                 })
                 .finally(() => {
                     submitLoading.value = false;
@@ -307,6 +347,7 @@ const submitAdd = () => {
 const openEdit = (row: any) => {
     editForm.startpoint = row.pointID;
     editForm.endpoint = row.magazine_pointId;
+    editForm.status = isStatusEnabled(row.status) ? "0" : "-1";
     editForm.remark = row.remark || "";
     editVisible.value = true;
 };
@@ -322,18 +363,22 @@ const submitEdit = () => {
             const params = {
                 startpoint: editForm.startpoint,
                 endpoint: editForm.endpoint,
+                status: String(editForm.status),
                 remark: editForm.remark,
                 UserNo: userStore.getUserInfo || "",
             };
             InsertUpdatePointSheet(params)
                 .then((res: any) => {
                     if (res.Success) {
-                        ElMessage.success(t("message.editSuccess"));
+                        ElMessage.success(res.Message || res.Msg || t("message.editSuccess"));
                         editVisible.value = false;
                         getData();
                     } else {
-                        ElMessage.error(res.Message || t("message.editFailure"));
+                        ElMessage.error(res.Message || res.Msg || t("message.editFailure"));
                     }
+                })
+                .catch(() => {
+                    ElMessage.error(t("message.editFailure"));
                 })
                 .finally(() => {
                     submitLoading.value = false;
@@ -342,16 +387,47 @@ const submitEdit = () => {
     });
 };
 
+const handleToggleStatus = (row: any, enabled: boolean) => {
+    const prevStatus = row.status;
+    const targetStatus = enabled ? "0" : "-1";
+    if (isStatusEnabled(prevStatus) === enabled) return;
+    row._toggleLoading = true;
+    UpdatePointSheetStatus({
+        startpoint: row.pointID,
+        endpoint: row.magazine_pointId,
+        status: targetStatus,
+        UserNo: userStore.getUserInfo || "",
+    })
+        .then((res: any) => {
+            if (res.Success) {
+                row.status = targetStatus;
+                ElMessage.success(res.Message || res.Msg ||
+                    ((enabled ? t("AGV.pointLine.statusEnabled") : t("AGV.pointLine.statusDisabled")) + t("message.editSuccess")));
+                getData();
+            } else {
+                row.status = prevStatus;
+                ElMessage.error(res.Message || res.Msg || t("message.editFailure"));
+            }
+        })
+        .catch(() => {
+            row.status = prevStatus;
+            ElMessage.error(t("message.editFailure"));
+        })
+        .finally(() => {
+            row._toggleLoading = false;
+        });
+};
+
 const handleDelete = (row: any) => {
-    ElMessageBox.confirm(
-        `${t("publicText.confirm")}${t("publicText.delete")}【${row.pointID} -> ${row.magazine_pointId}】?`,
-        t("publicText.tip"),
-        {
-            confirmButtonText: t("publicText.confirm"),
-            cancelButtonText: t("publicText.cancel"),
-            type: "warning",
-        }
-    )
+    const text = t("AGV.pointLine.deleteConfirm", {
+        start: String(row.pointID ?? ""),
+        end: String(row.magazine_pointId ?? ""),
+    });
+    ElMessageBox.confirm(text, t("publicText.tip"), {
+        confirmButtonText: t("publicText.confirm"),
+        cancelButtonText: t("publicText.cancel"),
+        type: "warning",
+    })
         .then(() => {
             loading.value = true;
             DeletePointSheet({
@@ -361,14 +437,17 @@ const handleDelete = (row: any) => {
             })
                 .then((res: any) => {
                     if (res.Success) {
-                        ElMessage.success(t("message.deleteSuccess"));
+                        ElMessage.success(res.Message || res.Msg || t("message.deleteSuccess"));
                         if (tableData.value.length === 1 && pageObj.currentPage > 1) {
                             pageObj.currentPage--;
                         }
                         getData();
                     } else {
-                        ElMessage.error(res.Message || t("message.deleteFailure"));
+                        ElMessage.error(res.Message || res.Msg || t("message.deleteFailure"));
                     }
+                })
+                .catch(() => {
+                    ElMessage.error(t("message.deleteFailure"));
                 })
                 .finally(() => {
                     loading.value = false;
@@ -385,18 +464,20 @@ const getScreenHeight = () => {
     });
 };
 
+const onResize = () => getScreenHeight();
+
 onBeforeMount(() => {
     getScreenHeight();
 });
 
-onMounted(() => {
-    window.addEventListener("resize", getScreenHeight);
-    getPointData();
+onMounted(async () => {
+    window.addEventListener("resize", onResize);
+    await loadPointOptions();
     getData();
 });
 
 onBeforeUnmount(() => {
-    window.removeEventListener("resize", getScreenHeight);
+    window.removeEventListener("resize", onResize);
 });
 </script>
 

@@ -121,6 +121,24 @@ export function QueryPointSheet(data: any) {
   });
 }
 
+// 查询启用的AGV工作站点下拉
+export function GetEnablePoint(params?: any) {
+  return request({
+    url: "/api/mes/agv/GetEnablePoint",
+    method: "get",
+    params,
+  });
+}
+
+// 修改AGV工作站点表状态
+export function UpdatePointSheetStatus(data: any) {
+  return request({
+    url: "/api/mes/agv/UpdatePointSheetStatus",
+    method: "post",
+    data,
+  });
+}
+
 // 新增/修改AGV点位类别
 export function InsertUpdatePointType(data: any) {
   return request({
@@ -190,6 +208,8 @@ export { AddPlateBaseData, UpdatePlateBaseData, DeletePlateBaseData, QueryPlateB
 export { QueryContainerBoxPage } from './containerBox';
 
 export { QueryMagazineOutTaskPage, GetExecutionPoints } from './magazineOutTask';
+
+export { QueryAGVTriggerLogPage } from './apiRequestLog';
 
 // AGV任务查询分页
 export function QueryAgvTaskPage(data: any) {

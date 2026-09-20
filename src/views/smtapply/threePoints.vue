@@ -43,8 +43,8 @@
                 </el-table-column>
             </el-table>
 
-            <div class="mt-3 flex justify-center">
-                <el-pagination background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+            <div class="mt-2 flex justify-center">
+                <el-pagination background :size="'small'" @size-change="handleSizeChange" @current-change="handleCurrentChange"
                     :current-page="getForm.PageIndex" :page-size="getForm.PageSize" :page-sizes="[5, 10, 20, 50, 100]"
                     layout="total,sizes,prev,pager,next" :total="total">
                 </el-pagination>

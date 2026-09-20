@@ -751,7 +751,7 @@ const handleDelete = (row: any) => {
             })
                 .then((res: any) => {
                     if (res.Success) {
-                        ElMessage.success(t("message.deleteSuccess"));
+                        ElMessage.success(res.Message || res.Msg || t("message.deleteSuccess"));
                         if (tableData.value.length === 1 && pageObj.currentPage > 1) {
                             pageObj.currentPage--;
                         }

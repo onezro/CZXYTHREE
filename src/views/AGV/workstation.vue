@@ -3,16 +3,17 @@
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <div class="flex justify-between">
                 <el-form ref="formRef" :model="searchForm" label-width="auto" :inline="true" :size="'small'"
-                    @submit.native.prevent>
+                    @submit.prevent>
                     <el-form-item :label="$t('AGV.workstation.workstationID')" prop="workstationID" class="mb-2">
                         <el-input v-model="searchForm.workstationID" clearable @clear="handleSearch"
-                            @keyup.enter.native="handleSearch" style="width: 200px"
+                            @keyup.enter="handleSearch" style="width: 200px"
                             :placeholder="$t('AGV.workstation.inputWorkstationID')" />
                     </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button :type="'primary'" @click="handleSearch">{{
                             t("publicText.query")
                             }}</el-button>
+                        <el-button @click="handleReset">{{ t("publicText.reset") }}</el-button>
                     </el-form-item>
                 </el-form>
                 <div>
@@ -32,22 +33,36 @@
                     </template>
                 </el-table-column>
                 <el-table-column prop="workstationID" fixed :label="$t('AGV.workstation.workstationID')"
-                    :min-width="getColumnWidth('workstationID')" />
-                <el-table-column prop="name" :label="$t('AGV.workstation.name')" 
-                    :min-width="getColumnWidth('name')" />
-                <el-table-column prop="area" :label="$t('AGV.workstation.area')" 
-                    :min-width="getColumnWidth('area')" />
-                <el-table-column prop="remark" :label="$t('AGV.workstation.remark')" 
-                    :min-width="getColumnWidth('remark')" />
-                <el-table-column prop="cr_user" :label="$t('AGV.workstation.crUser')" 
-                    :min-width="getColumnWidth('cr_user')" />
-                <el-table-column prop="cr_date" :label="$t('AGV.workstation.crDate')" 
+                    :min-width="getColumnWidth('workstationID')" show-overflow-tooltip />
+                <el-table-column prop="name" :label="$t('AGV.workstation.name')"
+                    :min-width="getColumnWidth('name')" show-overflow-tooltip />
+                <el-table-column prop="area" :label="$t('AGV.workstation.area')"
+                    :min-width="getColumnWidth('area')" show-overflow-tooltip />
+                <el-table-column prop="linename" :label="$t('AGV.workstation.linename')"
+                    :min-width="getColumnWidth('linename')" show-overflow-tooltip>
+                    <template #default="{ row }">
+                        {{ row.linename || '-' }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="remark" :label="$t('AGV.workstation.remark')"
+                    :min-width="getColumnWidth('remark')" show-overflow-tooltip />
+                <el-table-column prop="status" :label="$t('AGV.workstation.status')" width="110" align="center" fixed="right">
+                    <template #default="{ row }">
+                        <el-switch :model-value="isStatusEnabled(row.status)" :loading="row._toggleLoading"
+                            @change="(val: boolean) => handleToggleStatus(row, val)" />
+                    </template>
+                </el-table-column>
+                <el-table-column prop="cr_user" :label="$t('AGV.workstation.crUser')"
+                    :min-width="getColumnWidth('cr_user')" show-overflow-tooltip />
+                <el-table-column prop="cr_date" :label="$t('AGV.workstation.crDate')"
                     :min-width="getColumnWidth('cr_date')">
                     <template #default="{ row }">
                         {{ formatDate(row.cr_date) }}
                     </template>
                 </el-table-column>
-                <el-table-column prop="ud_date" :label="$t('AGV.workstation.udDate')" 
+                <el-table-column prop="ud_user" :label="$t('AGV.workstation.udUser')"
+                    :min-width="getColumnWidth('ud_user')" show-overflow-tooltip />
+                <el-table-column prop="ud_date" :label="$t('AGV.workstation.udDate')"
                     :min-width="getColumnWidth('ud_date')">
                     <template #default="{ row }">
                         {{ formatDate(row.ud_date) }}
@@ -94,6 +109,19 @@
                     <el-input v-model="addForm.area"
                         :placeholder="$t('AGV.workstation.inputArea')" clearable />
                 </el-form-item>
+                <el-form-item :label="$t('AGV.workstation.linename')" prop="linename">
+                    <el-select v-model="addForm.linename" clearable filterable style="width: 100%"
+                        :placeholder="$t('AGV.workstation.selectLineName')">
+                        <el-option v-for="item in lineOptions" :key="'al-' + item.line" :label="item.line"
+                            :value="item.line" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="$t('AGV.workstation.status')" prop="status">
+                    <el-switch v-model="addForm.status" active-value="0" inactive-value="-1" />
+                    <span class="status-hint">
+                        {{ isStatusEnabled(addForm.status) ? t('publicText.enable') : t('publicText.disable') }}
+                    </span>
+                </el-form-item>
                 <el-form-item :label="$t('AGV.workstation.remark')" prop="remark">
                     <el-input v-model="addForm.remark"
                         :placeholder="$t('AGV.workstation.inputRemark')" clearable type="textarea" />
@@ -124,6 +152,19 @@
                     <el-input v-model="editForm.area"
                         :placeholder="$t('AGV.workstation.inputArea')" clearable />
                 </el-form-item>
+                <el-form-item :label="$t('AGV.workstation.linename')" prop="linename">
+                    <el-select v-model="editForm.linename" clearable filterable style="width: 100%"
+                        :placeholder="$t('AGV.workstation.selectLineName')">
+                        <el-option v-for="item in lineOptions" :key="'el-' + item.line" :label="item.line"
+                            :value="item.line" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="$t('AGV.workstation.status')" prop="status">
+                    <el-switch v-model="editForm.status" active-value="0" inactive-value="-1" />
+                    <span class="status-hint">
+                        {{ isStatusEnabled(editForm.status) ? t('publicText.enable') : t('publicText.disable') }}
+                    </span>
+                </el-form-item>
                 <el-form-item :label="$t('AGV.workstation.remark')" prop="remark">
                     <el-input v-model="editForm.remark"
                         :placeholder="$t('AGV.workstation.inputRemark')" clearable type="textarea" />
@@ -142,7 +183,8 @@
 </template>
 
 <script setup lang="ts">
-import { InsertUpdateWorkstation, DeleteWorkstation, QueryWorkstation } from "@/api/AGV/index"
+import { InsertUpdateWorkstation, DeleteWorkstation, QueryWorkstation } from "@/api/AGV/index";
+import { GetAllValorLine } from "@/api/AGV/plateBaseData";
 import {
     ref,
     reactive,
@@ -167,6 +209,8 @@ const eltableRef = ref();
 const tableData = ref<any[]>([]);
 const total = ref(0);
 
+const lineOptions = ref<any[]>([]);
+
 const searchForm = reactive({
     workstationID: "",
 });
@@ -180,6 +224,8 @@ const addForm = reactive({
     workstationID: "",
     name: "",
     area: "",
+    linename: "",
+    status: "0",
     remark: "",
 });
 
@@ -187,6 +233,8 @@ const editForm = reactive({
     workstationID: 0,
     name: "",
     area: "",
+    linename: "",
+    status: "0",
     remark: "",
 });
 
@@ -222,6 +270,11 @@ const formRules = reactive({
 const formatDate = (dateStr: string) => {
     if (!dateStr || dateStr === "1900-01-01T00:00:00") return "-";
     return dayjs(dateStr).format("YYYY-MM-DD HH:mm:ss");
+};
+
+const isStatusEnabled = (value: any) => {
+    const s = String(value ?? "0");
+    return s !== "-1" && s !== "N" && s.toLowerCase() !== "disabled";
 };
 
 const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {
@@ -260,6 +313,22 @@ const handleSearch = () => {
     getData();
 };
 
+const handleReset = () => {
+    searchForm.workstationID = "";
+    pageObj.currentPage = 1;
+    getData();
+};
+
+const getLineData = () => {
+    return GetAllValorLine({})
+        .then((res: any) => {
+            lineOptions.value = Array.isArray(res?.Data) ? res.Data : [];
+        })
+        .catch(() => {
+            lineOptions.value = [];
+        });
+};
+
 const handleSizeChange = (val: number) => {
     pageObj.pageSize = val;
     pageObj.currentPage = 1;
@@ -275,6 +344,8 @@ const openAdd = () => {
     addForm.workstationID = "";
     addForm.name = "";
     addForm.area = "";
+    addForm.linename = "";
+    addForm.status = "0";
     addForm.remark = "";
     addVisible.value = true;
 };
@@ -291,13 +362,15 @@ const submitAdd = () => {
                 workstationID: addForm.workstationID,
                 name: addForm.name,
                 area: addForm.area,
+                linename: addForm.linename || "",
+                status: String(addForm.status),
                 remark: addForm.remark,
                 UserNo: userStore.getUserInfo || "",
             };
             InsertUpdateWorkstation(params)
                 .then((res: any) => {
                     if (res.Success) {
-                        ElMessage.success(t("message.addSuccess"));
+                        ElMessage.success(res.Message || t("message.addSuccess"));
                         addVisible.value = false;
                         pageObj.currentPage = 1;
                         getData();
@@ -316,6 +389,8 @@ const openEdit = (row: any) => {
     editForm.workstationID = row.workstationID;
     editForm.name = row.name;
     editForm.area = row.area;
+    editForm.linename = row.linename || "";
+    editForm.status = isStatusEnabled(row.status) ? "0" : "-1";
     editForm.remark = row.remark || "";
     editVisible.value = true;
 };
@@ -332,13 +407,15 @@ const submitEdit = () => {
                 workstationID: editForm.workstationID,
                 name: editForm.name,
                 area: editForm.area,
+                linename: editForm.linename || "",
+                status: String(editForm.status),
                 remark: editForm.remark,
                 UserNo: userStore.getUserInfo || "",
             };
             InsertUpdateWorkstation(params)
                 .then((res: any) => {
                     if (res.Success) {
-                        ElMessage.success(t("message.editSuccess"));
+                        ElMessage.success(res.Message || t("message.editSuccess"));
                         editVisible.value = false;
                         getData();
                     } else {
@@ -370,7 +447,7 @@ const handleDelete = (row: any) => {
             })
                 .then((res: any) => {
                     if (res.Success) {
-                        ElMessage.success(t("message.deleteSuccess"));
+                        ElMessage.success(res.Message || res.Msg || t("message.deleteSuccess"));
                         if (tableData.value.length === 1 && pageObj.currentPage > 1) {
                             pageObj.currentPage--;
                         }
@@ -388,6 +465,39 @@ const handleDelete = (row: any) => {
         });
 };
 
+const handleToggleStatus = (row: any, enabled: boolean) => {
+    const prevStatus = row.status;
+    const targetStatus = enabled ? "0" : "-1";
+    if (isStatusEnabled(prevStatus) === enabled) return;
+    row._toggleLoading = true;
+    InsertUpdateWorkstation({
+        workstationID: row.workstationID,
+        name: row.name,
+        area: row.area,
+        linename: row.linename || "",
+        status: targetStatus,
+        remark: row.remark || "",
+        UserNo: userStore.getUserInfo || "",
+    })
+        .then((res: any) => {
+            if (res.Success) {
+                row.status = targetStatus;
+                ElMessage.success(res.Message || t("message.editSuccess"));
+                getData();
+            } else {
+                row.status = prevStatus;
+                ElMessage.error(res.Message || res.Msg || t("message.editFailure"));
+            }
+        })
+        .catch(() => {
+            row.status = prevStatus;
+            ElMessage.error(t("message.editFailure"));
+        })
+        .finally(() => {
+            row._toggleLoading = false;
+        });
+};
+
 const getScreenHeight = () => {
     nextTick(() => {
         tableHeight.value = window.innerHeight - 180;
@@ -400,6 +510,7 @@ onBeforeMount(() => {
 
 onMounted(() => {
     window.addEventListener("resize", getScreenHeight);
+    getLineData();
     getData();
 });
 
@@ -411,5 +522,11 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .el-pagination {
     justify-content: center;
+}
+
+.status-hint {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #909399;
 }
 </style>

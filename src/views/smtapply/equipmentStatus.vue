@@ -22,7 +22,7 @@
                 </el-form-item>
             </el-form>
 
-            <el-table :data="tableData" size="small" ref="eltableRef" v-loading="loading" :style="{ width: '100%' }"
+            <el-table :data="tableData" size="small" ref="eltableRef"  :style="{ width: '100%' }"
                 :height="tableHeight" :tooltip-effect="'dark'" border fit highlight-current-row
                 :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
@@ -37,27 +37,30 @@
                 <el-table-column prop="OperationName" :label="t('smtapply.equipmentStatus.operationName')"
                     :min-width="getColumnWidth('OperationName')" show-overflow-tooltip />
                 <el-table-column prop="StatusDesc" :label="t('smtapply.equipmentStatus.statusDesc')"
-                    :min-width="getColumnWidth('StatusDesc')" align="center">
+                    :min-width="getColumnWidth('StatusDesc')" align="center" >
                     <template #default="{ row }">
-                        <el-tag size="small">{{ row.StatusDesc }}</el-tag>
+                        <el-tag size="small" :type="getStatusTagType(row.StatusDesc)" >
+                            {{ getStatusText(row.StatusDesc) }}
+                        </el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column prop="StartDateTime" :label="t('smtapply.equipmentStatus.startDateTime')"
-                    :min-width="getColumnWidth('StartDateTime')">
+               
+                <el-table-column prop="DurationSecond" :label="t('smtapply.equipmentStatus.durationSecond')"
+                    :min-width="getColumnWidth('DurationSecond')" align="center" />
+                <el-table-column prop="DurationHour" :label="t('smtapply.equipmentStatus.durationHour')"
+                    :min-width="getColumnWidth('DurationHour')" align="center" />
+                     <el-table-column prop="StartDateTime" :label="t('smtapply.equipmentStatus.startDateTime')"
+                    width="160">
                     <template #default="{ row }">
                         {{ formatDate(row.StartDateTime) }}
                     </template>
                 </el-table-column>
                 <el-table-column prop="EndDateTime" :label="t('smtapply.equipmentStatus.endDateTime')"
-                    :min-width="getColumnWidth('EndDateTime')">
+                    width="160">
                     <template #default="{ row }">
                         {{ formatDate(row.EndDateTime) }}
                     </template>
                 </el-table-column>
-                <el-table-column prop="DurationSecond" :label="t('smtapply.equipmentStatus.durationSecond')"
-                    :min-width="getColumnWidth('DurationSecond')" align="center" />
-                <el-table-column prop="DurationHour" :label="t('smtapply.equipmentStatus.durationHour')"
-                    :min-width="getColumnWidth('DurationHour')" align="center" />
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
@@ -111,6 +114,28 @@ const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {
 const formatDate = (dateStr: string) => {
     if (!dateStr || dateStr === "1900-01-01T00:00:00") return "";
     return dayjs(dateStr).format("YYYY-MM-DD HH:mm:ss");
+};
+
+// 设备状态标签颜色：Run=运行 / ErrorStop=故障停机(红) / ChangeStop=换线停机(橙) / WaitStart=等待开机(灰)
+const getStatusTagType = (status: string): "primary" | "success" | "info" | "warning" | "danger" => {
+    switch (status) {
+        case "Run": return "primary";
+        case "ErrorStop": return "danger";
+        case "ChangeStop": return "warning";
+        case "WaitStart": return "info";
+        default: return "info";
+    }
+};
+
+// 设备状态文案映射
+const getStatusText = (status: string) => {
+    switch (status) {
+        case "Run": return t("smtapply.equipmentStatus.statusRun");
+        case "ErrorStop": return t("smtapply.equipmentStatus.statusErrorStop");
+        case "ChangeStop": return t("smtapply.equipmentStatus.statusChangeStop");
+        case "WaitStart": return t("smtapply.equipmentStatus.statusWaitStart");
+        default: return status || "-";
+    }
 };
 
 const disabledDate = (time: Date) => {

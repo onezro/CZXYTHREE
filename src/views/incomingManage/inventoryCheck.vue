@@ -82,7 +82,7 @@
                 <el-table-column :label="t('incomingManage.inventoryCheck.materialPn')" prop="material_pn"
                     :min-width="getColumnWidth('material_pn')" fixed show-overflow-tooltip />
                     <el-table-column prop="name" :label="t('Scheduling.CallMaterials.PNName')"
-                    :min-width="getColumnWidth('name')" show-overflow-tooltip />
+                    :min-width="200" show-overflow-tooltip />
                 <el-table-column prop="pn_spec" :label="t('Scheduling.CallMaterials.PNDesc')"
                     :min-width="getColumnWidth('pn_spec')" show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.inventoryCheck.workOrder')" prop="work_order"

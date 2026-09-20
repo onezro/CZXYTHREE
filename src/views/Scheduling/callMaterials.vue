@@ -134,25 +134,25 @@
                     :min-width="getListColumnWidth('MaterialRequestList_ActiveQty')" align="right" />
                 <el-table-column fixed="right" :label="t('Scheduling.CallMaterials.Result')" :min-width="getListColumnWidth('MaterialRequestList_Result')" align="center">
                     <template #default="{ row }">
-                        <el-tag :type="row.MaterialRequestList_ActiveQty > row.MaterialRequestList_Qty ? 'success' : 'danger'" size="small">
-                            {{ row.MaterialRequestList_ActiveQty > row.MaterialRequestList_Qty ? t('Scheduling.CallMaterials.Satisfied') : t('Scheduling.CallMaterials.NotSatisfied') }}
+                        <el-tag :type="row.MaterialRequestList_ActiveQty >= row.MaterialRequestList_Qty ? 'success' : 'danger'" size="small">
+                            {{ row.MaterialRequestList_ActiveQty >= row.MaterialRequestList_Qty ? t('Scheduling.CallMaterials.Satisfied') : t('Scheduling.CallMaterials.NotSatisfied') }}
                         </el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('Scheduling.CallMaterials.IsDisabled')" :min-width="getListColumnWidth('MaterialRequestList_IsDisabled')" align="center">
+                <!-- <el-table-column :label="t('Scheduling.CallMaterials.IsDisabled')" :min-width="getListColumnWidth('MaterialRequestList_IsDisabled')" align="center">
                     <template #default="{ row }">
                         <el-tag :type="getIsDisabledType(row.MaterialRequestList_IsDisabled)" size="small">
                             {{ getIsDisabledText(row.MaterialRequestList_IsDisabled) }}
                         </el-tag>
                     </template>
-                </el-table-column>
-                <el-table-column :label="t('Scheduling.CallMaterials.IsOverShoot')" :min-width="getListColumnWidth('MaterialRequestList_isOverShoot')" align="center">
+                </el-table-column> -->
+                <!-- <el-table-column :label="t('Scheduling.CallMaterials.IsOverShoot')" :min-width="getListColumnWidth('MaterialRequestList_isOverShoot')" align="center">
                     <template #default="{ row }">
                         <el-tag :type="row.MaterialRequestList_isOverShoot === 1 ? 'danger' : 'info'" size="small">
                             {{ row.MaterialRequestList_isOverShoot === 1 ? t('publicText.yes') : t('publicText.no') }}
                         </el-tag>
                     </template>
-                </el-table-column>
+                </el-table-column> -->
             </el-table>
             <div class="mt-2 text-sm flex justify-end items-center">
                 {{ t('Scheduling.CallMaterials.Statistics') }}：
@@ -160,25 +160,27 @@
                 <el-tag type="success" size="small" effect="plain">{{ t('Scheduling.CallMaterials.Satisfied') }} {{ listStatistics.satisfied }} {{ t('Scheduling.CallMaterials.Rows') }}</el-tag>，
                 <el-tag type="danger" size="small" effect="plain">{{ t('Scheduling.CallMaterials.NotSatisfied') }} {{ listStatistics.notSatisfied }} {{ t('Scheduling.CallMaterials.Rows') }}</el-tag>
             </div>
-            <div class="mt-1 mb-2 font-bold">{{ t('Scheduling.CallMaterials.DetailTitle') }}</div>
-            <el-table :data="detailData.detail" size="small" border fit style="width: 100%" height="280"
+            <div class="mt-1 mb-1 font-bold">{{ t('Scheduling.CallMaterials.DetailTitle') }}</div>
+            <el-table :data="pagedDetailData" size="small" border fit style="width: 100%" height="270"
                  ref="detailDetailRef">
                  <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
                 </el-table-column>
                 <!-- <el-table-column prop="MaterialRequestDetail_No" :label="t('Scheduling.CallMaterials.CallOrder')"
                     :min-width="getDetailColumnWidth('MaterialRequestDetail_No')" show-overflow-tooltip /> -->
+                 
                 <el-table-column prop="MaterialRequestDetail_ReelId" :label="t('Scheduling.CallMaterials.ReelId')"
                     :min-width="getDetailColumnWidth('MaterialRequestDetail_ReelId')" show-overflow-tooltip />
                 <!-- <el-table-column prop="MaterialRequestDetail_Wo" :label="t('Scheduling.CallMaterials.WorkOrder')"
                     :min-width="getDetailColumnWidth('MaterialRequestDetail_Wo')" show-overflow-tooltip /> -->
-                <el-table-column prop="MaterialRequestDetail_PN" :label="t('Scheduling.CallMaterials.PN')"
+                   <el-table-column prop="MaterialRequestDetail_PN" :label="t('Scheduling.CallMaterials.PN')"
                     :min-width="getDetailColumnWidth('MaterialRequestDetail_PN')" show-overflow-tooltip />
+                    <el-table-column prop="MaterialRequestDetail_Lotnumber" :label="t('Scheduling.CallMaterials.LotNumber')"
+                    :min-width="getDetailColumnWidth('MaterialRequestDetail_Lotnumber')" show-overflow-tooltip />
                 <el-table-column prop="MaterialRequestDetail_Qty" :label="t('Scheduling.CallMaterials.Qty')"
                     :min-width="getDetailColumnWidth('MaterialRequestDetail_Qty')" align="right" />
-                <el-table-column prop="MaterialRequestDetail_CellId" :label="t('Scheduling.CallMaterials.CellId')"
-                    :min-width="getDetailColumnWidth('MaterialRequestDetail_CellId')" show-overflow-tooltip />
-                <el-table-column prop="MaterialRequestDetail_Lotnumber" :label="t('Scheduling.CallMaterials.LotNumber')"
-                    :min-width="getDetailColumnWidth('MaterialRequestDetail_Lotnumber')" show-overflow-tooltip />
+                <!-- <el-table-column prop="MaterialRequestDetail_CellId" :label="t('Scheduling.CallMaterials.CellId')"
+                    :min-width="getDetailColumnWidth('MaterialRequestDetail_CellId')" show-overflow-tooltip /> -->
+                
                 <el-table-column :label="t('Scheduling.CallMaterials.IsMesCell')" :min-width="getDetailColumnWidth('MaterialRequestDetail_IsMesCell')" align="center">
                     <template #default="{ row }">
                         <el-tag :type="getRequestInfoType(row.MaterialRequestDetail_IsMesCell)" size="small">
@@ -194,6 +196,13 @@
                     </template>
                 </el-table-column>
             </el-table>
+            <div class="mt-2">
+                <el-pagination :size="'small'" background @size-change="handleDetailSizeChange"
+                    @current-change="handleDetailCurrentChange" :current-page="detailPage.PageIndex"
+                    :page-size="detailPage.PageSize" :page-sizes="[50, 100, 200, 300]"
+                    layout="total,sizes, prev, pager, next" :total="detailTotal">
+                </el-pagination>
+            </div>
             <template #footer>
                 <el-button @click="detailVisible = false">{{ t("publicText.close") }}</el-button>
             </template>
@@ -251,11 +260,57 @@ const detailData = reactive({
     detail: [] as any[],
 });
 
+// 料盘明细分页
+const detailPage = reactive({
+    PageIndex: 1,
+    PageSize: 50,
+});
+const detailTotal = computed(() => detailData.detail.length);
+const pagedDetailData = computed(() => {
+    const start = (detailPage.PageIndex - 1) * detailPage.PageSize;
+    return detailData.detail.slice(start, start + detailPage.PageSize);
+});
+const handleDetailSizeChange = (val: number) => {
+    detailPage.PageSize = val;
+    detailPage.PageIndex = 1;
+};
+const handleDetailCurrentChange = (val: number) => {
+    detailPage.PageIndex = val;
+};
+
+// 料盘明细 - 相同物料编码合并
+const detailSpanArr = computed(() => {
+    const arr: number[] = [];
+    pagedDetailData.value.forEach((row: any, index: number) => {
+        if (index === 0) {
+            arr.push(1);
+        } else {
+            const prev = pagedDetailData.value[index - 1];
+            if (row.MaterialRequestDetail_PN === prev.MaterialRequestDetail_PN) {
+                let countIdx = index - 1;
+                while (countIdx >= 0 && arr[countIdx] === 0) countIdx--;
+                arr[countIdx]++;
+                arr.push(0);
+            } else {
+                arr.push(1);
+            }
+        }
+    });
+    return arr;
+});
+
+const detailSpanMethod = ({ rowIndex, columnIndex }: { row: any; column: any; rowIndex: number; columnIndex: number }) => {
+    if (columnIndex === 1) { // 物料编号列
+        const span = detailSpanArr.value[rowIndex] ?? 0;
+        return { rowspan: span, colspan: span > 0 ? 1 : 0 };
+    }
+};
+
 // 料号明细统计
 const listStatistics = computed(() => {
     const total = detailData.list.length;
     const satisfied = detailData.list.filter(
-        (row: any) => row.MaterialRequestList_ActiveQty > row.MaterialRequestList_Qty
+        (row: any) => row.MaterialRequestList_ActiveQty >= row.MaterialRequestList_Qty
     ).length;
     return { total, satisfied, notSatisfied: total - satisfied };
 });
@@ -354,12 +409,20 @@ const fetchDetail = (row: any) => {
     detailVisible.value = true;
     detailData.list = [];
     detailData.detail = [];
+    detailPage.PageIndex = 1;
+    detailPage.PageSize = 50;
     detailLoading.value = true;
 
     QueryMaterialRequestDetail({ MaterialRequestNo: row.MaterialRequest_No }).then((res: any) => {
         if (res.Success) {
             detailData.list = res.Data.List || [];
             detailData.detail = res.Data.Detail || [];
+            // 首套叫料时，料号明细需求数量置0后再对比（首套不需要校验需求量）
+            if (!row.IsFirst) {
+                detailData.list.forEach((item: any) => {
+                    item.MaterialRequestList_Qty = 0;
+                });
+            }
         } else {
             ElNotification({
                 title: t('publicText.tipTitle'),
