@@ -54,7 +54,7 @@
             </div>
 
             <!-- 表格 -->
-            <el-row :gutter="20">
+            <el-row :gutter="10">
                 <el-col :span="14">
                      <el-table :data="tableData" ref="tableRef" border :height="tableHeight"
                         style="width: 100%" stripe size="small" highlight-current-row tooltip-effect="light" @row-click="handleRowClick">

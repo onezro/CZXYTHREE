@@ -4,6 +4,11 @@
             <div class="flex justify-between">
                 <el-form ref="searchFormRef" :model="searchForm" label-width="auto" :inline="true" :size="'small'"
                     @submit.prevent>
+                    <el-form-item :label="t('AGV.taskQuery.taskGuid')" prop="TaskGuid" class="mb-2">
+                        <el-input v-model="searchForm.TaskGuid" clearable @clear="handleSearch"
+                            @keyup.enter="handleSearch" style="width: 180px"
+                            :placeholder="t('AGV.taskQuery.inputTaskGuid')" />
+                    </el-form-item>
                     <el-form-item :label="t('AGV.taskQuery.boxNo')" prop="BoxNo" class="mb-2">
                         <el-input v-model="searchForm.BoxNo" clearable @clear="handleSearch"
                             @keyup.enter="handleSearch" style="width: 180px"
@@ -297,6 +302,7 @@ const total = ref(0);
 const queryTime = ref<any[]>([]);
 
 const searchForm = reactive({
+    TaskGuid: "",
     BoxNo: "",
     StartTime: "",
     EndTime: "",
@@ -350,6 +356,7 @@ const disabledDate = (time: Date) => {
 const getData = () => {
     loading.value = true;
     const params = {
+        TaskGuid: searchForm.TaskGuid || "",
         BoxNo: searchForm.BoxNo || "",
         StartTime: searchForm.StartTime || "",
         EndTime: searchForm.EndTime || "",
@@ -395,6 +402,7 @@ const handleReset = () => {
     ];
     searchForm.StartTime = queryTime.value[0] || "";
     searchForm.EndTime = queryTime.value[1] || "";
+    searchForm.TaskGuid = "";
     searchForm.BoxNo = "";
     searchForm.StartPoint = "";
     searchForm.EndPoint = "";

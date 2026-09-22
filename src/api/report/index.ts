@@ -3,6 +3,8 @@ import request1 from "@/request/baseDataRequst/index";
 import request2 from "@/request/reportRequest/camstar";
 import request3 from "@/request/smtSet/smtSetReuqest";
 
+export { QueryPackingData } from "./packingDataQuery";
+
 export function XY_Assembly_OrderStatus(data: any) {
   return request3({
     url: "/XingYuAPI/XY_Assembly_OrderStatus",

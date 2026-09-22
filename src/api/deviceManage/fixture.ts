@@ -144,3 +144,13 @@ export function CancelRackTask(data: any) {
     data,
   });
 }
+
+// ==================== 设备产线绑定（EquipmentLineBinding）====================
+// 查询设备产线绑定（设备类型下拉用）
+export function queryEquipmentLineBinding(data: any) {
+  return request({
+    url: "/api/EquipmentProcess/QueryEquipmentLineBinding",
+    method: "post",
+    data,
+  });
+}

@@ -56,7 +56,7 @@
             </div>
 
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
-                border fit highlight-current-row v-loading="loading"
+                border fit highlight-current-row 
                 :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
                     <template #default="scope">
@@ -64,22 +64,39 @@
                     </template>
                 </el-table-column>
                 <el-table-column prop="agvmcid_no" fixed :label="t('AGV.plateBaseData.mcNo')"
-                    :min-width="getColumnWidth('agvmcid_no')" />
+                    :min-width="getColumnWidth('agvmcid_no')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agvmcid_no) }}</template>
+                </el-table-column>
                 <el-table-column prop="agvmcid_Point" :label="t('AGV.plateBaseData.point')"
-                    :min-width="getColumnWidth('agvmcid_Point')" />
+                    :min-width="getColumnWidth('agvmcid_Point')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agvmcid_Point) }}</template>
+                </el-table-column>
                 <el-table-column prop="agvmcid_LineName" :label="t('AGV.plateBaseData.lineName')"
-                    :min-width="getColumnWidth('agvmcid_LineName')" />
-                <el-table-column prop="agvmcid_Type" :label="t('AGV.plateBaseData.type')"
-                    :min-width="getColumnWidth('agvmcid_Type')" align="center">
+                    :min-width="getColumnWidth('agvmcid_LineName')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agvmcid_LineName) }}</template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_Stts" :label="t('AGV.plateBaseData.sts')"
+                    :min-width="getColumnWidth('agvmcid_Stts')" align="center" fixed="right">
                     <template #default="{ row }">
-                        <el-tag v-if="row.agvmcid_Type === 1" type="primary" size="small">
-                            {{ t('AGV.plateBaseData.typeLoader') }}
-                        </el-tag>
-                        <el-tag v-else-if="row.agvmcid_Type === 2" type="success" size="small">
-                            {{ t('AGV.plateBaseData.typeUnloader') }}
-                        </el-tag>
-                        <span v-else>-</span>
+                        <el-switch v-model="row.agvmcid_Stts" active-value="Y" inactive-value="N"
+                            :loading="row._statusLoading" @change="handleStatusChange(row)" />
                     </template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_IpAddress" :label="t('AGV.plateBaseData.ipAddress')"
+                    :min-width="getColumnWidth('agvmcid_IpAddress')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agvmcid_IpAddress) }}</template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_IpPort" :label="t('AGV.plateBaseData.ipPort')"
+                    :min-width="getColumnWidth('agvmcid_IpPort')" align="center">
+                    <template #default="{ row }">{{ cellText(row.agvmcid_IpPort) }}</template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_Address" :label="t('AGV.plateBaseData.address')"
+                    :min-width="getColumnWidth('agvmcid_Address')" align="center">
+                    <template #default="{ row }">{{ cellText(row.agvmcid_Address) }}</template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_Result" :label="t('AGV.plateBaseData.result')"
+                    :min-width="getColumnWidth('agvmcid_Result')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agvmcid_Result) }}</template>
                 </el-table-column>
                 <el-table-column prop="agvmcid_Operate" :label="t('AGV.plateBaseData.operate')"
                     :min-width="getColumnWidth('agvmcid_Operate')" align="center">
@@ -90,38 +107,81 @@
                         <el-tag v-else-if="row.agvmcid_Operate === 2" type="info" size="small">
                             {{ t('AGV.plateBaseData.operateOut') }}
                         </el-tag>
-                        <span v-else>-</span>
+                        <span v-else class="cell-empty">--</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="agvmcid_Stts" :label="t('AGV.plateBaseData.sts')"
-                    :min-width="getColumnWidth('agvmcid_Stts')" align="center" fixed="right">
+                <el-table-column prop="agvmcid_Type" :label="t('AGV.plateBaseData.type')"
+                    :min-width="getColumnWidth('agvmcid_Type')" align="center">
                     <template #default="{ row }">
-                        <el-switch v-model="row.agvmcid_Stts" active-value="Y" inactive-value="N"
-                            :loading="row._statusLoading" @change="handleStatusChange(row)" />
-                    </template>
-                </el-table-column>
-                <el-table-column prop="agvmcid_IpAddress" :label="t('AGV.plateBaseData.ipAddress')"
-                    :min-width="getColumnWidth('agvmcid_IpAddress')" />
-                <el-table-column prop="agvmcid_IpPort" :label="t('AGV.plateBaseData.ipPort')"
-                    :min-width="getColumnWidth('agvmcid_IpPort')" align="center" />
-                <el-table-column prop="agvmcid_Address" :label="t('AGV.plateBaseData.address')"
-                    :min-width="getColumnWidth('agvmcid_Address')" align="center" />
-                <el-table-column prop="agvmcid_Side" :label="t('AGV.plateBaseData.side')"
-                    :min-width="getColumnWidth('agvmcid_Side')" align="center" />
-                <el-table-column prop="IsAutoVerify" :label="t('AGV.plateBaseData.isAutoVerify')"
-                    :min-width="getColumnWidth('IsAutoVerify')" align="center">
-                    <template #default="{ row }">
-                        {{ row.IsAutoVerify === 'Y' ? t('publicText.yes') : t('publicText.no') }}
-                    </template>
-                </el-table-column>
-                <el-table-column prop="IsCalcBox" :label="t('AGV.plateBaseData.isCalcBox')"
-                    :min-width="getColumnWidth('IsCalcBox')" align="center">
-                    <template #default="{ row }">
-                        {{ row.IsCalcBox === 'Y' ? t('publicText.yes') : t('publicText.no') }}
+                        <el-tag v-if="row.agvmcid_Type === 1" type="primary" size="small">
+                            {{ t('AGV.plateBaseData.typeLoader') }}
+                        </el-tag>
+                        <el-tag v-else-if="row.agvmcid_Type === 2" type="success" size="small">
+                            {{ t('AGV.plateBaseData.typeUnloader') }}
+                        </el-tag>
+                        <span v-else class="cell-empty">--</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="agvmcid_Remark" :label="t('AGV.plateBaseData.remark')"
-                    :min-width="getColumnWidth('agvmcid_Remark')" show-overflow-tooltip />
+                    :min-width="getColumnWidth('agvmcid_Remark')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agvmcid_Remark) }}</template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_Side" :label="t('AGV.plateBaseData.side')"
+                    :min-width="getColumnWidth('agvmcid_Side')" align="center">
+                    <template #default="{ row }">{{ cellText(row.agvmcid_Side) }}</template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_InsertUser" :label="t('AGV.plateBaseData.insertUser')"
+                    :min-width="getColumnWidth('agvmcid_InsertUser')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agvmcid_InsertUser) }}</template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_InsertDt" :label="t('AGV.plateBaseData.insertDt')"
+                    :min-width="getColumnWidth('agvmcid_InsertDt')">
+                    <template #default="{ row }">{{ formatDateTime(row.agvmcid_InsertDt) }}</template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_UpdateUser" :label="t('AGV.plateBaseData.updateUser')"
+                    :min-width="getColumnWidth('agvmcid_UpdateUser')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agvmcid_UpdateUser) }}</template>
+                </el-table-column>
+                <el-table-column prop="agvmcid_UpdateDt" :label="t('AGV.plateBaseData.updateDt')"
+                    :min-width="getColumnWidth('agvmcid_UpdateDt')">
+                    <template #default="{ row }">{{ formatDateTime(row.agvmcid_UpdateDt) }}</template>
+                </el-table-column>
+                <el-table-column prop="agv_containeraddress" :label="t('AGV.plateBaseData.containerAddress')"
+                    :min-width="getColumnWidth('agv_containeraddress')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agv_containeraddress) }}</template>
+                </el-table-column>
+                <el-table-column prop="Agv_StatusType" :label="t('AGV.plateBaseData.statusType')"
+                    :min-width="getColumnWidth('Agv_StatusType')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.Agv_StatusType) }}</template>
+                </el-table-column>
+                <el-table-column prop="VerifyPoint" :label="t('AGV.plateBaseData.verifyPoint')"
+                    :min-width="getColumnWidth('VerifyPoint')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.VerifyPoint) }}</template>
+                </el-table-column>
+                <el-table-column prop="VerifyMcidUrl" :label="t('AGV.plateBaseData.verifyMcidUrl')"
+                    :min-width="getColumnWidth('VerifyMcidUrl')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.VerifyMcidUrl) }}</template>
+                </el-table-column>
+                <el-table-column prop="IsAutoVerify" :label="t('AGV.plateBaseData.isAutoVerify')"
+                    :min-width="getColumnWidth('IsAutoVerify')" align="center">
+                    <template #default="{ row }">{{ yesNoText(row.IsAutoVerify) }}</template>
+                </el-table-column>
+                <el-table-column prop="IsCalcBox" :label="t('AGV.plateBaseData.isCalcBox')"
+                    :min-width="getColumnWidth('IsCalcBox')" align="center">
+                    <template #default="{ row }">{{ yesNoText(row.IsCalcBox) }}</template>
+                </el-table-column>
+                <el-table-column prop="InStoreType" :label="t('AGV.plateBaseData.inStoreType')"
+                    :min-width="getColumnWidth('InStoreType')" align="center">
+                    <template #default="{ row }">{{ cellText(row.InStoreType) }}</template>
+                </el-table-column>
+                <el-table-column prop="AcceptType" :label="t('AGV.plateBaseData.acceptType')"
+                    :min-width="getColumnWidth('AcceptType')" align="center">
+                    <template #default="{ row }">{{ cellText(row.AcceptType) }}</template>
+                </el-table-column>
+                <el-table-column prop="SortType" :label="t('AGV.plateBaseData.sortType')"
+                    :min-width="getColumnWidth('SortType')" align="center">
+                    <template #default="{ row }">{{ cellText(row.SortType) }}</template>
+                </el-table-column>
                 <el-table-column :label="t('publicText.operation')" :fixed="'right'" width="130" align="center">
                     <template #default="{ row }">
                         <el-tooltip :content="t('publicText.edit')" placement="top">
@@ -148,8 +208,8 @@
         </el-card>
 
         <!-- 新增对话框 -->
-        <el-dialog :title="t('publicText.add')" v-model="addVisible" width="640px" :close-on-click-modal="false"
-            @closed="handleAddDialogClosed">
+        <el-dialog :title="t('publicText.add')" v-model="addVisible" width="75%" :close-on-click-modal="false"
+            @closed="handleAddDialogClosed" align-center>
             <el-form ref="addFormRef" :model="addForm" :rules="formRules" label-width="110px">
                 <el-row :gutter="20">
                     <el-col :span="12">
@@ -239,6 +299,34 @@
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.containerAddress')" prop="agv_containeraddress">
+                            <el-input v-model="addForm.agv_containeraddress"
+                                :placeholder="t('AGV.plateBaseData.inputContainerAddress')" clearable />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.statusType')" prop="Agv_StatusType">
+                            <el-input v-model="addForm.Agv_StatusType"
+                                :placeholder="t('AGV.plateBaseData.inputStatusType')" clearable />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.verifyPoint')" prop="VerifyPoint">
+                            <el-input v-model="addForm.VerifyPoint"
+                                :placeholder="t('AGV.plateBaseData.inputVerifyPoint')" clearable />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.verifyMcidUrl')" prop="VerifyMcidUrl">
+                            <el-input v-model="addForm.VerifyMcidUrl"
+                                :placeholder="t('AGV.plateBaseData.inputVerifyMcidUrl')" clearable />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="12">
                         <el-form-item :label="t('AGV.plateBaseData.isAutoVerify')" prop="IsAutoVerify">
                             <el-select v-model="addForm.IsAutoVerify" style="width: 100%">
                                 <el-option :label="t('publicText.yes')" value="Y" />
@@ -269,14 +357,14 @@
                     <el-button @click="addVisible = false">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{
                         t("publicText.confirm")
-                        }}</el-button>
+                    }}</el-button>
                 </div>
             </template>
         </el-dialog>
 
         <!-- 编辑对话框 -->
-        <el-dialog :title="t('publicText.edit')" v-model="editVisible" width="640px" :close-on-click-modal="false"
-            @closed="handleEditDialogClosed">
+        <el-dialog :title="t('publicText.edit')" v-model="editVisible" width="75%" :close-on-click-modal="false"
+            @closed="handleEditDialogClosed" align-center>
             <el-form ref="editFormRef" :model="editForm" :rules="formRules" label-width="110px">
                 <el-row :gutter="20">
                     <el-col :span="12">
@@ -364,6 +452,34 @@
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.containerAddress')" prop="agv_containeraddress">
+                            <el-input v-model="editForm.agv_containeraddress"
+                                :placeholder="t('AGV.plateBaseData.inputContainerAddress')" clearable />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.statusType')" prop="Agv_StatusType">
+                            <el-input v-model="editForm.Agv_StatusType"
+                                :placeholder="t('AGV.plateBaseData.inputStatusType')" clearable />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.verifyPoint')" prop="VerifyPoint">
+                            <el-input v-model="editForm.VerifyPoint"
+                                :placeholder="t('AGV.plateBaseData.inputVerifyPoint')" clearable />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.verifyMcidUrl')" prop="VerifyMcidUrl">
+                            <el-input v-model="editForm.VerifyMcidUrl"
+                                :placeholder="t('AGV.plateBaseData.inputVerifyMcidUrl')" clearable />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="12">
                         <el-form-item :label="t('AGV.plateBaseData.isAutoVerify')" prop="IsAutoVerify">
                             <el-select v-model="editForm.IsAutoVerify" style="width: 100%">
                                 <el-option :label="t('publicText.yes')" value="Y" />
@@ -394,7 +510,7 @@
                     <el-button @click="editVisible = false">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitEdit" :loading="submitLoading">{{
                         t("publicText.confirm")
-                        }}</el-button>
+                    }}</el-button>
                 </div>
             </template>
         </el-dialog>
@@ -402,7 +518,7 @@
 </template>
 
 <script setup lang="ts">
-import { AddPlateBaseData, UpdatePlateBaseData, DeletePlateBaseData, QueryPlateBaseData, GetEquipment, GetPoint, GetAllValorLine } from "@/api/AGV/plateBaseData";
+import { AddPlateBaseData, UpdatePlateBaseData, UpdatePlateBaseDataStatus, DeletePlateBaseData, QueryPlateBaseData, GetEquipment, GetPoint, GetAllValorLine } from "@/api/AGV/plateBaseData";
 import {
     ref,
     reactive,
@@ -414,6 +530,7 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
 import { useI18n } from "vue-i18n";
+import dayjs from "dayjs";
 
 const userStore = useUserStoreWithOut();
 const { t } = useI18n();
@@ -444,24 +561,24 @@ const pageObj = reactive({
 });
 
 const defaultForm = () => ({
-    agvmcid_no: null as number | null,
+    agvmcid_no: null as number | string | null,
     agvmcid_Point: "",
     agvmcid_LineName: "",
-    agvmcid_Stts: "Y",
+    agvmcid_Stts: "Y" as string,
     agvmcid_IpAddress: "",
-    agvmcid_IpPort: null as number | null,
-    agvmcid_Address: null as number | null,
+    agvmcid_IpPort: null as number | string | null,
+    agvmcid_Address: null as number | string | null,
     agvmcid_Result: "",
-    agvmcid_Operate: null as number | null,
-    agvmcid_Type: null as number | null,
+    agvmcid_Operate: null as number | string | null,
+    agvmcid_Type: null as number | string | null,
     agvmcid_Remark: "",
     agvmcid_Side: "",
     agv_containeraddress: "",
     Agv_StatusType: "",
     VerifyPoint: "",
     VerifyMcidUrl: "",
-    IsAutoVerify: "Y",
-    IsCalcBox: "N",
+    IsAutoVerify: "Y" as string | null,
+    IsCalcBox: "N" as string | null,
 });
 
 const addForm = reactive(defaultForm());
@@ -537,7 +654,8 @@ const getLineValue = (item: any) => {
 };
 const getLineLabel = (item: any) => getLineValue(item);
 
-// 按接口文档挑选字段，避免提交任务运行字段（agvmcid_taskno / agv_listen / agv_upstts）
+// 修改接口提交字段：原数据 + 用户修改后的数据；
+// 不含 4 个红线字段 agvmcid_taskno / agv_listen / agv_upstts / agv_listenDt
 const pickFields = (src: any) => ({
     agvmcid_no: src.agvmcid_no ?? null,
     agvmcid_Point: src.agvmcid_Point ?? "",
@@ -555,8 +673,8 @@ const pickFields = (src: any) => ({
     Agv_StatusType: src.Agv_StatusType ?? "",
     VerifyPoint: src.VerifyPoint ?? "",
     VerifyMcidUrl: src.VerifyMcidUrl ?? "",
-    IsAutoVerify: src.IsAutoVerify ?? "Y",
-    IsCalcBox: src.IsCalcBox ?? "N",
+    IsAutoVerify: src.IsAutoVerify ?? "",
+    IsCalcBox: src.IsCalcBox ?? "",
 });
 
 const resetAddForm = () => {
@@ -565,6 +683,24 @@ const resetAddForm = () => {
 
 const resetEditForm = () => {
     Object.assign(editForm, defaultForm());
+};
+
+// 空值统一显示 --
+const cellText = (value: any) => (value === null || value === undefined || value === "" ? "--" : value);
+
+// Y/N 是否展示
+const yesNoText = (value: any) => {
+    if (value === null || value === undefined || value === "") return "--";
+    const s = String(value).toUpperCase();
+    if (s === "Y" || s === "1" || s === "TRUE") return t("publicText.yes");
+    if (s === "N" || s === "0" || s === "FALSE") return t("publicText.no");
+    return String(value);
+};
+
+const formatDateTime = (dt: any) => {
+    if (dt === null || dt === undefined || dt === "") return "--";
+    const d = dayjs(dt);
+    return d.isValid() ? d.format("YYYY-MM-DD HH:mm:ss") : String(dt);
 };
 
 const getData = () => {
@@ -671,6 +807,7 @@ const submitAdd = () => {
 };
 
 const openEdit = (row: any) => {
+    // 保存当前行完整原数据，提交时传「原数据 + 用户修改后的数据」
     Object.assign(editForm, defaultForm(), pickFields(row));
     editVisible.value = true;
 };
@@ -705,26 +842,28 @@ const submitEdit = () => {
     });
 };
 
-// 状态开关：走修改接口，失败则回滚
+// 列表状态开关：只调用 UpdateStatus 接口，失败则回滚
 const handleStatusChange = (row: any) => {
     const newVal = row.agvmcid_Stts;
     row._statusLoading = true;
-    const params = {
-        ...pickFields(row),
-        agvmcid_Stts: newVal,
+    UpdatePlateBaseDataStatus({
         UserNo: userStore.getUserInfo || "",
-    };
-    UpdatePlateBaseData(params)
+        agvmcid_no: row.agvmcid_no,
+        agvmcid_Point: row.agvmcid_Point,
+        agvmcid_Address: row.agvmcid_Address,
+        agvmcid_Stts: newVal,
+    })
         .then((res: any) => {
             if (res.Success) {
-                ElMessage.success(t("message.editSuccess"));
+                ElMessage.success(res.Message || res.Msg || t("message.editSuccess"));
             } else {
-                ElMessage.error(res.Msg || t("message.editFailure"));
                 row.agvmcid_Stts = newVal === "Y" ? "N" : "Y";
+                ElMessage.error(res.Message || res.Msg || t("message.editFailure"));
             }
         })
         .catch(() => {
             row.agvmcid_Stts = newVal === "Y" ? "N" : "Y";
+            ElMessage.error(t("message.editFailure"));
         })
         .finally(() => {
             row._statusLoading = false;
@@ -790,5 +929,9 @@ onBeforeUnmount(() => {
 <style lang="scss" scoped>
 .el-pagination {
     justify-content: center;
+}
+
+.cell-empty {
+    color: #909399;
 }
 </style>

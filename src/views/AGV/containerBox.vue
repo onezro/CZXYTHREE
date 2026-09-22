@@ -120,21 +120,20 @@ import { shortcuts1 } from "@/utils/dataMenu";
 import {
     ref,
     reactive,
-    nextTick,
     onMounted,
-    onBeforeUnmount,
     watch,
 } from "vue";
 import { ElMessage } from "element-plus";
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
+import { useTableHeight } from '@/hooks/useTableHeight';
 import dayjs from 'dayjs';
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
 const loading = ref(false);
-const tableHeight = ref(0);
 const eltableRef = ref();
+const { tableHeight, calcTableHeight } = useTableHeight(eltableRef);
 const tableData = ref<any[]>([]);
 const total = ref(0);
 
@@ -195,6 +194,7 @@ const getData = () => {
         })
         .finally(() => {
             loading.value = false;
+            calcTableHeight();
         });
 };
 
@@ -232,12 +232,6 @@ const handleCurrentChange = (val: number) => {
     getData();
 };
 
-const getScreenHeight = () => {
-    nextTick(() => {
-        tableHeight.value = window.innerHeight - 180;
-    });
-};
-
 watch(
     queryTime,
     (newVal) => {
@@ -246,13 +240,7 @@ watch(
 );
 
 onMounted(() => {
-    getScreenHeight();
-    window.addEventListener("resize", getScreenHeight);
     handleReset();
-});
-
-onBeforeUnmount(() => {
-    window.removeEventListener("resize", getScreenHeight);
 });
 </script>
 

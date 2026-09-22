@@ -19,6 +19,15 @@ export function UpdatePlateBaseData(data: any) {
   });
 }
 
+// 修改上下板机基础数据状态（复合条件：agvmcid_no + agvmcid_Point + agvmcid_Address）
+export function UpdatePlateBaseDataStatus(data: any) {
+  return request({
+    url: "/api/AGVPlateBaseData/UpdateStatus",
+    method: "post",
+    data,
+  });
+}
+
 // 删除上下板机基础数据
 export function DeletePlateBaseData(data: any) {
   return request({

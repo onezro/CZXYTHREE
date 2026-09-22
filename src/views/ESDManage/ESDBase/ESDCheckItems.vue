@@ -54,20 +54,39 @@
       </div>
     </el-card>
 
-    <!-- 新增/编辑对话框 -->
-    <el-dialog :title="dialogTitle" v-model="dialogVisible" width="500px" align-center :close-on-click-modal="false"
-      @closed="handleDialogClosed">
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" size="small">
-        <el-form-item :label="t('esd.checkContent.content')" prop="CheckContent" >
-          <el-input v-model="formData.CheckContent" :placeholder="t('esd.checkContent.contentPlaceholder')" />
+    <!-- 新增对话框 -->
+    <el-dialog :title="t('publicText.add')" v-model="addDialogVisible" width="500px" align-center
+      :close-on-click-modal="false" @closed="handleAddDialogClosed">
+      <el-form ref="addFormRef" :model="addFormData" :rules="addFormRules" label-width="100px" size="small">
+        <el-form-item :label="t('esd.checkContent.content')" prop="CheckContent">
+          <el-input v-model="addFormData.CheckContent" :placeholder="t('esd.checkContent.contentPlaceholder')" />
         </el-form-item>
-        <el-form-item :label="t('esd.checkContent.checkMethod')" prop="CheckMethod" >
-          <el-input v-model="formData.CheckMethod" type="textarea" :placeholder="t('esd.checkContent.checkMethodPlaceholder')" />
+        <el-form-item :label="t('esd.checkContent.checkMethod')" prop="CheckMethod">
+          <el-input v-model="addFormData.CheckMethod" type="textarea"
+            :placeholder="t('esd.checkContent.checkMethodPlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">{{ t('publicText.cancel') }}</el-button>
-        <el-button type="primary" @click="submitForm" :loading="submitLoading">{{ t('publicText.confirm') }}</el-button>
+        <el-button @click="addDialogVisible = false">{{ t('publicText.cancel') }}</el-button>
+        <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{ t('publicText.confirm') }}</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 修改对话框 -->
+    <el-dialog :title="t('publicText.edit')" v-model="editDialogVisible" width="500px" align-center
+      :close-on-click-modal="false" @closed="handleEditDialogClosed">
+      <el-form ref="editFormRef" :model="editFormData" :rules="editFormRules" label-width="100px" size="small">
+        <el-form-item :label="t('esd.checkContent.content')" prop="CheckContent">
+          <el-input v-model="editFormData.CheckContent" :placeholder="t('esd.checkContent.contentPlaceholder')" />
+        </el-form-item>
+        <el-form-item :label="t('esd.checkContent.checkMethod')" prop="CheckMethod">
+          <el-input v-model="editFormData.CheckMethod" type="textarea"
+            :placeholder="t('esd.checkContent.checkMethodPlaceholder')" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editDialogVisible = false">{{ t('publicText.cancel') }}</el-button>
+        <el-button type="primary" @click="submitEdit" :loading="submitLoading">{{ t('publicText.confirm') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -97,20 +116,29 @@ const queryParams = reactive({
   PageSize: 20,
 });
 
-const dialogVisible = ref(false);
-const isEdit = ref(false);
-const formRef = ref();
-const formData = reactive({
+const addDialogVisible = ref(false);
+const editDialogVisible = ref(false);
+const addFormRef = ref();
+const editFormRef = ref();
+
+const addFormData = reactive({
+  CheckContent: '',
+  CheckMethod: '',
+});
+
+const editFormData = reactive({
   Id: '',
   CheckContent: '',
   CheckMethod: '',
 });
 
-const formRules = {
+const addFormRules = {
   // CheckContent: [{ required: true, message: t('message.pleaseInput') + t('esd.checkContent.content'), trigger: 'blur' }],
 };
 
-const dialogTitle = computed(() => (isEdit.value ? t('publicText.edit') : t('publicText.add')));
+const editFormRules = {
+  // CheckContent: [{ required: true, message: t('message.pleaseInput') + t('esd.checkContent.content'), trigger: 'blur' }],
+};
 
 const tableColumns = computed(() => {
   if (!tableRef.value) return [];
@@ -174,44 +202,64 @@ const handleCurrentChange = (val: number) => {
 };
 
 const openAdd = () => {
-  isEdit.value = false;
-  resetFormData();
-  dialogVisible.value = true;
+  resetAddFormData();
+  addDialogVisible.value = true;
 };
 
 const openEdit = (row: any) => {
-  isEdit.value = true;
-  formData.Id = row.Id;
-  formData.CheckContent = row.CheckContent;
-  dialogVisible.value = true;
+  editFormData.Id = row.Id;
+  editFormData.CheckContent = row.CheckContent ?? '';
+  editFormData.CheckMethod = row.CheckMethod ?? '';
+  editDialogVisible.value = true;
 };
 
-const resetFormData = () => {
-  formData.Id = '';
-  formData.CheckContent = '';
+const resetAddFormData = () => {
+  addFormData.CheckContent = '';
+  addFormData.CheckMethod = '';
 };
 
-const submitForm = async () => {
-  await formRef.value.validate();
+const resetEditFormData = () => {
+  editFormData.Id = '';
+  editFormData.CheckContent = '';
+  editFormData.CheckMethod = '';
+};
+
+const submitAdd = async () => {
+  await addFormRef.value.validate();
   submitLoading.value = true;
   try {
     const currentUser = userStore.getUserInfo || 'system';
-    let res: any;
-    if (isEdit.value) {
-      res = await UpdateCheckContent({ Id: formData.Id, CheckContent: formData.CheckContent, CheckMethod: formData.CheckMethod, UserName: currentUser });
-      if (res.Success) ElMessage.success(t('message.editSuccess'));
-    } else {
-      res = await AddCheckContent({ CheckContent: formData.CheckContent, CheckMethod: formData.CheckMethod, UserName: currentUser });
-      if (res.Success) ElMessage.success(t('message.addSuccess'));
-    }
-    if (res?.Success) {
-      dialogVisible.value = false;
+    const res: any = await AddCheckContent({ CheckContent: addFormData.CheckContent, CheckMethod: addFormData.CheckMethod, UserName: currentUser });
+    if (res.Success) {
+      ElMessage.success(t('message.addSuccess'));
+      addDialogVisible.value = false;
       getData();
     } else {
-      ElMessage.error(res?.Message || (isEdit.value ? t('message.editFailure') : t('message.addFailure')));
+      ElMessage.error(res.Message || t('message.addFailure'));
     }
   } catch (error) {
-    console.error('提交失败:', error);
+    console.error('新增失败:', error);
+    ElMessage.error(t('message.submitFailure'));
+  } finally {
+    submitLoading.value = false;
+  }
+};
+
+const submitEdit = async () => {
+  await editFormRef.value.validate();
+  submitLoading.value = true;
+  try {
+    const currentUser = userStore.getUserInfo || 'system';
+    const res: any = await UpdateCheckContent({ Id: editFormData.Id, CheckContent: editFormData.CheckContent, CheckMethod: editFormData.CheckMethod, UserName: currentUser });
+    if (res.Success) {
+      ElMessage.success(t('message.editSuccess'));
+      editDialogVisible.value = false;
+      getData();
+    } else {
+      ElMessage.error(res.Message || t('message.editFailure'));
+    }
+  } catch (error) {
+    console.error('修改失败:', error);
     ElMessage.error(t('message.submitFailure'));
   } finally {
     submitLoading.value = false;
@@ -246,9 +294,14 @@ const handleDelete = (row: any) => {
     .catch(() => ElMessage.info(t('publicText.cancel')));
 };
 
-const handleDialogClosed = () => {
-  formRef.value?.resetFields();
-  resetFormData();
+const handleAddDialogClosed = () => {
+  addFormRef.value?.resetFields();
+  resetAddFormData();
+};
+
+const handleEditDialogClosed = () => {
+  editFormRef.value?.resetFields();
+  resetEditFormData();
 };
 
 const getScreenHeight = () => {

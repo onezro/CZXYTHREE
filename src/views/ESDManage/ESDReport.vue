@@ -122,7 +122,8 @@
                             <el-table-column prop="PreliminaryCause" :label="t('esd.report.preliminaryCause')" :min-width="getColumnWidth('PreliminaryCause')" />
                             <el-table-column prop="RectifyStatus" :label="t('esd.report.rectifyStatus')" :min-width="getColumnWidth('RectifyStatus')" align="center">
                                 <template #default="{ row }">
-                                    <el-tag :type="row.RectifyStatus === 0 ? 'warning' : 'success'">{{ row.RectifyStatus === 0 ? t('esd.report.rectifyPending') : t('esd.report.rectifyCompleted') }}</el-tag>
+                                    <template v-if="!getCheckResultText(row)">-</template>
+                                    <el-tag v-else :type="getRectifyTagType(row)">{{ getRectifyLabel(row) }}</el-tag>
                                 </template>
                             </el-table-column>
                             <template #empty><el-empty /></template>
@@ -405,6 +406,32 @@ const handleDateRangeChange = (val: any[]) => {
     recordQuery.StartInspectTime = val[0];
     recordQuery.EndInspectTime = val[1];
 }
+
+const getCheckResultText = (row: any) => row.CheckResult ?? row.checkResult ?? '';
+
+const getRectifyStatusValue = (row: any) => row.RectifyStatus ?? row.rectifyStatus;
+
+const getRectifyLabel = (row: any) => {
+    if (getCheckResultText(row) === 'OK') return t('esd.report.rectifyNotRequired');
+    const map: Record<number, string> = {
+        0: t('esd.exception.statusPending'),
+        1: t('esd.exception.statusRectifying'),
+        2: t('esd.exception.statusRecheckPending'),
+        3: t('esd.exception.statusClosed'),
+    };
+    return map[getRectifyStatusValue(row)] ?? '-';
+};
+
+const getRectifyTagType = (row: any) => {
+    if (getCheckResultText(row) === 'OK') return 'success';
+    const map: Record<number, string> = {
+        0: 'danger',
+        1: 'warning',
+        2: 'primary',
+        3: 'info',
+    };
+    return map[getRectifyStatusValue(row)] || 'info';
+};
 
 const getRecordReport = async () => {
     recordLoading.value = true;

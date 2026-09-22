@@ -130,8 +130,8 @@
                     :min-width="getColumnWidth2('MaterialQty')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.LockNum1')" prop="LockNum1"
                     :min-width="getColumnWidth2('LockNum1')" />
-                <el-table-column :label="t('Scheduling.PrepareMaterials.LockNum2')" prop="LockNum2"
-                    :min-width="getColumnWidth2('LockNum2')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.LockNum2')" prop="SaiYiActualQty"
+                    :min-width="getColumnWidth2('SaiYiActualQty')" />
                 <!-- <el-table-column :label="t('Scheduling.PrepareMaterials.LotNumber')" prop="LotNumber"
                     :min-width="getColumnWidth2('LotNumber')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.RequestNo')" prop="RequestNo"

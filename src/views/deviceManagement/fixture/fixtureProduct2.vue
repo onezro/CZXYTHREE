@@ -42,6 +42,8 @@
           show-overflow-tooltip />
         <el-table-column prop="PN_Model" :label="$t('deviceManage.fixtureProduct.type')"
           :min-width="getColumnWidth('PN_Model')" show-overflow-tooltip />
+        <el-table-column prop="EquipType" :label="$t('deviceManage.fixtureProduct.equipType')"
+          :min-width="getColumnWidth('EquipType')" show-overflow-tooltip />
         <el-table-column prop="MaterialName" :label="$t('deviceManage.fixtureProduct.typeDesc')"
           :min-width="getColumnWidth('MaterialName')" show-overflow-tooltip />
         <el-table-column prop="Category" :label="$t('deviceManage.fixtureProduct.category')"
@@ -125,29 +127,46 @@
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
+            <el-form-item :label="$t('deviceManage.fixtureProduct.equipType')" prop="EquipType">
+              <el-select v-model="form.EquipType" filterable
+                :placeholder="$t('deviceManage.fixtureProduct.equipTypePlaceholder')" style="width: 100%">
+                <el-option v-for="item in equipTypeList" :key="item.EquipmentModel" :label="item.EquipmentModel"
+                  :value="item.EquipmentModel" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.category')" prop="Category">
               <el-input v-model="form.CategoryText" disabled />
             </el-form-item>
           </el-col>
+        </el-row>
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.typeDesc')" prop="PD_dsc">
               <el-input v-model="form.PD_dsc" disabled />
             </el-form-item>
           </el-col>
-        </el-row>
-        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.consumption')" prop="Useage">
               <el-input v-model.number="form.Useage" type="number"
                 :placeholder="$t('deviceManage.fixtureProduct.useagePlaceholder')" />
             </el-form-item>
           </el-col>
+        </el-row>
+        <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.status')" prop="Stts">
               <el-select v-model="form.Stts" style="width: 100%">
                 <el-option :label="$t('deviceManage.fixtureProduct.statusUsable')" :value="0" />
                 <el-option :label="$t('deviceManage.fixtureProduct.statusUnusable')" :value="9" />
               </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item :label="$t('deviceManage.fixtureProduct.description')" prop="Remark">
+              <el-input v-model="form.Remark"
+                :placeholder="$t('deviceManage.fixtureProduct.remarkPlaceholder')" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -174,6 +193,7 @@ import {
   updateToolsSpec,
   deleteToolsSpec,
   importToolsSpec,
+  queryEquipmentLineBinding,
 } from "@/api/deviceManage/fixture";
 import { importExcelToJSON } from "@/utils/exportExcel/fixture";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
@@ -201,6 +221,9 @@ const paginatedData = computed(() => {
 // 治具类型列表（下拉）
 const typeList = ref<any[]>([]);
 
+// 设备类型列表（下拉，来自设备产线绑定）
+const equipTypeList = ref<any[]>([]);
+
 // ---------- 动态列宽 ----------
 const { getColumnWidth } = useTableColumnWidth(tableRef, tableData, {
   excludeLabels: [t("publicText.index"), t("publicText.operation")],
@@ -215,6 +238,8 @@ const form = reactive({
   Version: "",
   Side: "",
   ToolsMold: "",
+  EquipType: "",
+  OldEquipType: "",
   Useage: 0,
   Remark: "",
   Stts: 0 as number,
@@ -231,6 +256,7 @@ const dialogTitle = computed(() =>
 const formRules = {
   ProductName: [{ required: true, message: t("message.pleaseInput") + t("deviceManage.fixtureProduct.productName"), trigger: "blur" }],
   ToolsMold: [{ required: true, message: t("message.pleaseSelect") + t("deviceManage.fixtureProduct.type"), trigger: "change" }],
+  EquipType: [{ required: true, message: t("message.pleaseSelect") + t("deviceManage.fixtureProduct.equipType"), trigger: "change" }],
   Useage: [{ required: true, message: t("message.pleaseInput") + t("deviceManage.fixtureProduct.consumption"), trigger: "blur" }],
 };
 
@@ -272,6 +298,30 @@ const getTypeList = async () => {
   }
 };
 
+// 获取设备类型列表（设备产线绑定下拉）
+const getEquipTypeList = async () => {
+  try {
+    const res: any = await queryEquipmentLineBinding({ EquipmentCategory: "" });
+    // 首位写死「通用」选项
+    const seen = new Set<string>(["通用"]);
+    const result: any[] = [{ EquipmentModel: "通用" }];
+    if (res.Success) {
+      (res.Data || []).forEach((item: any) => {
+        const key = item.EquipmentModel;
+        if (key && !seen.has(key)) {
+          seen.add(key);
+          result.push(item);
+        }
+      });
+    }
+    equipTypeList.value = result;
+  } catch (error) {
+    console.error("获取设备类型列表失败:", error);
+    // 失败时至少保留「通用」选项
+    equipTypeList.value = [{ EquipmentModel: "通用" }];
+  }
+};
+
 // 全量数据（搜索前缓存）
 const allData = ref<any[]>([]);
 
@@ -280,15 +330,6 @@ const getProductList = async () => {
   loading.value = true;
   const params = {
     ProductName: "",
-    Version: "",
-    Side: "",
-    ToolsMold: "",
-    Useage: 0,
-    Remark: "",
-    Stts: "",
-    PD_model: "",
-    PD_dsc: "",
-    OperationType: "Q",
     Category: 0,
   };
   try {
@@ -322,10 +363,11 @@ const searchData = () => {
     const keyword = searchName.value.toLowerCase();
     tableData.value = allData.value.filter(
       (item: any) =>
-        (item.ProductName && item.ProductName.toLowerCase().includes(keyword)) ||
+        (item.PN && item.PN.toLowerCase().includes(keyword)) ||
         (item.Version && item.Version.toLowerCase().includes(keyword)) ||
         (item.Side && item.Side.toLowerCase().includes(keyword)) ||
-        (item.PD_model && item.PD_model.toLowerCase().includes(keyword))
+        (item.PD_model && item.PD_model.toLowerCase().includes(keyword)) ||
+        (item.EquipType && item.EquipType.toLowerCase().includes(keyword))
     );
   }
   total.value = tableData.value.length;
@@ -345,6 +387,7 @@ const addOpen = () => {
   isEdit.value = false;
   Object.assign(form, {
     ProductName: "", Version: "", Side: "", ToolsMold: "",
+    EquipType: "", OldEquipType: "",
     Useage: 0, Remark: "", Stts: 0, PD_model: "",
     PD_dsc: "", Category: 0, CategoryText: "",
   });
@@ -360,6 +403,8 @@ const handleEdit = (row: any) => {
     Version: row.Version || "",
     Side: row.Side || "",
     ToolsMold: row.PN_Model || "",
+    EquipType: row.EquipType || "",
+    OldEquipType: row.EquipType || "",
     Useage: row.Qty || 0,
     Remark: row.Dsc || "",
     Stts: row.Stts !== undefined ? Number(row.Stts) : 0,
@@ -380,33 +425,48 @@ const onSubmit = async () => {
     // PD_model = 产品-版本-面别
     const pdModel = `${form.ProductName}-${form.Version}-${form.Side}`;
 
-    const params = {
-      ProductName: form.ProductName,
-      Version: form.Version,
-      Side: form.Side,
-      ToolsMold: form.ToolsMold,
-      Useage: form.Useage,
-      Remark: form.Remark,
-      Stts: String(form.Stts),
-      PD_model: pdModel,
-      PD_dsc: form.PD_dsc,
-      OperationType: isEdit.value ? "U" : "I",
-      Category: form.Category,
-    };
-
-    let res: any;
     if (isEdit.value) {
-      res = await updateToolsSpec(params);
+      // 修改：传 PD_model + OldEquipType + 新值
+      const params = {
+        PD_model: pdModel,
+        ProductName: form.ProductName,
+        Version: form.Version,
+        Side: form.Side,
+        ToolsMold: form.ToolsMold,
+        OldEquipType: form.OldEquipType,
+        EquipType: form.EquipType,
+        Useage: form.Useage,
+        Remark: form.Remark,
+        Stts: String(form.Stts),
+      };
+      const res: any = await updateToolsSpec(params);
+      if (res.Success) {
+        ElMessage.success(t("message.editSuccess"));
+        dialogVisible.value = false;
+        await getProductList();
+      } else {
+        ElMessage.error(res.Msg || t("message.editFailure"));
+      }
     } else {
-      res = await insertToolsSpec(params);
-    }
-
-    if (res.Success) {
-      ElMessage.success(isEdit.value ? t("message.editSuccess") : t("message.addSuccess"));
-      dialogVisible.value = false;
-      await getProductList();
-    } else {
-      ElMessage.error(res.Msg || (isEdit.value ? t("message.editFailure") : t("message.addFailure")));
+      // 新增
+      const params = {
+        ProductName: form.ProductName,
+        Version: form.Version,
+        Side: form.Side,
+        ToolsMold: form.ToolsMold,
+        EquipType: form.EquipType,
+        Useage: form.Useage,
+        Remark: form.Remark,
+        Stts: String(form.Stts),
+      };
+      const res: any = await insertToolsSpec(params);
+      if (res.Success) {
+        ElMessage.success(t("message.addSuccess"));
+        dialogVisible.value = false;
+        await getProductList();
+      } else {
+        ElMessage.error(res.Msg || t("message.addFailure"));
+      }
     }
   } catch (error) {
     console.error("提交失败:", error);
@@ -415,10 +475,10 @@ const onSubmit = async () => {
   }
 };
 
-// 删除（传 ToolsMold + PD_model）
+// 删除（传 PD_model + ToolsMold + EquipType）
 const handleDelete = (row: any) => {
   ElMessageBox.confirm(
-    t("message.confirmDelete", { code: row.ProductName, name: row.PN_Model }),
+    t("message.confirmDelete", { code: row.PN, name: row.PN_Model }),
     t("publicText.tip"),
     {
       confirmButtonText: t("publicText.confirm"),
@@ -430,17 +490,9 @@ const handleDelete = (row: any) => {
       loading.value = true;
       try {
         const res: any = await deleteToolsSpec({
-          ProductName: row.PN || "",
-          Version: row.Version || "",
-          Side: row.Side || "",
-          ToolsMold: row.PN_Model || "",
-          Useage: row.Qty || 0,
-          Remark: row.Dsc || "",
-          Stts: String(row.Stts ?? ""),
           PD_model: row.PD_model || "",
-          PD_dsc: row.MaterialName || "",
-          OperationType: "D",
-          Category: Number(row.Category) || 0,
+          ToolsMold: row.PN_Model || "",
+          EquipType: row.EquipType || "",
         });
         if (res.Success) {
           ElMessage.success(t("message.deleteSuccess"));
@@ -471,16 +523,24 @@ const handleFileChange = async (file: File) => {
     const data = await importExcelToJSON(file, {
       hasHeader: true,
       headerMapping: {
-        产品编码: "productName",
-        类型: "toolsMold",
-        消耗量: "useage",
-        描述: "remark",
+        产品编码: "ProductName",
+        版本: "Version",
+        面别: "Side",
+        治具类型: "ToolsMold",
+        设备类型: "EquipType",
+        消耗数量: "Useage",
+        描述: "Remark",
+        状态: "Stts",
       },
       typeMapping: {
-        useage: "int",
-        productName: "string",
-        toolsMold: "string",
-        remark: "string",
+        Useage: "int",
+        ProductName: "string",
+        Version: "string",
+        Side: "string",
+        ToolsMold: "string",
+        EquipType: "string",
+        Remark: "string",
+        Stts: "string",
       },
     });
     const res: any = await importToolsSpec(data);
@@ -525,6 +585,7 @@ onBeforeMount(() => {
 onMounted(() => {
   window.addEventListener("resize", getScreenHeight);
   getTypeList();
+  getEquipTypeList();
   getProductList();
 });
 
