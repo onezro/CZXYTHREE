@@ -119,7 +119,7 @@ const formatDate = (dateStr: string) => {
 // 设备状态标签颜色：Run=运行 / ErrorStop=故障停机(红) / ChangeStop=换线停机(橙) / WaitStart=等待开机(灰)
 const getStatusTagType = (status: string): "primary" | "success" | "info" | "warning" | "danger" => {
     switch (status) {
-        case "Run": return "primary";
+        case "Run": return "success";
         case "ErrorStop": return "danger";
         case "ChangeStop": return "warning";
         case "WaitStart": return "info";

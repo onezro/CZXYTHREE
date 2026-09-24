@@ -19,7 +19,7 @@
             <el-table :data="tableData" ref="tableRef" border :height="tableHeight"
                 stripe size="small"
                 :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
-                <el-table-column type="index" :label="t('publicText.index')" width="55" fixed="left" align="center">
+                <el-table-column type="index" :label="t('publicText.index')" width="70" fixed="left" align="center">
                     <template #default="{ $index }">
                         {{ $index + 1 + (currentPage - 1) * pageSize }}
                     </template>

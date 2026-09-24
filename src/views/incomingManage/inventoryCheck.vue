@@ -103,7 +103,7 @@
                         </el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('incomingManage.inventoryCheck.sourceUser')" prop="source_user" width="100"
+                <el-table-column :label="t('incomingManage.inventoryCheck.createrName')" prop="creater_name" width="100"
                     align="center" />
                 <el-table-column :label="t('incomingManage.inventoryCheck.createrTime')" prop="creater_time"
                     :min-width="getColumnWidth('creater_time')" show-overflow-tooltip />

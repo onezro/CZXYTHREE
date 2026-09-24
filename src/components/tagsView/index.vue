@@ -517,10 +517,10 @@ const changeOperator = (val: any) => {
                     </el-icon>
                 </el-tooltip>
             </div>
-            <el-dropdown trigger="click" @command="changeLang">
+            <!-- <el-dropdown trigger="click" @command="changeLang">
                 <div class="locale-trigger tags-locale">
                     <img src="@/assets/svgs/locale.svg" alt="locale" class="locale-icon" />
-                    <!-- <span class="locale-text">{{ languageOptions.find(o => o.value === currentLang)?.label() }}</span> -->
+                   
                 </div>
                 <template #dropdown>
                     <el-dropdown-menu>
@@ -529,7 +529,7 @@ const changeOperator = (val: any) => {
                         </el-dropdown-item>
                     </el-dropdown-menu>
                 </template>
-            </el-dropdown>
+            </el-dropdown> -->
         </div>
         <el-dialog :append-to-body="true" :close-on-click-modal="false" v-model="addVisible" title="设置" width="400px"
             @close="addCancel">

@@ -6,12 +6,12 @@
                     <el-form-item :label="t('materialManage.erpBomDetailCheck.materialcode')" class="mb-2">
                         <el-input v-model="searchForm.materialcode"
                             :placeholder="t('materialManage.erpBomDetailCheck.materialcodePlaceholder')" clearable
-                            style="width: 220px" size="small" @keyup.enter="handleSearch" />
+                            style="width: 300px" size="small" @keyup.enter="handleSearch" />
                     </el-form-item>
                     <el-form-item :label="t('materialManage.erpBomDetailCheck.bomversion')" class="mb-2">
                         <el-input v-model="searchForm.bomversion"
                             :placeholder="t('materialManage.erpBomDetailCheck.bomversionPlaceholder')" clearable
-                            style="width: 160px" size="small" @keyup.enter="handleSearch" />
+                            style="width: 300px" size="small" @keyup.enter="handleSearch" />
                     </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button type="primary" size="small" @click="handleSearch">{{ t("publicText.query") }}</el-button>
@@ -21,7 +21,7 @@
             </div>
 
             <el-table :data="tableData" ref="tableRef" border :height="tableHeight"
-                stripe size="small" v-loading="loading"
+                stripe size="small"  
                 :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" :label="t('publicText.index')" width="55" fixed="left" align="center">
                     <template #default="{ $index }">
@@ -58,16 +58,6 @@
                         </el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column prop="loadstatus" :label="t('materialManage.erpBomDetailCheck.loadstatus')"
-                    :min-width="getColumnWidth('loadstatus')" align="center">
-                    <template #default="{ row }">
-                        <el-tag :type="row.loadstatus === 0 ? 'info' : 'success'" size="small">
-                            {{ getLoadstatusText(row.loadstatus) }}
-                        </el-tag>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="deletestatus" :label="t('materialManage.erpBomDetailCheck.deletestatus')"
-                    :min-width="getColumnWidth('deletestatus')" align="center" />
                 <el-table-column prop="update_date" :label="t('materialManage.erpBomDetailCheck.updateDate')"
                     :min-width="getColumnWidth('update_date')" align="center">
                     <template #default="{ row }">

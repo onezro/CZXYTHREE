@@ -173,7 +173,7 @@ const switchSystems = () => {
               </el-button>
             </el-form-item>
           </el-form>
-          <div class="login-footer">
+          <!-- <div class="login-footer">
             <span class="version-text">{{ version }}</span>
             <el-dropdown trigger="click" @command="changeLang">
               <div class="locale-trigger">
@@ -188,7 +188,7 @@ const switchSystems = () => {
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>

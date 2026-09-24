@@ -4,7 +4,7 @@ import request from "@/request/deviceRequest"
 //查询工治具类型
 export function queryToolsMold(data:any) {
   return request({
-    url: "/api/Repair/ToolsMold/Query",
+    url: "/api/Fixture/ToolsMold/Query",
     method: "post",
     data
   });
@@ -12,7 +12,7 @@ export function queryToolsMold(data:any) {
 //新增工治具类型
 export function insertToolsMold(data:any) {
   return request({
-    url: "/api/Repair/ToolsMold/Insert",
+    url: "/api/Fixture/ToolsMold/Insert",
     method: "post",
     data
   });
@@ -20,7 +20,7 @@ export function insertToolsMold(data:any) {
 //更新工治具类型
 export function updateToolsMold(data:any) {
   return request({
-    url: "/api/Repair/ToolsMold/Update",
+    url: "/api/Fixture/ToolsMold/Update",
     method: "post",
     data
   });
@@ -28,7 +28,7 @@ export function updateToolsMold(data:any) {
 //删除工治具类型
 export function deleteToolsMold(data:any) {
   return request({
-    url: "/api/Repair/ToolsMold/Delete",
+    url: "/api/Fixture/ToolsMold/Delete",
     method: "post",
     data
   });
@@ -38,7 +38,7 @@ export function deleteToolsMold(data:any) {
 //查询工治具台账
 export function queryToolsID(data:any) {
   return request({
-    url: "/api/Repair/ToolsID/Query",
+    url: "/api/Fixture/ToolsID/Query",
     method: "post",
     data
   });
@@ -46,7 +46,7 @@ export function queryToolsID(data:any) {
 //查询工治具资产
 export function queryAssetToolsID(data:any) {
   return request({
-    url: "/api/Repair/ToolsID/QueryAsset",
+    url: "/api/Fixture/ToolsID/QueryAsset",
     method: "post",
     data
   });
@@ -54,7 +54,7 @@ export function queryAssetToolsID(data:any) {
 //新增工治具台账
 export function insertToolsID(data:any) {
   return request({
-    url: "/api/Repair/ToolsID/Insert",
+    url: "/api/Fixture/ToolsID/Insert",
     method: "post",
     data,
   });
@@ -62,7 +62,7 @@ export function insertToolsID(data:any) {
 //更新工治具台账
 export function updateToolsID(data:any) {
   return request({
-    url: "/api/Repair/ToolsID/Update",
+    url: "/api/Fixture/ToolsID/Update",
     method: "post",
     data,
   });
@@ -70,7 +70,7 @@ export function updateToolsID(data:any) {
 //删除工治具台账
 export function deleteToolsID(data:any) {
   return request({
-    url: "/api/Repair/ToolsID/Delete",
+    url: "/api/Fixture/ToolsID/Delete",
     method: "post",
     data,
   });
@@ -78,7 +78,7 @@ export function deleteToolsID(data:any) {
 //报废工治具台账
 export function scrapToolsID(data:any) {
   return request({
-    url: "/api/Repair/ToolsID/Scrap",
+    url: "/api/Fixture/ToolsID/Scrap",
     method: "post",
     data,
   });
@@ -88,7 +88,7 @@ export function scrapToolsID(data:any) {
 //查询工治具领用单
 export function queryToolsOrder(data:any) {
   return request({
-    url: "/api/Repair/ToolsOrder/Query",
+    url: "/api/Fixture/ToolsOrder/Query",
     method: "post",
     data
   });
@@ -98,7 +98,7 @@ export function queryToolsOrder(data:any) {
 //查询产品消耗
 export function queryToolsSpec(data:any) {
   return request({
-    url: "/api/Repair/ToolsSpec/Query",
+    url: "/api/Fixture/ToolsSpec/Query",
     method: "post",
     data
   });
@@ -106,7 +106,7 @@ export function queryToolsSpec(data:any) {
 //新增产品消耗
 export function insertToolsSpec(data:any) {
   return request({
-    url: "/api/Repair/ToolsSpec/Insert",
+    url: "/api/Fixture/ToolsSpec/Insert",
     method: "post",
     data,
   });
@@ -114,7 +114,7 @@ export function insertToolsSpec(data:any) {
 //更新产品消耗
 export function updateToolsSpec(data:any) {
   return request({
-    url: "/api/Repair/ToolsSpec/Update",
+    url: "/api/Fixture/ToolsSpec/Update",
     method: "post",
     data,
   });
@@ -122,7 +122,7 @@ export function updateToolsSpec(data:any) {
 //删除产品消耗
 export function deleteToolsSpec(data:any) {
   return request({
-    url: "/api/Repair/ToolsSpec/Delete",
+    url: "/api/Fixture/ToolsSpec/Delete",
     method: "post",
     data,
   });
@@ -130,7 +130,7 @@ export function deleteToolsSpec(data:any) {
 //导入产品消耗
 export function importToolsSpec(data:any) {
   return request({
-    url: "/api/Repair/ToolsSpec/Import",
+    url: "/api/Fixture/ToolsSpec/Import",
     method: "post",
     data,
   });

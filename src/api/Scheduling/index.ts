@@ -148,6 +148,15 @@ export function ManualCreateSaiYiPreparePlan(data:any) {
     });
 }
 
+//取消备料单
+export function CancelMaterialPreparation(data:any) {
+    return request({
+        url: "/api/MaterialPreparation/CancelMaterialPreparation",
+        method: "post",
+        data
+    });
+}
+
 //查询操作日志
 export function QueryOperationLog(data:any) {
     return request({

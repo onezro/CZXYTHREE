@@ -36,8 +36,8 @@
           :min-width="getColumnWidth('PN')" show-overflow-tooltip />
         <el-table-column prop="PD_dsc" :label="$t('deviceManage.fixtureProduct.productDesc')"
           :min-width="getColumnWidth('PD_dsc')" show-overflow-tooltip />
-        <el-table-column prop="Version" :label="$t('deviceManage.fixtureProduct.version')"
-          :min-width="getColumnWidth('Version')" show-overflow-tooltip />
+        <!-- <el-table-column prop="Version" :label="$t('deviceManage.fixtureProduct.version')"
+          :min-width="getColumnWidth('Version')" show-overflow-tooltip /> -->
         <el-table-column prop="Side" :label="$t('deviceManage.fixtureProduct.side')" :min-width="getColumnWidth('Side')"
           show-overflow-tooltip />
         <el-table-column prop="PN_Model" :label="$t('deviceManage.fixtureProduct.type')"
@@ -98,11 +98,11 @@
                 :placeholder="$t('deviceManage.fixtureProduct.productNamePlaceholder')" />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
+          <!-- <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.version')" prop="Version">
               <el-input v-model="form.Version" :placeholder="$t('deviceManage.fixtureProduct.versionPlaceholder')" />
             </el-form-item>
-          </el-col>
+          </el-col> -->
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">

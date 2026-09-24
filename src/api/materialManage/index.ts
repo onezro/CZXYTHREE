@@ -89,3 +89,12 @@ export function DeleteSpecialMaterial(data: any) {
     data,
   });
 }
+
+// BOM变更记录查询
+export function QueryBomChangeRecord(data: any) {
+  return request({
+    url: "/api/BomChangeRecord/Query",
+    method: "post",
+    data,
+  });
+}

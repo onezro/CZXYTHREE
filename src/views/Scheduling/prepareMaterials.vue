@@ -47,6 +47,9 @@
                     </el-button>
                     <el-button :type="'warning'" :disabled="selectList.length !== 1" @click="addMaterial">{{ t('Scheduling.PrepareMaterials.StatusType2')
                     }}</el-button>
+                    <el-button :type="'danger'" :disabled="selectList.length !== 1" @click="handleCancelPrepare">
+                        {{ t('Scheduling.PrepareMaterials.cancelPrepare') }}
+                    </el-button>
                 </el-form-item>
             </el-form>
 
@@ -269,7 +272,7 @@
 </template>
 
 <script setup lang="ts">
-import { QueryMaterialPreparationList, QueryMaterialPreparationDetail, GenerateMaterialRequest, AddSupplementMaterialPreparation, ManualCreateSaiYiPreparePlan, GenerateNonFirstMaterialRequest } from "@/api/Scheduling/index"
+import { QueryMaterialPreparationList, QueryMaterialPreparationDetail, GenerateMaterialRequest, AddSupplementMaterialPreparation, ManualCreateSaiYiPreparePlan, GenerateNonFirstMaterialRequest, CancelMaterialPreparation } from "@/api/Scheduling/index"
 import {
     GetSMTValorLine
 } from "@/api/smtApply/changeover";
@@ -538,6 +541,43 @@ const handleGenerateCall = () => {
             Reason: value.trim(),
         };
         GenerateMaterialRequest(params).then((res: any) => {
+            ElNotification({
+                title: t('publicText.tipTitle'),
+                message: res.Message,
+                type: res.Success ? "success" : "error",
+            });
+            if (res.Success) getData();
+        });
+    }).catch(() => {
+        ElMessage.info(t('publicText.operationCancelled'));
+    });
+};
+
+// 取消备料单
+const handleCancelPrepare = () => {
+    const selected = selectList.value[0];
+    if (!selected) return;
+    ElMessageBox.prompt(
+        t('Scheduling.PrepareMaterials.inputCancelReason'),
+        t('Scheduling.PrepareMaterials.cancelPrepare'),
+        {
+            confirmButtonText: t('publicText.confirm'),
+            cancelButtonText: t('publicText.cancel'),
+            inputType: 'textarea',
+            inputPlaceholder: t('Scheduling.PrepareMaterials.inputCancelReasonPlaceholder'),
+            inputValidator: (value: string) => {
+                if (!value.trim()) {
+                    return t('Scheduling.PrepareMaterials.cancelReasonRequired');
+                }
+                return true;
+            }
+        }
+    ).then(({ value }: { value: string }) => {
+        const params = {
+            MaterialPreparationNo: selected.MaterialPreparationNo,
+            CancelReason: value.trim(),
+        };
+        CancelMaterialPreparation(params).then((res: any) => {
             ElNotification({
                 title: t('publicText.tipTitle'),
                 message: res.Message,

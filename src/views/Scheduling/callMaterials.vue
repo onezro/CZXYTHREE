@@ -13,16 +13,39 @@
                 <el-form-item class="mb-2">
                     <el-button type="primary" @click="searchData">{{ t('publicText.query') }}</el-button>
                 </el-form-item>
+                <el-form-item class="mb-2">
+                    <el-button type="warning" icon="Bell" :disabled="!canCall" :loading="btnLoading.call"
+                        @click="handleCall">{{ t('Scheduling.CallMaterials.call') }}</el-button>
+                    <el-button type="success" icon="Promotion" :disabled="!canPush" :loading="btnLoading.push"
+                        @click="handlePush">{{ t('Scheduling.CallMaterials.pushShelter') }}</el-button>
+                    <el-button type="info" icon="Close" :disabled="!canCancelShelter" :loading="btnLoading.cancelShelter"
+                        @click="handleCancelShelter">{{ t('Scheduling.CallMaterials.cancelShelter') }}</el-button>
+                    <el-button type="danger" icon="DocumentDelete" :disabled="!canCancel" :loading="btnLoading.cancel"
+                        @click="handleCancel">{{ t('Scheduling.CallMaterials.Cancel') }}</el-button>
+                </el-form-item>
             </el-form>
             <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="tableHeight"
                 :tooltip-effect="'dark'" border fit ref="eltableRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                <el-table-column width="45" align="center" fixed>
+                    <template #default="{ row }">
+                        <el-radio v-model="selectedNo" :value="row.MaterialRequest_No"
+                            :disabled="row.MaterialRequest_Status === 3"><span /></el-radio>
+                    </template>
+                </el-table-column>
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{ scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1 }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.CallMaterials.CallOrder')" fixed prop="MaterialRequest_No"
-                    :min-width="getColumnWidth('MaterialRequest_No')" show-overflow-tooltip />
+                    :min-width="getColumnWidth('MaterialRequest_No')" show-overflow-tooltip>
+                    <template #default="{ row }">
+                        <span :class="{ 'call-order-link': row.MaterialRequest_Status !== 3 }"
+                            @click="handleCallOrderClick(row)">
+                            {{ row.MaterialRequest_No }}
+                        </span>
+                    </template>
+                </el-table-column>
                 <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPreparationNo')" fixed
                     prop="MaterialRequest_KittingNo" :min-width="getColumnWidth('MaterialRequest_KittingNo')" show-overflow-tooltip />
                 <el-table-column :label="t('Scheduling.CallMaterials.GroupOrder')" fixed prop="MaterialRequest_WoGroup"
@@ -62,7 +85,7 @@
                 <el-table-column :label="t('Scheduling.CallMaterials.InsertUser')" prop="MaterialRequest_InsertUser"
                     :min-width="getColumnWidth('MaterialRequest_InsertUser')" />
                 <el-table-column :label="t('Scheduling.CallMaterials.InsertDt')" prop="MaterialRequest_InsertDt"
-                    :min-width="getColumnWidth('MaterialRequest_InsertDt')" show-overflow-tooltip>
+                    width="160" show-overflow-tooltip>
                     <template #default="{ row }">
                         {{ formatDate(row.MaterialRequest_InsertDt) }}
                     </template>
@@ -70,32 +93,13 @@
                 <el-table-column :label="t('Scheduling.CallMaterials.UpdateUser')" prop="MaterialRequest_UpdateUser"
                     :min-width="getColumnWidth('MaterialRequest_UpdateUser')" />
                 <el-table-column :label="t('Scheduling.CallMaterials.UpdateDt')" prop="MaterialRequest_UpdateDt"
-                    :min-width="getColumnWidth('MaterialRequest_UpdateDt')" show-overflow-tooltip>
+                   width="160" show-overflow-tooltip>
                     <template #default="{ row }">
                         {{ formatDate(row.MaterialRequest_UpdateDt) }}
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.CallMaterials.Reason')" prop="Reason"
                     :min-width="getColumnWidth('Reason')" show-overflow-tooltip />
-                <el-table-column :label="t('publicText.operation')" prop="operation" width="250" align="center" fixed="right">
-                    <template #default="{ row }">
-                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.Detail')" placement="top">
-                            <el-button type="primary" size="small" icon="Tickets" @click="fetchDetail(row)" />
-                        </el-tooltip>
-                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.call')" placement="top" >
-                            <el-button type="warning" size="small" icon="Bell" :disabled="row.RequestInfo !== 1" @click="handleCallMaterial(row)" />
-                        </el-tooltip>
-                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.pushShelter')" placement="top" >
-                            <el-button type="success" size="small" icon="Promotion" :loading="row._pushLoading"  :disabled="row.RequestInfo !== 0" @click="handlePushShelter(row)" />
-                        </el-tooltip>
-                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.cancelShelter')" placement="top" >
-                            <el-button type="info" size="small" icon="Close" :loading="row._cancelShelterLoading" :disabled="row.RequestInfo !== 0||row.MaterialRequest_Status === 3 || row.MaterialRequest_Status === 99" @click="handleCancelShelter(row)" />
-                        </el-tooltip>
-                        <el-tooltip effect="dark" :content="t('Scheduling.CallMaterials.Cancel')" placement="top">
-                            <el-button type="danger" size="small" icon="DocumentDelete" :disabled="row.MaterialRequest_Status === 3 || row.MaterialRequest_Status === 99" @click="handleCancel(row)" />
-                        </el-tooltip>
-                    </template>
-                </el-table-column>
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
@@ -249,6 +253,16 @@ const getForm = reactive({
     KittingNo: '',
     WOGroup: '',
 });
+
+// 单选 & 操作按钮 loading
+const selectedNo = ref('');
+const selectedRow = computed(() => tableData.value.find((r: any) => r.MaterialRequest_No === selectedNo.value));
+const btnLoading = reactive({ call: false, push: false, cancelShelter: false, cancel: false });
+// 按钮可用条件
+const canCall = computed(() => { const r = selectedRow.value; return !!r && r.RequestInfo === 1 && r.MaterialRequest_Status !== 3; });
+const canPush = computed(() => { const r = selectedRow.value; return !!r && r.RequestInfo === 0 && r.MaterialRequest_Status !== 3; });
+const canCancelShelter = computed(() => { const r = selectedRow.value; return !!r && r.RequestInfo === 0 && r.MaterialRequest_Status !== 3 && r.MaterialRequest_Status !== 99; });
+const canCancel = computed(() => { const r = selectedRow.value; return !!r && r.MaterialRequest_Status !== 3 && r.MaterialRequest_Status !== 99; });
 
 // 详情弹窗相关
 const detailListRef = ref();
@@ -405,6 +419,14 @@ const searchData = () => {
     getData();
 };
 
+const handleCallOrderClick = (row: any) => {
+    if (row.MaterialRequest_Status === 3) {
+        ElMessage.warning(t('Scheduling.CallMaterials.CancelledNoDetail'));
+        return;
+    }
+    fetchDetail(row);
+};
+
 const fetchDetail = (row: any) => {
     detailVisible.value = true;
     detailData.list = [];
@@ -447,116 +469,80 @@ const closeDetail = () => {
     detailData.detail = [];
 };
 
-const handleCallMaterial = (row: any) => {
+// WMS叫料
+const handleCall = () => {
+    const row = selectedRow.value;
+    if (!row) return;
     if (row.RequestInfo !== 1) {
         ElMessage.warning(t('Scheduling.CallMaterials.onlySaiYi'));
         return;
     }
-    const params = {
-        MaterialRequestNo: row.MaterialRequest_No,
-        OpUser: userStore.getUserInfo
-    };
-    if(row.MaterialRequest_Type === 1){
-             ManualSubmitWorkOrderSupplementSaiYiMaterialRequest(params).then((res: any) => {
-            ElNotification({
-                title: t('publicText.tipTitle'),
-                message: res.Message,
-                type: res.Success ? "success" : "error",
-            });
-            if (res.Success) getData();
-        });
-    }else{
-        ManualSubmitSaiYiMaterialRequest(params).then((res: any) => {
-            ElNotification({
-                title: t('publicText.tipTitle'),
-                message: res.Message,
-                type: res.Success ? "success" : "error",
-            });
-            if (res.Success) getData();
-        });
-    }
-   
+    const params = { MaterialRequestNo: row.MaterialRequest_No, OpUser: userStore.getUserInfo };
+    const fn = row.MaterialRequest_Type === 1 ? ManualSubmitWorkOrderSupplementSaiYiMaterialRequest : ManualSubmitSaiYiMaterialRequest;
+    btnLoading.call = true;
+    fn(params).then((res: any) => {
+        ElNotification({ title: t('publicText.tipTitle'), message: res.Message, type: res.Success ? "success" : "error" });
+        if (res.Success) { selectedNo.value = ''; getData(); }
+    }).finally(() => { btnLoading.call = false; });
 };
 
-const handleCancel = (row: any) => {
+// 下发方仓
+const handlePush = () => {
+    const row = selectedRow.value;
+    if (!row) return;
+    ElMessageBox.confirm(
+        t('Scheduling.CallMaterials.confirmPushShelter').replace('{0}', row.MaterialRequest_No || ''),
+        t('publicText.tip'),
+        { confirmButtonText: t('publicText.confirm'), cancelButtonText: t('publicText.cancel'), type: "warning" }
+    ).then(() => {
+        btnLoading.push = true;
+        OutOrderPushBySN({ MaterialRequestNo: row.MaterialRequest_No, UserNo: userStore.getUserInfo || "" })
+            .then((res: any) => {
+                ElNotification({ title: t('publicText.tipTitle'), message: res.Message, type: res.Success ? "success" : "error" });
+                if (res.Success) { selectedNo.value = ''; getData(); }
+            }).catch(() => { ElMessage.error(t('Scheduling.CallMaterials.pushShelterFailure')); })
+            .finally(() => { btnLoading.push = false; });
+    }).catch(() => { });
+};
+
+// 取消下发方仓
+const handleCancelShelter = () => {
+    const row = selectedRow.value;
+    if (!row) return;
+    ElMessageBox.confirm(
+        t('Scheduling.CallMaterials.confirmCancelShelter').replace('{0}', row.MaterialRequest_No || ''),
+        t('publicText.tip'),
+        { confirmButtonText: t('publicText.confirm'), cancelButtonText: t('publicText.cancel'), type: "warning" }
+    ).then(() => {
+        btnLoading.cancelShelter = true;
+        OutOrderCancel({ MaterialRequestNo: row.MaterialRequest_No, UserNo: userStore.getUserInfo || "" })
+            .then((res: any) => {
+                ElNotification({ title: t('publicText.tipTitle'), message: res.Message, type: res.Success ? "success" : "error" });
+                if (res.Success) { selectedNo.value = ''; getData(); }
+            }).catch(() => { ElMessage.error(t('Scheduling.CallMaterials.cancelShelterFailure')); })
+            .finally(() => { btnLoading.cancelShelter = false; });
+    }).catch(() => { });
+};
+
+// 取消
+const handleCancel = () => {
+    const row = selectedRow.value;
+    if (!row) return;
     ElMessageBox.prompt(t('Scheduling.CallMaterials.CancelReason'), t('publicText.confirm'), {
         confirmButtonText: t('publicText.confirm'),
         cancelButtonText: t('publicText.cancel'),
         inputType: "textarea",
     }).then((val: any) => {
-        if (val.action == 'confirm') {
-            const params = {
-                MaterialRequestNo: row.MaterialRequest_No,
-                CreateUser: userStore.getUserInfo,
-                CancelReason: val.value || "",
-            };
-            CancelMaterialRequest(params).then((res: any) => {
-                ElNotification({
-                    title: t('publicText.tipTitle'),
-                    message: res.Message,
-                    type: res.Success ? "success" : "error",
-                });
-                if (res.Success) getData();
-            });
-        }
-    }).catch(() => { });
-};
-
-const handlePushShelter = (row: any) => {
-    ElMessageBox.confirm(
-        t('Scheduling.CallMaterials.confirmPushShelter').replace('{0}', row.MaterialRequest_No || ''),
-        t('publicText.tip'),
-        {
-            confirmButtonText: t('publicText.confirm'),
-            cancelButtonText: t('publicText.cancel'),
-            type: "warning",
-        }
-    ).then(() => {
-        row._pushLoading = true;
-        OutOrderPushBySN({
+        if (val.action !== 'confirm') return;
+        btnLoading.cancel = true;
+        CancelMaterialRequest({
             MaterialRequestNo: row.MaterialRequest_No,
-            UserNo: userStore.getUserInfo || "",
+            CreateUser: userStore.getUserInfo,
+            CancelReason: val.value || "",
         }).then((res: any) => {
-            ElNotification({
-                title: t('publicText.tipTitle'),
-                message: res.Message,
-                type: res.Success ? "success" : "error",
-            });
-            if (res.Success) getData();
-        }).catch(() => {
-            ElMessage.error(t('Scheduling.CallMaterials.pushShelterFailure'));
-        }).finally(() => {
-            row._pushLoading = false;
-        });
-    }).catch(() => { });
-};
-
-const handleCancelShelter = (row: any) => {
-    ElMessageBox.confirm(
-        t('Scheduling.CallMaterials.confirmCancelShelter').replace('{0}', row.MaterialRequest_No || ''),
-        t('publicText.tip'),
-        {
-            confirmButtonText: t('publicText.confirm'),
-            cancelButtonText: t('publicText.cancel'),
-            type: "warning",
-        }
-    ).then(() => {
-        row._cancelShelterLoading = true;
-        OutOrderCancel({
-            MaterialRequestNo: row.MaterialRequest_No,
-            UserNo: userStore.getUserInfo || "",
-        }).then((res: any) => {
-            ElNotification({
-                title: t('publicText.tipTitle'),
-                message: res.Message,
-                type: res.Success ? "success" : "error",
-            });
-            if (res.Success) getData();
-        }).catch(() => {
-            ElMessage.error(t('Scheduling.CallMaterials.cancelShelterFailure'));
-        }).finally(() => {
-            row._cancelShelterLoading = false;
-        });
+            ElNotification({ title: t('publicText.tipTitle'), message: res.Message, type: res.Success ? "success" : "error" });
+            if (res.Success) { selectedNo.value = ''; getData(); }
+        }).finally(() => { btnLoading.cancel = false; });
     }).catch(() => { });
 };
 
@@ -594,5 +580,17 @@ onBeforeUnmount(() => {
 
 .mt-4 {
     margin-top: 16px;
+}
+
+.call-order-link {
+    color: #006487;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.call-order-link.disabled {
+    color: #909399;
+    text-decoration: none;
+    cursor: not-allowed;
 }
 </style>
