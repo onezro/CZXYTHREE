@@ -5,8 +5,10 @@
         <!-- 查询表单 -->
         <el-form ref="queryFormRef" :inline="true" :model="queryParams" label-width="auto" @submit.prevent>
           <el-form-item :label="t('esd.device.workshop')" class="mb-2">
-            <el-input v-model="queryParams.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" clearable
-              style="width: 150px" size="small" />
+            <el-select v-model="queryParams.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" clearable
+              style="width: 150px" size="small">
+              <el-option v-for="item in workshopOptions" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
           </el-form-item>
           <el-form-item :label="t('esd.device.esdType')" class="mb-2">
             <el-input v-model="queryParams.EsdType" :placeholder="t('esd.device.esdTypePlaceholder')" clearable
@@ -99,10 +101,14 @@
           <el-input v-model="formData.Factory" :placeholder="t('esd.device.factoryPlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('esd.device.workshop')" prop="Workshop" >
-          <el-input v-model="formData.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" />
+          <el-select v-model="formData.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" clearable
+            @change="handleWorkshopChange" style="width: 100%">
+            <el-option v-for="item in workshopOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item :label="t('esd.device.lineName')" prop="LineName" >
-          <el-select v-model="formData.LineName" :placeholder="t('esd.device.lineNamePlaceholder')" filterable>
+          <el-select v-model="formData.LineName" :placeholder="t('esd.device.lineNamePlaceholder')" filterable
+            :disabled="lineList.length === 0" style="width: 100%">
             <el-option v-for="item in lineList" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
@@ -140,10 +146,14 @@
           <el-input v-model="formData.Factory" :placeholder="t('esd.device.factoryPlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('esd.device.workshop')" prop="Workshop" >
-          <el-input v-model="formData.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" />
+          <el-select v-model="formData.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" clearable
+            @change="handleWorkshopChange" style="width: 100%">
+            <el-option v-for="item in workshopOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
         </el-form-item>
         <el-form-item :label="t('esd.device.lineName')" prop="LineName" >
-          <el-select v-model="formData.LineName" :placeholder="t('esd.device.lineNamePlaceholder')" filterable>
+          <el-select v-model="formData.LineName" :placeholder="t('esd.device.lineNamePlaceholder')" filterable
+            :disabled="lineList.length === 0" style="width: 100%">
             <el-option v-for="item in lineList" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
@@ -194,12 +204,54 @@ import {
   AddEsdObject,
   UpdateEsdObject,
   DeleteEsdObject,
-  GetMESWorkLineNews
 } from "@/api/esdManage/base";
+import { GetValorLineByTypes } from "@/api/smtApply/changeover";
 import dayjs from 'dayjs';
 
 const { t } = useI18n();
 const userStore = useUserStoreWithOut();
+
+// 车间选项：SMT车间/ICT车间/铣板车间 有线体，组装车间/各车间 无线体
+const workshopOptions = [
+  { label: "SMT车间", value: "SMT车间", type: "SMT" },
+  { label: "ICT车间", value: "ICT车间", type: "ICT" },
+  { label: "铣板车间", value: "铣板车间", type: "Depanel" },
+  { label: "组装车间", value: "组装车间", type: "" },
+  { label: "各车间", value: "各车间", type: "" },
+];
+const workshopTypeMap: Record<string, string> = workshopOptions.reduce((acc, cur) => {
+  acc[cur.value] = cur.type;
+  return acc;
+}, {} as Record<string, string>);
+
+// 根据车间获取对应线体
+const loadLinesByWorkshop = async (workshop: string) => {
+  const type = workshopTypeMap[workshop];
+  if (!type) {
+    lineList.value = [];
+    return;
+  }
+  try {
+    const res: any = await GetValorLineByTypes({ Types: [type] });
+    if (res.Success) {
+      lineList.value = (res.Data || []).map((item: any) => ({
+        label: item.line,
+        value: item.line,
+      }));
+    } else {
+      lineList.value = [];
+    }
+  } catch (error) {
+    console.error("获取线体失败:", error);
+    lineList.value = [];
+  }
+};
+
+// 车间变更：清空已选线体并重新加载线体列表
+const handleWorkshopChange = (val: string) => {
+  formData.LineName = "";
+  loadLinesByWorkshop(val);
+};
 
 // 表格数据
 const tableData = ref<any[]>([]);
@@ -357,6 +409,7 @@ const resetFormData = () => {
 const openAdd = () => {
   isEdit.value = false;
   resetFormData();
+  lineList.value = [];
   addDialogVisible.value = true;
 };
 
@@ -376,6 +429,7 @@ const openEdit = (row: any) => {
     EsdTypeCode: row.EsdTypeCode || "",
   });
   editDialogVisible.value = true;
+  loadLinesByWorkshop(row.Workshop);
 };
 
 // 提交表单（新增/编辑共用）
@@ -481,20 +535,6 @@ const handleDialogClosed = () => {
 
 const lineList = ref<any[]>([]);
 
-// 查询MES工线
-const GetLineList = () => {
-  GetMESWorkLineNews({
-    WorkLineName: ""
-  }).then((res: any) => {
-    if (res.Success) {
-      lineList.value = res.Data.map((item: any) => ({
-        label: item.name,
-        value: item.name,
-      })) || [];
-    }
-  })
-}
-
 // 表格高度自适应
 const getScreenHeight = () => {
   nextTick(() => {
@@ -505,7 +545,6 @@ const getScreenHeight = () => {
 onBeforeMount(() => {
   getScreenHeight();
   getData();
-  GetLineList();
 });
 
 onMounted(() => {

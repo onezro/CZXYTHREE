@@ -33,10 +33,13 @@
                             {{ formatDate(row.UpdateTime) }}
                         </template>
                     </el-table-column>
-                    <el-table-column fixed="right" :label="t('publicText.operation')" width="100" align="center">
+                    <el-table-column fixed="right" :label="t('publicText.operation')" width="120" align="center">
                         <template #default="{ row }">
                             <el-tooltip :content="t('publicText.edit')" placement="top">
                                 <el-button type="primary" icon="Edit" size="small" @click="handleEdit(row)" />
+                            </el-tooltip>
+                            <el-tooltip :content="t('publicText.delete')" placement="top">
+                                <el-button type="danger" icon="Delete" size="small" @click="handleDelete(row)" />
                             </el-tooltip>
                         </template>
                     </el-table-column>
@@ -110,8 +113,8 @@
 </template>
 
 <script setup lang="ts">
-import { getProduct, insetProductData, queryProductQControl, insetConveyorWidth } from "@/api/smtSet/auxiliary";
-import { ElMessage } from "element-plus";
+import { getProduct, queryProductQControl, insetConveyorWidth, deleteConveyorWidth } from "@/api/smtSet/auxiliary";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { useI18n } from "vue-i18n";
 import { ref, reactive, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
@@ -157,15 +160,43 @@ const editForm = reactive({
     Speed: "",
 });
 
+// 宽度校验：大于0的整数或一位小数
+const validateWidth = (rule: any, value: string, callback: any) => {
+    const val = value == null ? "" : String(value).trim();
+    if (val === "") {
+        callback(new Error(t('smtset.auxiliary.widthRequired')));
+        return;
+    }
+    if (!/^\d+(\.\d)?$/.test(val) || Number(val) <= 0) {
+        callback(new Error(t('smtset.auxiliary.widthInvalid')));
+        return;
+    }
+    callback();
+};
+
+// 速度校验：必须大于0
+const validateSpeed = (rule: any, value: string, callback: any) => {
+    const val = value == null ? "" : String(value).trim();
+    if (val === "") {
+        callback(new Error(t('smtset.auxiliary.speedRequired')));
+        return;
+    }
+    if (!(Number(val) > 0)) {
+        callback(new Error(t('smtset.auxiliary.speedInvalid')));
+        return;
+    }
+    callback();
+};
+
 const formRules = {
     Product: [
         { required: true, message: t('smtset.auxiliary.productRequired'), trigger: 'change' },
     ],
     Width: [
-        { required: true, message: t('smtset.auxiliary.widthRequired'), trigger: 'blur' },
+        { validator: validateWidth, trigger: 'blur' },
     ],
     Speed: [
-        { required: true, message: t('smtset.auxiliary.speedRequired'), trigger: 'blur' },
+        { validator: validateSpeed, trigger: 'blur' },
     ],
 };
 
@@ -249,18 +280,17 @@ const handleEdit = (row: any) => {
     editDialogVisible.value = true;
 };
 
-// 新增提交 -> insetProductData {Product, Width(number), speed(lowercase, number), updatetime}
+// 新增提交 -> InsertUpdateConveyorWidth {Product, Width, Speed}
 const onAddSubmit = () => {
     addFormRef.value?.validate((valid: boolean) => {
         if (!valid) return;
         addSubmitLoading.value = true;
         const payload = {
             Product: addForm.Product,
-            Width: Number(addForm.Width) || 0,
-            speed: Number(addForm.Speed) || 0,
-            updatetime: new Date().toJSON(),
+            Width: String(addForm.Width).trim(),
+            Speed: String(addForm.Speed).trim(),
         };
-        insetProductData(payload).then((res: any) => {
+        insetConveyorWidth(payload).then((res: any) => {
             if (res.Success) {
                 ElMessage.success(t('smtset.auxiliary.setSuccess'));
                 addDialogVisible.value = false;
@@ -276,15 +306,15 @@ const onAddSubmit = () => {
     });
 };
 
-// 修改提交 -> insetConveyorWidth {Product, Width, Speed}
+// 修改提交 -> InsertUpdateConveyorWidth {Product, Width, Speed}
 const onEditSubmit = () => {
     editFormRef.value?.validate((valid: boolean) => {
         if (!valid) return;
         editSubmitLoading.value = true;
         const payload = {
             Product: editForm.Product,
-            Width: editForm.Width,
-            Speed: editForm.Speed,
+            Width: String(editForm.Width).trim(),
+            Speed: String(editForm.Speed).trim(),
         };
         insetConveyorWidth(payload).then((res: any) => {
             if (res.Success) {
@@ -300,6 +330,24 @@ const onEditSubmit = () => {
             editSubmitLoading.value = false;
         });
     });
+};
+
+// 删除 -> DeleteConveyorWidth {Product}
+const handleDelete = (row: any) => {
+    ElMessageBox.confirm(t('publicText.confirmDelete'), t('publicText.tip'), { type: 'warning' })
+        .then(() => {
+            deleteConveyorWidth({ Product: row.ProductName }).then((res: any) => {
+                if (res.Success) {
+                    ElMessage.success(res.Message || t('publicText.deleteSuccess'));
+                    getData();
+                } else {
+                    ElMessage.error(res.Message || t('publicText.deleteFailure'));
+                }
+            }).catch(() => {
+                ElMessage.error(t('publicText.deleteFailure'));
+            });
+        })
+        .catch(() => { });
 };
 
 // 弹窗关闭后重置表单验证

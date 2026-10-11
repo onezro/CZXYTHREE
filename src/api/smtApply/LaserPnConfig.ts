@@ -32,3 +32,19 @@ export function DeleteLaserPnConfig(data: any) {
     data,
   });
 }
+
+export function QueryLaserProductList(data: any) {
+  return request({
+    url: "/api/LaserPnConfig/QueryLaserProductList",
+    method: "post",
+    data,
+  });
+}
+
+export function QueryLaserPanelShape(data: any) {
+  return request({
+    url: "/api/LaserPnConfig/QueryLaserPanelShape",
+    method: "post",
+    data,
+  });
+}

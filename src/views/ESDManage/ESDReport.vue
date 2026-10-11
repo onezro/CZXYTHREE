@@ -114,7 +114,15 @@
                                 </template>
                             </el-table-column>
                             <el-table-column prop="Inspector" :label="t('esd.report.inspector')" :min-width="getColumnWidth('Inspector')" />
-                            <el-table-column prop="InspectTime" :label="t('esd.report.inspectTime')" :min-width="getColumnWidth('InspectTime')" />
+                            <el-table-column prop="CreateTime" :label="t('esd.task.taskCreateTime')" :min-width="getColumnWidth('CreateTime')">
+                                <template #default="{ row }">{{ formatDateTime(row.CreateTime) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="EffectiveTime" :label="t('esd.task.effectiveTime')" :min-width="getColumnWidth('EffectiveTime')">
+                                <template #default="{ row }">{{ formatDateTime(row.EffectiveTime) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="InspectTime" :label="t('esd.report.inspectTime')" :min-width="getColumnWidth('InspectTime')">
+                                <template #default="{ row }">{{ formatDateTime(row.InspectTime) }}</template>
+                            </el-table-column>
                             <el-table-column prop="ResponsibleUser" :label="t('esd.task.responsibleUser')" :min-width="getColumnWidth('ResponsibleUser')" />
                             <el-table-column prop="ProductionBatch" :label="t('esd.task.productionBatch')" :min-width="getColumnWidth('ProductionBatch')" />
                             <el-table-column prop="AbnormalPhenomenon" :label="t('esd.report.abnormalPhenomenon')" :min-width="getColumnWidth('AbnormalPhenomenon')" />
@@ -321,6 +329,7 @@
 import { ref, reactive, computed, onBeforeMount, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
+import dayjs from 'dayjs';
 import {
     QueryCheckRecordReport,
     QueryCheckRecordTypeSummary,
@@ -337,6 +346,8 @@ import { useExport } from "@/utils/exportExcel/loadingExcel";
 
 const { t } = useI18n();
 const { showLoading, hideLoading, handleExportSuccess, handleExportError } = useExport();
+
+const formatDateTime = (val: any) => val ? dayjs(val).format('YYYY-MM-DD HH:mm:ss') : '';
 
 const selectData = reactive({
     esdType: { list: [] as { label: string; value: string }[], total: 0, pageIndex: 1, pageSize: 10, loading: false },

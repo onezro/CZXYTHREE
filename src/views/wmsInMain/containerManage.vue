@@ -1,19 +1,25 @@
 <template>
   <div class="p-2">
     <el-card class="box-card" :body-style="{ padding: '8px' }">
-      <div class="flex justify-between items-center mb-2">
-        <el-button type="primary" @click="openAdd()" size="small">{{
-          t("wmsInMain.containerManage.add")
-          }}</el-button>
-        <div class="input_box">
-          <el-input :placeholder="t('wmsInMain.containerManage.searchPlaceholder')" clearable size="small"
-            v-model="getlistText.searchText" class="input-with-select" @input="getSearchData" @change="getSearchData">
-            <template #append>
-              <el-button icon="Search"></el-button>
-            </template>
-          </el-input>
-        </div>
-      </div>
+      <el-form :inline="true" :model="getlistText" class="mb-2" @submit.prevent>
+        <el-form-item :label="t('wmsInMain.containerManage.pn')">
+          <el-input v-model="getlistText.Pn" :placeholder="t('wmsInMain.containerManage.pn')" clearable
+            style="width: 160px" size="small" @keyup.enter="handleSearch" @clear="handleSearch" />
+        </el-form-item>
+        <el-form-item :label="t('wmsInMain.containerManage.wo')">
+          <el-input v-model="getlistText.Wo" :placeholder="t('wmsInMain.containerManage.wo')" clearable
+            style="width: 160px" size="small" @keyup.enter="handleSearch" @clear="handleSearch" />
+        </el-form-item>
+        <el-form-item :label="t('wmsInMain.containerManage.searchPlaceholder')">
+          <el-input v-model="getlistText.SearchText" :placeholder="t('wmsInMain.containerManage.searchPlaceholder')"
+            clearable style="width: 160px" size="small" @keyup.enter="handleSearch" @clear="handleSearch" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" size="small" @click="handleSearch">{{ t("publicText.query") }}</el-button>
+          <el-button size="small" @click="resetSearch">{{ t("publicText.reset") }}</el-button>
+          <el-button type="warning" size="small" @click="openAdd">{{ t("wmsInMain.containerManage.add") }}</el-button>
+        </el-form-item>
+      </el-form>
       <div class="table_container">
         <el-table ref="tableRef" :data="tableData" :height="tableHeight" border stripe style="width: 100%" size="small"
           highlight-current-row
@@ -21,7 +27,7 @@
           <el-table-column :label="t('publicText.index')" width="55" align="center" fixed="left">
             <template #default="scope">
               <span>{{
-                scope.$index + 1 + (currentPage - 1) * getlistText.pageSize
+                scope.$index + 1 + (getlistText.PageIndex - 1) * getlistText.PageSize
                 }}</span>
             </template>
           </el-table-column>
@@ -60,16 +66,16 @@
           <el-table-column prop="stts" :label="t('wmsInMain.containerManage.status')" align="center"
             :min-width="getColumnWidth('stts')">
             <template #default="{ row }">
-              <el-tag v-if="[row.stts, row.Stts].includes(-1)" type="danger" size="small">
+              <el-tag v-if="row.stts === -1" type="danger" size="small">
                 {{ t('wmsInMain.containerManage.invalid') }}
               </el-tag>
-              <el-tag v-else-if="[row.stts, row.Stts].includes(0)" type="info" size="small">
+              <el-tag v-else-if="row.stts === 0" type="info" size="small">
                 {{ t('wmsInMain.containerManage.unused') }}
               </el-tag>
-              <el-tag v-else-if="[row.stts, row.Stts].includes(1)" type="success" size="small">
+              <el-tag v-else-if="row.stts === 1" type="success" size="small">
                 {{ t('wmsInMain.containerManage.inUse') }}
               </el-tag>
-              <span v-else>{{ row.stts ?? row.Stts ?? "-" }}</span>
+              <span v-else>{{ row.stts ?? "-" }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="Wo" :label="t('wmsInMain.containerManage.wo')"
@@ -99,7 +105,7 @@
           <el-table-column prop="exfactorydate" :label="t('wmsInMain.containerManage.exFactoryDate')"
             :min-width="getColumnWidth('exfactorydate')">
             <template #default="{ row }">
-              {{ formatDate(row.exfactorydate ?? row.ExFactoryDate) }}
+              {{ formatDate(row.exfactorydate) }}
             </template>
           </el-table-column>
           <el-table-column prop="checkresult" :label="t('wmsInMain.containerManage.checkResult')"
@@ -113,28 +119,28 @@
           <el-table-column prop="updatetime" :label="t('wmsInMain.containerManage.updateTime')"
             :min-width="getColumnWidth('updatetime')">
             <template #default="{ row }">
-              {{ formatDate(row.updatetime ?? row.UpdateTime) }}
+              {{ formatDate(row.updatetime) }}
             </template>
           </el-table-column>
           <el-table-column prop="updateuser" :label="t('wmsInMain.containerManage.updateUser')"
             :min-width="getColumnWidth('updateuser')" show-overflow-tooltip>
           
           </el-table-column>
-          <el-table-column fixed="right" :label="t('publicText.operation')" width="200" align="center">
-            <template #default="scope">
+          <el-table-column fixed="right" :label="t('publicText.operation')" width="160" align="center">
+            <template #default="{ row }">
               <el-button type="primary" icon="Edit" size="small"
-                @click="handleEdit(scope.$index, scope.row)"></el-button>
+                @click="handleEdit(row)"></el-button>
               <el-button type="warning" icon="Clock" size="small"
-                @click="handleHistory(scope.$index, scope.row)"></el-button>
+                @click="handleHistory(row)"></el-button>
               <el-button type="danger" icon="Delete" size="small"
-                @click="handleDelete(scope.$index, scope.row)"></el-button>
+                @click="handleDelete(row)"></el-button>
             </template>
           </el-table-column>
         </el-table>
         <div class="block" style="margin-top: 8px">
           <el-pagination size="small" background align="center" @size-change="handleSizeChange"
-            @current-change="handleCurrentChange" :current-page="currentPage" :page-size="getlistText.pageSize"
-            :page-sizes="[5, 10, 20, 50, 100]" layout="total,sizes, prev, pager, next" :total="total">
+            @current-change="handleCurrentChange" :current-page="getlistText.PageIndex" :page-size="getlistText.PageSize"
+            :page-sizes="[5, 10, 20, 50, 100]" layout="total, sizes, prev, pager, next" :total="total">
           </el-pagination>
         </div>
       </div>
@@ -280,14 +286,15 @@ const form = reactive({
 
 const tableData = ref<any[]>([]);
 const total = ref(0);
-const currentPage = ref(1);
 const tableHeight = ref(0);
 const hosity = ref<any[]>([]);
 
 const getlistText = reactive({
-  pageIndex: 0,
-  pageSize: 50,
-  searchText: "",
+  PageIndex: 1,
+  PageSize: 50,
+  SearchText: "",
+  Pn: "",
+  Wo: "",
 });
 
 const rules = {
@@ -298,7 +305,7 @@ const rules = {
       trigger: "blur",
     },
   ],
-  containerName: [
+  containername: [
     {
       required: true,
       message: t("wmsInMain.containerManage.containerNameRequired"),
@@ -312,7 +319,7 @@ const rules = {
       trigger: "change",
     },
   ],
-  produceType: [
+  producetype: [
     {
       required: true,
       message: t("wmsInMain.containerManage.produceTypeRequired"),
@@ -342,32 +349,39 @@ watch(
 const getData = () => {
   queryPageContainer(getlistText)
     .then((res: any) => {
-      const a = JSON.parse(res.Data);
-      console.log(a);
-      total.value = a.Total;
-      tableData.value = a.list || [];
+      if (res.Success) {
+        total.value = res.Data?.Total || 0;
+        tableData.value = res.Data?.list || [];
+      } else {
+        ElMessage.error(res.Msg || t("message.queryFailure"));
+        tableData.value = [];
+        total.value = 0;
+      }
     })
-    .catch(() => { });
+    .catch(() => {
+      tableData.value = [];
+      total.value = 0;
+    });
 };
 
 const openAdd = () => {
   Object.assign(form, {
     containerid: "",
-    containerName: "",
+    containername: "",
     spec: "",
     pn: "",
     qty: "",
-    cellNo: "",
+    cellno: "",
     capacity: "",
     stts: "",
-    produceType: "",
-    maxuseNum: "",
-    usedNum: "",
-    updateTime: "",
-    updateUser: "",
-    createTime: "",
-    createUser: "",
-    exFactoryDate: "",
+    producetype: "",
+    maxusenum: "",
+    usednum: "",
+    updatetime: "",
+    updateuser: "",
+    createtime: "",
+    createuser: "",
+    exfactorydate: "",
   });
   show.value = false;
   dialogVisible.value = true;
@@ -413,22 +427,22 @@ const addCancel = () => {
   formRef.value?.resetFields();
 };
 
-const handleEdit = (index: number, row: any) => {
+const handleEdit = (row: any) => {
   show.value = true;
   formDataPro(row);
   dialogVisible.value = true;
 };
 
-const handleHistory = (index: number, row: any) => {
+const handleHistory = (row: any) => {
   dialogTableVisible.value = true;
   hosity.value = [];
-  getHistoy(row.Containerid).then((res: any) => {
+  getHistoy(row.containerid).then((res: any) => {
     const a = JSON.parse(res.Data);
     hosity.value = a.list || [];
   });
 };
 
-const handleDelete = (index: number, row: any) => {
+const handleDelete = (row: any) => {
   ElMessageBox.confirm(
     t("wmsInMain.containerManage.deleteConfirm"),
     t("publicText.confirmOperation"),
@@ -439,9 +453,9 @@ const handleDelete = (index: number, row: any) => {
     },
   )
     .then(() => {
-      deleteContainer({ Containerid: row.Containerid }).then(() => {
-        if (tableData.value.length == 1 && getlistText.pageIndex >= 0) {
-          getlistText.pageIndex--;
+      deleteContainer({ containerid: row.containerid }).then(() => {
+        if (tableData.value.length == 1 && getlistText.PageIndex > 1) {
+          getlistText.PageIndex--;
         }
         getData();
         ElMessage.success(t("wmsInMain.containerManage.deleteSuccess"));
@@ -453,27 +467,27 @@ const handleDelete = (index: number, row: any) => {
 };
 
 const inputValue = (value: string) => {
-  const isExit = tableData.value.find((item) => item.Containerid == value);
+  const isExit = tableData.value.find((item) => item.containerid == value);
   if (value && isExit != undefined) {
     formDataPro(isExit);
   } else {
     const emptyForm = {
       containerid: "",
-      containerName: "",
+      containername: "",
       spec: "",
       pn: "",
       qty: 0,
-      cellNo: "",
+      cellno: "",
       capacity: "",
       stts: 0,
-      produceType: "",
-      maxuseNum: "",
-      usedNum: 0,
-      updateTime: "",
-      updateUser: "",
-      createTime: "",
-      createUser: "",
-      exFactoryDate: "",
+      producetype: "",
+      maxusenum: "",
+      usednum: 0,
+      updatetime: "",
+      updateuser: "",
+      createtime: "",
+      createuser: "",
+      exfactorydate: "",
     };
     formDataPro(emptyForm as any);
     form.containerid = value;
@@ -482,38 +496,46 @@ const inputValue = (value: string) => {
 
 const formDataPro = (row: any) => {
   Object.assign(form, {
-    containerid: row.Containerid,
-    containerName: row.ContainerName,
-    spec: row.Spec,
-    pn: row.Pn,
-    qty: row.Qty,
-    cellNo: row.CellNo,
-    capacity: row.Capacity,
-    stts: row.Stts,
-    produceType: row.ProduceType,
-    maxuseNum: row.MaxuseNum,
-    usedNum: row.UsedNum,
-    updateTime: row.UpdateTime,
-    updateUser: row.UpdateUser,
-    createTime: row.CreateTime,
-    createUser: row.CreateUser,
-    exFactoryDate: row.ExFactoryDate,
+    containerid: row.containerid,
+    containername: row.containername,
+    spec: row.spec,
+    pn: row.pn,
+    qty: row.qty,
+    cellno: row.cellno,
+    capacity: row.capacity,
+    stts: row.stts,
+    producetype: row.producetype,
+    maxusenum: row.maxusenum,
+    usednum: row.usednum,
+    updatetime: row.updatetime,
+    updateuser: row.updateuser,
+    createtime: row.createtime,
+    createuser: row.createuser,
+    exfactorydate: row.exfactorydate,
   });
 };
 
-const getSearchData = () => {
-  getlistText.pageIndex = 0;
+const handleSearch = () => {
+  getlistText.PageIndex = 1;
+  getData();
+};
+
+const resetSearch = () => {
+  getlistText.Pn = "";
+  getlistText.Wo = "";
+  getlistText.SearchText = "";
+  getlistText.PageIndex = 1;
   getData();
 };
 
 const handleSizeChange = (value: number) => {
-  getlistText.pageSize = value;
+  getlistText.PageSize = value;
+  getlistText.PageIndex = 1;
   getData();
 };
 
 const handleCurrentChange = (value: number) => {
-  currentPage.value = value;
-  getlistText.pageIndex = value - 1;
+  getlistText.PageIndex = value;
   getData();
 };
 

@@ -32,3 +32,12 @@ export function DeleteRackCells(data: any) {
     data,
   });
 }
+
+// 导入储位
+export function ImportRackCells(data: any) {
+  return request({
+    url: "/api/RackCells/Import",
+    method: "post",
+    data,
+  });
+}

@@ -31,6 +31,14 @@ export function insetConveyorWidth(data:any) {
   });
 }
 
+export function deleteConveyorWidth(data:any) {
+  return request({
+    url: "/api/ChangeOver/DeleteConveyorWidth",
+    method: "post",
+    data,
+  });
+}
+
 export function queryProductQControl(data:any) {
   return request({
     url: "/XingYuAPI/XY_CO_Product_QControl",

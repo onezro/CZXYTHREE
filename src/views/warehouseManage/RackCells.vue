@@ -17,6 +17,10 @@
                         <el-button type="primary" size="small" @click="handleSearch">{{ t("publicText.query") }}</el-button>
                         <el-button size="small" @click="resetSearch">{{ t("publicText.reset") }}</el-button>
                         <el-button type="warning" size="small" @click="openAdd">{{ t("publicText.add") }}</el-button>
+                        <el-button type="success" size="small" @click="downloadTemplate">{{ t("rackCells.downloadTemplate") }}</el-button>
+                        <el-upload class="ml-2 import-upload" :before-upload="handleFileChange" action="#" :show-file-list="false" accept=".xlsx">
+                            <el-button color="#13c2c2" size="small" class="import-btn">{{ t("publicText.import") }}</el-button>
+                        </el-upload>
                     </el-form-item>
                 </el-form>
             </div>
@@ -219,6 +223,7 @@ import {
     AddRackCells,
     UpdateRackCells,
     DeleteRackCells,
+    ImportRackCells,
 } from "@/api/warehouseManage/rackCells";
 import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -226,6 +231,9 @@ import { Edit, Delete } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
+import { importExcelToJSON } from "@/utils/exportExcel/fixture";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import dayjs from "dayjs";
 
 const { t } = useI18n();
@@ -388,6 +396,99 @@ const handleDelete = (row: any) => {
         .catch(() => { });
 };
 
+// 下载导入模板
+const downloadTemplate = () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("储位导入模板");
+
+    const headers = [
+        "料架(必填)",
+        "储位(必填)",
+        "容量(默认1)",
+        "灯位置(0关/1开)",
+        "正反面(0无/1TOP/2BOT)",
+        "存储类型(0普通/1智能)",
+        "传感器(0无/1有)",
+        "储位别名",
+        "规格",
+        "托盘",
+        "描述",
+    ];
+    const headerRow = worksheet.addRow(headers);
+
+    headerRow.eachCell((cell) => {
+        cell.font = { bold: true, size: 12, name: "Microsoft YaHei" };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD6E4F0" } };
+        cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+        cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+        };
+    });
+
+    headers.forEach((h, i) => {
+        worksheet.getColumn(i + 1).width = Math.max(h.length * 2 + 4, 14);
+    });
+
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    workbook.xlsx.writeBuffer().then((buffer) => {
+        const blob = new Blob([buffer], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+        saveAs(blob, "储位导入模板.xlsx");
+    });
+};
+
+// 导入储位
+const handleFileChange = async (file: File) => {
+    try {
+        const data = await importExcelToJSON(file, {
+            hasHeader: true,
+            headerMapping: {
+                "料架(必填)": "rack",
+                "储位(必填)": "cell",
+                "容量(默认1)": "Capacity",
+                "灯位置(0关/1开)": "led",
+                "正反面(0无/1TOP/2BOT)": "side",
+                "存储类型(0普通/1智能)": "type",
+                "传感器(0无/1有)": "sensor",
+                "储位别名": "name",
+                "规格": "spec",
+                "托盘": "tray",
+                "描述": "dsc",
+            },
+            typeMapping: {
+                Capacity: "int",
+                led: "int",
+                side: "int",
+                type: "int",
+                sensor: "int",
+            },
+        });
+
+        const userNo = userStore.getUserInfo || "";
+        const params = (data || []).map((item: any) => ({
+            ...item,
+            UserNo: userNo,
+        }));
+
+        const res: any = await ImportRackCells(params);
+        if (res.Success || res.Code === 200 || res.code === 200) {
+            ElMessage.success(t("rackCells.importSuccess"));
+            getData();
+        } else {
+            ElMessage.error(res.Msg || res.Message || t("rackCells.importFailure"));
+        }
+    } catch (error) {
+        console.error("导入失败:", error);
+        ElMessage.error(t("rackCells.importFailure"));
+    }
+    return false;
+};
+
 const getData = async () => {
     try {
         const res: any = await QueryRackCells(searchForm);
@@ -457,5 +558,20 @@ onBeforeUnmount(() => {
 <style scoped>
 .el-pagination {
     justify-content: center;
+}
+
+.import-upload {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.import-btn {
+    color: #fff !important;
+}
+
+.import-btn:hover,
+.import-btn:focus {
+    color: #fff !important;
 }
 </style>

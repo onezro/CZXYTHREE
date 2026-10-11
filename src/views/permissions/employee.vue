@@ -66,9 +66,9 @@
             <el-tooltip content="密码重置" placement="top">
               <el-button type="danger" icon="RefreshLeft" size="small" @click="handleRest(scope.row)" />
             </el-tooltip>
-            <el-tooltip content="删除" placement="top">
+            <!-- <el-tooltip content="删除" placement="top">
               <el-button type="danger" icon="Delete" size="small" @click="handleDelete(scope.row)" />
-            </el-tooltip>
+            </el-tooltip> -->
             <el-tooltip content="历史登录记录" placement="top">
               <el-button icon="Clock" size="small" type="success" @click="handleHistory(scope.row)" />
             </el-tooltip>

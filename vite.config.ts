@@ -97,7 +97,7 @@ export default defineConfig({
       target: 'http://192.168.1.237:12014',
       changeOrigin: true,
       rewrite: (path) => path.replace(/^\/reportApi/, '') 
-    },
+    }
     }
   }
 })

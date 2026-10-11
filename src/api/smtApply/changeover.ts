@@ -1,4 +1,12 @@
 import request from "@/request/smtApplyRequest";
+//按类型获取线体信息（SMT/ICT/Depanel）
+export function GetValorLineByTypes(data: any) {
+    return request({
+        url: "/api/ChangeOver/GetValorLineByTypes",
+        method: "post",
+        data,
+    });
+}
 //获取线体信息
 export function GetSMTValorLine(data:any) {
     return request({

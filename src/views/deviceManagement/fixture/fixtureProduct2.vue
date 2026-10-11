@@ -25,7 +25,7 @@
         </div>
       </div>
 
-      <el-table ref="tableRef" :data="paginatedData" border :height="tableHeight" style="width: 100%" size="small"
+      <el-table ref="tableRef" :data="tableData" border :height="tableHeight" style="width: 100%" size="small"
         stripe highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column type="index" :label="$t('publicText.index')" width="55" align="center" fixed="left">
           <template #default="{ $index }">
@@ -85,6 +85,7 @@
           @current-change="handleCurrentChange" :current-page="currentPage" :page-size="pageSize"
           :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" :total="total" />
       </div>
+
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -211,13 +212,6 @@ const pageSize = ref(50);
 const searchName = ref("");
 const total = ref(0);
 
-// 前端分页数据
-const paginatedData = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return tableData.value.slice(start, end);
-});
-
 // 治具类型列表（下拉）
 const typeList = ref<any[]>([]);
 
@@ -322,63 +316,44 @@ const getEquipTypeList = async () => {
   }
 };
 
-// 全量数据（搜索前缓存）
-const allData = ref<any[]>([]);
-
 // 获取产品消耗列表
 const getProductList = async () => {
   loading.value = true;
   const params = {
-    ProductName: "",
-    Category: 0,
+    PageIndex: currentPage.value,
+    PageSize: pageSize.value,
+    SearchText: searchName.value.trim(),
   };
   try {
     const res: any = await queryToolsSpec(params);
     if (res.Success) {
-      allData.value = res.Data || [];
-      tableData.value = [...allData.value];
-      total.value = tableData.value.length;
-      if (paginatedData.value.length === 0 && currentPage.value > 1) {
-        currentPage.value--;
-      }
+      tableData.value = res.Data || [];
+      total.value = res.TotalCount || 0;
     } else {
       ElMessage.error(res.Msg || t("message.queryFailure"));
-      allData.value = [];
       tableData.value = [];
       total.value = 0;
     }
   } catch (error) {
     console.error("获取数据失败:", error);
     ElMessage.error(t("message.queryFailure"));
+    tableData.value = [];
+    total.value = 0;
   } finally {
     loading.value = false;
   }
 };
 
-// 搜索（客户端过滤）
+// 搜索（后端查询）
 const searchData = () => {
-  if (!searchName.value.trim()) {
-    tableData.value = [...allData.value];
-  } else {
-    const keyword = searchName.value.toLowerCase();
-    tableData.value = allData.value.filter(
-      (item: any) =>
-        (item.PN && item.PN.toLowerCase().includes(keyword)) ||
-        (item.Version && item.Version.toLowerCase().includes(keyword)) ||
-        (item.Side && item.Side.toLowerCase().includes(keyword)) ||
-        (item.PD_model && item.PD_model.toLowerCase().includes(keyword)) ||
-        (item.EquipType && item.EquipType.toLowerCase().includes(keyword))
-    );
-  }
-  total.value = tableData.value.length;
   currentPage.value = 1;
+  getProductList();
 };
 
 const clearData = () => {
   searchName.value = "";
-  tableData.value = [...allData.value];
-  total.value = tableData.value.length;
   currentPage.value = 1;
+  getProductList();
 };
 
 // 新增
@@ -496,7 +471,7 @@ const handleDelete = (row: any) => {
         });
         if (res.Success) {
           ElMessage.success(t("message.deleteSuccess"));
-          if (paginatedData.value.length === 1 && currentPage.value > 1) currentPage.value--;
+          if (tableData.value.length === 1 && currentPage.value > 1) currentPage.value--;
           await getProductList();
         } else {
           ElMessage.error(res.Msg || t("message.deleteFailure"));
@@ -565,9 +540,11 @@ const downloadFile = () => {
 const handleSizeChange = (val: number) => {
   pageSize.value = val;
   currentPage.value = 1;
+  getProductList();
 };
 const handleCurrentChange = (val: number) => {
   currentPage.value = val;
+  getProductList();
 };
 
 // ---------- 表格高度自适应 ----------

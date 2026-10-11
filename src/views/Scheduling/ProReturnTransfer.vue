@@ -56,11 +56,15 @@
                         {{ row.last_error || '-' }}
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('publicText.operation')" prop="operation" width="140" align="center" fixed="right">
+                <el-table-column :label="t('publicText.operation')" prop="operation" width="180" align="center" fixed="right">
                     <template #default="{ row }">
                         <el-tooltip effect="dark" :content="t('Scheduling.ProReturnTransfer.resubmit')" placement="top">
                             <el-button type="warning" size="small" icon="Refresh"
                                 :disabled="!canResubmit(row)" @click.stop="handleResubmit(row)" />
+                        </el-tooltip>
+                        <el-tooltip effect="dark" :content="t('Scheduling.ProReturnTransfer.lockMaterial')" placement="top">
+                            <el-button type="primary" size="small" icon="Lock"
+                                @click.stop="handleLockMaterial(row)" />
                         </el-tooltip>
                         <el-tooltip effect="dark" :content="t('publicText.delete')" placement="top">
                             <el-button type="danger" size="small" icon="Delete"
@@ -164,7 +168,8 @@ import {
     GetProductionReturnAllocationDetailList,
     DeleteProductionReturnAllocation,
     DeleteProductionReturnAllocationDetail,
-    ResubmitProductionReturnAllocation
+    ResubmitProductionReturnAllocation,
+    LockSaiYiAllocation
 } from "@/api/Scheduling/index";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import { ref, reactive, nextTick, onMounted, onBeforeUnmount } from "vue";
@@ -243,6 +248,29 @@ const handleResubmit = (row: any) => {
             ElNotification({
                 title: t('publicText.tipTitle'),
                 message: res.Success ? t('Scheduling.ProReturnTransfer.resubmitSuccess') : res.Message,
+                type: res.Success ? "success" : "error",
+            });
+            if (res.Success) {
+                getData();
+            }
+        });
+    }).catch(() => { });
+};
+
+const handleLockMaterial = (row: any) => {
+    ElMessageBox.confirm(t('Scheduling.ProReturnTransfer.lockMaterialConfirm'), t('publicText.confirm'), {
+        confirmButtonText: t('publicText.confirm'),
+        cancelButtonText: t('publicText.cancel'),
+        type: "warning",
+    }).then(() => {
+        const params = {
+            orderkey: row.return_no,
+            userno: userStore.getUserInfo,
+        };
+        LockSaiYiAllocation(params).then((res: any) => {
+            ElNotification({
+                title: t('publicText.tipTitle'),
+                message: res.Success ? t('Scheduling.ProReturnTransfer.lockMaterialSuccess') : res.Message,
                 type: res.Success ? "success" : "error",
             });
             if (res.Success) {

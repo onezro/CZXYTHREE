@@ -3,15 +3,34 @@
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <div class="flex justify-between items-center">
                 <el-form ref="searchFormRef" :inline="true" :model="searchForm" label-width="auto" @submit.prevent>
+                    <el-form-item :label="t('smtapply.laserPnConfig.updateTime')" class="mb-1">
+                        <el-date-picker v-model="searchForm.timeRange" type="datetimerange" size="small"
+                            :range-separator="t('publicText.to')"
+                            :start-placeholder="t('publicText.startDate')"
+                            :end-placeholder="t('publicText.endDate')"
+                            value-format="YYYY-MM-DD HH:mm:ss" style="width: 340px"
+                            :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
+                            @change="handleSearch" />
+                    </el-form-item>
                     <el-form-item :label="t('smtapply.laserPnConfig.pn')" class="mb-1">
-                        <el-input v-model="searchForm.pn"
-                            :placeholder="t('smtapply.laserPnConfig.pnPlaceholder')" clearable
-                            style="width: 200px" size="small" @keyup.enter="handleSearch" />
+                        <el-select v-model="searchForm.pn" clearable filterable
+                            :placeholder="t('smtapply.laserPnConfig.pnPlaceholder')"
+                            style="width: 200px" size="small" @change="handleSearch">
+                            <el-option v-for="item in productOptions" :key="item" :label="item" :value="item" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item :label="t('smtapply.laserPnConfig.panelShape')" class="mb-1">
+                        <el-select v-model="searchForm.pannelShape" clearable
+                            :placeholder="t('smtapply.laserPnConfig.panelShapePlaceholder')"
+                            style="width: 140px" size="small" @change="handleSearch">
+                            <el-option :label="t('smtapply.laserPnConfig.panelSingle')" value="1" />
+                            <el-option :label="t('smtapply.laserPnConfig.panelDouble')" value="2" />
+                        </el-select>
                     </el-form-item>
                     <el-form-item :label="t('smtapply.laserPnConfig.side')" class="mb-1">
                         <el-select v-model="searchForm.side" clearable
                             :placeholder="t('smtapply.laserPnConfig.sidePlaceholder')"
-                            style="width: 140px" size="small" @change="handleSearch">
+                            style="width: 120px" size="small" @change="handleSearch">
                             <el-option :label="t('smtapply.laserPnConfig.sideTOP')" value="TOP" />
                             <el-option :label="t('smtapply.laserPnConfig.sideBOT')" value="BOT" />
                         </el-select>
@@ -20,10 +39,11 @@
                         <el-select v-model="searchForm.mode" clearable filterable
                             :placeholder="t('smtapply.laserPnConfig.modePlaceholder')"
                             style="width: 180px" size="small" @change="handleSearch">
-                            <el-option v-for="item in modeOptions" :key="item.ID"
-                                :label="item.ModeName" :value="item.ModeName" />
+                            <el-option v-for="item in modeOptions" :key="item.value"
+                                :label="item.label" :value="item.value" />
                         </el-select>
                     </el-form-item>
+                    
                     <el-form-item class="mb-1">
                         <el-button type="primary" size="small" @click="handleSearch">{{ t("publicText.query") }}</el-button>
                         <el-button size="small" @click="resetSearch">{{ t("publicText.reset") }}</el-button>
@@ -40,16 +60,14 @@
                         {{ $index + 1 + (currentPage - 1) * pageSize }}
                     </template>
                 </el-table-column>
-                <el-table-column prop="PN" :label="t('smtapply.laserPnConfig.pn')"
-                    :min-width="getColumnWidth('PN')" fixed="left" show-overflow-tooltip />
+                <el-table-column prop="pn" :label="t('smtapply.laserPnConfig.pn')"
+                    :min-width="getColumnWidth('pn')" fixed="left" show-overflow-tooltip />
+                <el-table-column prop="PanelName" :label="t('smtapply.laserPnConfig.panelShape')"
+                    :min-width="getColumnWidth('PanelName')" align="center" />
                 <el-table-column prop="Side" :label="t('smtapply.laserPnConfig.side')"
                     :min-width="getColumnWidth('Side')" align="center" />
                 <el-table-column prop="ModeName" :label="t('smtapply.laserPnConfig.mode')"
                     :min-width="getColumnWidth('ModeName')" show-overflow-tooltip />
-                <el-table-column prop="CProgram" :label="t('smtapply.laserPnConfig.cProgram')"
-                    :min-width="getColumnWidth('CProgram')" show-overflow-tooltip />
-                <el-table-column prop="SProgram" :label="t('smtapply.laserPnConfig.sProgram')"
-                    :min-width="getColumnWidth('SProgram')" show-overflow-tooltip />
                 <el-table-column prop="Editor" :label="t('smtapply.laserPnConfig.editor')"
                     :min-width="getColumnWidth('Editor')" align="center" />
                 <el-table-column prop="LastUpdated" :label="t('smtapply.laserPnConfig.lastUpdated')"
@@ -80,42 +98,68 @@
             </div>
         </el-card>
 
-        <!-- 新增/编辑弹窗 -->
-        <el-dialog :title="dialogType === 'add' ? t('smtapply.laserPnConfig.addTitle') : t('smtapply.laserPnConfig.editTitle')"
-            v-model="dialogVisible" width="560px"
-            :close-on-click-modal="false" @closed="handleDialogClosed">
-            <el-form ref="formRef" :model="form" :rules="formRules" label-width="120px" size="small">
+        <!-- 新增绑定 -->
+        <el-dialog :title="t('smtapply.laserPnConfig.addTitle')" v-model="addVisible" width="560px"
+            :close-on-click-modal="false" @closed="handleAddClosed">
+            <el-form ref="addFormRef" :model="addForm" :rules="addFormRules" label-width="120px" size="small">
                 <el-form-item :label="t('smtapply.laserPnConfig.pn')" prop="pn">
-                    <el-input v-model="form.pn"
-                        :placeholder="t('smtapply.laserPnConfig.pnPlaceholder')" />
+                    <el-select v-model="addForm.pn" filterable clearable
+                        :placeholder="t('smtapply.laserPnConfig.pnPlaceholder')"
+                        style="width: 100%" @change="onAddPnChange">
+                        <el-option v-for="item in productOptions" :key="item" :label="item" :value="item" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item v-if="addPanelShape" :label="t('smtapply.laserPnConfig.panelShape')">
+                    <el-tag :type="addPanelShape === '2' ? 'warning' : 'success'" size="small">
+                        {{ addPanelShape === '2' ? t('smtapply.laserPnConfig.panelDouble') : t('smtapply.laserPnConfig.panelSingle') }}
+                    </el-tag>
+                </el-form-item>
+                <el-form-item v-if="addPanelShape" :label="t('smtapply.laserPnConfig.topMode')" prop="topMode">
+                    <el-select v-model="addForm.topMode" filterable
+                        :placeholder="t('smtapply.laserPnConfig.topModePlaceholder')" style="width: 100%">
+                        <el-option v-for="item in modeOptions" :key="item.value"
+                            :label="item.label" :value="item.value" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item v-if="addPanelShape === '2'" :label="t('smtapply.laserPnConfig.botMode')" prop="botMode">
+                    <el-select v-model="addForm.botMode" filterable
+                        :placeholder="t('smtapply.laserPnConfig.botModePlaceholder')" style="width: 100%">
+                        <el-option v-for="item in modeOptions" :key="item.value"
+                            :label="item.label" :value="item.value" />
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="addVisible = false">{{ t('publicText.cancel') }}</el-button>
+                <el-button type="primary" :loading="submitLoading" @click="submitAdd">{{ t('publicText.confirm') }}</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 编辑绑定 -->
+        <el-dialog :title="t('smtapply.laserPnConfig.editTitle')" v-model="editVisible" width="560px"
+            :close-on-click-modal="false" @closed="handleEditClosed">
+            <el-form ref="editFormRef" :model="editForm" :rules="editFormRules" label-width="120px" size="small">
+                <el-form-item :label="t('smtapply.laserPnConfig.pn')" prop="pn">
+                    <el-input v-model="editForm.pn" disabled />
                 </el-form-item>
                 <el-form-item :label="t('smtapply.laserPnConfig.side')" prop="side">
-                    <el-select v-model="form.side"
+                    <el-select v-model="editForm.side"
                         :placeholder="t('smtapply.laserPnConfig.sidePlaceholder')" style="width: 100%">
                         <el-option :label="t('smtapply.laserPnConfig.sideTOP')" value="TOP" />
                         <el-option :label="t('smtapply.laserPnConfig.sideBOT')" value="BOT" />
                     </el-select>
                 </el-form-item>
                 <el-form-item :label="t('smtapply.laserPnConfig.mode')" prop="mode">
-                    <el-select v-model="form.mode" filterable
-                        :placeholder="t('smtapply.laserPnConfig.modePlaceholder')" style="width: 100%"
-                        @change="onModeChange">
-                        <el-option v-for="item in modeOptions" :key="item.ID"
-                            :label="item.ModeName" :value="item.ModeName" />
+                    <el-select v-model="editForm.mode" filterable
+                        :placeholder="t('smtapply.laserPnConfig.modePlaceholder')" style="width: 100%">
+                        <el-option v-for="item in modeOptions" :key="item.value"
+                            :label="item.label" :value="item.value" />
                     </el-select>
-                </el-form-item>
-                <el-form-item :label="t('smtapply.laserPnConfig.cProgram')" prop="cProgram">
-                    <el-input v-model="form.cProgram"
-                        :placeholder="t('smtapply.laserPnConfig.cProgramPlaceholder')" />
-                </el-form-item>
-                <el-form-item :label="t('smtapply.laserPnConfig.sProgram')" prop="sProgram">
-                    <el-input v-model="form.sProgram"
-                        :placeholder="t('smtapply.laserPnConfig.sProgramPlaceholder')" />
                 </el-form-item>
             </el-form>
             <template #footer>
-                <el-button @click="dialogVisible = false">{{ t('publicText.cancel') }}</el-button>
-                <el-button type="primary" :loading="submitLoading" @click="submitForm">{{ t('publicText.confirm') }}</el-button>
+                <el-button @click="editVisible = false">{{ t('publicText.cancel') }}</el-button>
+                <el-button type="primary" :loading="submitLoading" @click="submitEdit">{{ t('publicText.confirm') }}</el-button>
             </template>
         </el-dialog>
     </div>
@@ -127,6 +171,8 @@ import {
     AddLaserPnConfig,
     UpdateLaserPnConfig,
     DeleteLaserPnConfig,
+    QueryLaserProductList,
+    QueryLaserPanelShape,
 } from "@/api/smtApply/LaserPnConfig";
 import { QueryLaserModeList } from "@/api/baseData/index";
 import { ref, reactive, computed, nextTick, watch, onMounted, onBeforeUnmount } from "vue";
@@ -148,21 +194,48 @@ const currentPage = ref(1);
 const pageSize = ref(20);
 const total = ref(0);
 const allData = ref<any[]>([]);
-const modeOptions = ref<any[]>([]);
+const productOptions = ref<string[]>([]);
+const modeList = ref<any[]>([]);
+
+// 板型数值 -> 后端约定的板型名称
+const panelNameMap: Record<string, string> = { "1": "单面板", "2": "双面板" };
 
 const searchForm = reactive({
     pn: "",
+    pannelShape: "",
     side: "",
     mode: "",
+    timeRange: [] as string[],
 });
+
+// 模式下拉：值统一为「模式编号.模式名称」
+const modeOptions = computed(() =>
+    modeList.value.map((m: any) => {
+        const value = m.ModeCode != null && m.ModeCode !== ""
+            ? `${m.ModeCode}.${m.ModeName}`
+            : (m.ModeName || "");
+        return { label: value, value };
+    })
+);
 
 // 前端过滤后的分页数据
 const filteredData = computed(() => {
+    const [start, end] = searchForm.timeRange || [];
+    const startVal = start ? dayjs(start).valueOf() : null;
+    const endVal = end ? dayjs(end).valueOf() : null;
     return allData.value.filter((r: any) => {
-        const pnOk = !searchForm.pn || (r.PN && r.PN.toLowerCase().includes(searchForm.pn.toLowerCase()));
+        const pnOk = !searchForm.pn || (r.pn && String(r.pn).toLowerCase().includes(searchForm.pn.toLowerCase()));
+        const shapeOk = !searchForm.pannelShape || String(r.PannelShape) === searchForm.pannelShape;
         const sideOk = !searchForm.side || r.Side === searchForm.side;
-        const modeOk = !searchForm.mode || r.ModeName === searchForm.mode;
-        return pnOk && sideOk && modeOk;
+        const modeOk = !searchForm.mode
+            || `${r.ModeCode}.${r.ModeName}` === searchForm.mode
+            || r.ModeName === searchForm.mode;
+        let timeOk = true;
+        if (startVal !== null && endVal !== null) {
+            const rowVal = r.LastUpdated ? dayjs(r.LastUpdated).valueOf() : NaN;
+            timeOk = !isNaN(rowVal) && rowVal >= startVal && rowVal <= endVal;
+        }
+        return pnOk && shapeOk && sideOk && modeOk && timeOk;
     });
 });
 
@@ -182,114 +255,152 @@ const { getColumnWidth } = useTableColumnWidth(tableRef, allData, {
     excludeLabels: [t("publicText.index"), t("publicText.operation")],
 });
 
-const dialogVisible = ref(false);
-const dialogType = ref<"add" | "edit">("add");
-const formRef = ref();
-const form = reactive({
+// 新增绑定
+const addVisible = ref(false);
+const addFormRef = ref();
+const addPanelShape = ref("");
+const addForm = reactive({
+    pn: "",
+    topMode: "",
+    botMode: "",
+});
+
+const addFormRules = computed(() => ({
+    pn: [
+        { required: true, message: t("smtapply.laserPnConfig.pnRequired"), trigger: "change" },
+    ],
+    topMode: addPanelShape.value
+        ? [{ required: true, message: t("smtapply.laserPnConfig.topModeRequired"), trigger: "change" }]
+        : [],
+    botMode: addPanelShape.value === "2"
+        ? [{ required: true, message: t("smtapply.laserPnConfig.botModeRequired"), trigger: "change" }]
+        : [],
+}));
+
+const resetAddForm = () => {
+    addForm.pn = "";
+    addForm.topMode = "";
+    addForm.botMode = "";
+    addPanelShape.value = "";
+};
+
+const openAdd = () => {
+    resetAddForm();
+    addVisible.value = true;
+};
+
+const handleAddClosed = () => {
+    addFormRef.value?.resetFields();
+    resetAddForm();
+};
+
+// 选择产品后查询板型，决定单面板/双面板字段
+const onAddPnChange = async (pn: string) => {
+    addPanelShape.value = "";
+    addForm.topMode = "";
+    addForm.botMode = "";
+    if (!pn) return;
+    try {
+        const res: any = await QueryLaserPanelShape({ PartNumber: pn });
+        if (res.Success || res.Code === 0 || res.code === 200) {
+            addPanelShape.value = String(res.Data?.PannelShape || "");
+        }
+    } catch (error) {
+        // 静默失败
+    }
+};
+
+const submitAdd = async () => {
+    await addFormRef.value?.validate();
+    submitLoading.value = true;
+    try {
+        const userNo = userStore.getUserInfo || "";
+        const params: any = {
+            pn: addForm.pn,
+            topMode: addForm.topMode,
+            Editor: userNo,
+            UserNo: userNo,
+        };
+        if (addPanelShape.value === "2") {
+            params.botMode = addForm.botMode;
+        }
+        const res: any = await AddLaserPnConfig(params);
+        if (res.Success || res.Code === 0 || res.code === 200) {
+            ElMessage.success(res.Msg || res.Message || t("message.addSuccess"));
+            addVisible.value = false;
+            getData();
+        } else {
+            ElMessage.error(res.Msg || res.Message || t("message.addFailure"));
+        }
+    } catch (error) {
+        ElMessage.error(t("message.addFailure"));
+    } finally {
+        submitLoading.value = false;
+    }
+};
+
+// 编辑绑定（一次改一行）
+const editVisible = ref(false);
+const editFormRef = ref();
+const editForm = reactive({
     ID: "",
     pn: "",
     side: "",
     mode: "",
-    cProgram: "",
-    sProgram: "",
-    Editor: "",
 });
 
-// 当前选中模式的 C/S 必填配置
-const selectedModeObj = computed(() =>
-    modeOptions.value.find((m: any) => m.ModeName === form.mode)
-);
-const cProgramRequired = computed(() => !!selectedModeObj.value?.HasCProgram);
-const sProgramRequired = computed(() => !!selectedModeObj.value?.HasSProgram);
-
-const formRules = computed(() => ({
-    pn: [
-        { required: true, message: t("smtapply.laserPnConfig.pnRequired"), trigger: "blur" },
-    ],
+const editFormRules = {
     side: [
         { required: true, message: t("smtapply.laserPnConfig.sideRequired"), trigger: "change" },
     ],
     mode: [
         { required: true, message: t("smtapply.laserPnConfig.modeRequired"), trigger: "change" },
     ],
-    cProgram: cProgramRequired.value
-        ? [{ required: true, message: t("smtapply.laserPnConfig.cProgramPlaceholder"), trigger: "blur" }]
-        : [],
-    sProgram: sProgramRequired.value
-        ? [{ required: true, message: t("smtapply.laserPnConfig.sProgramPlaceholder"), trigger: "blur" }]
-        : [],
-}));
-
-const onModeChange = () => {
-    // 模式切换后重新校验 C/S 程序字段
-    nextTick(() => {
-        formRef.value?.clearValidate(["cProgram", "sProgram"]);
-    });
 };
 
-const resetForm = () => {
-    Object.assign(form, {
-        ID: "",
-        pn: "",
-        side: "",
-        mode: "",
-        cProgram: "",
-        sProgram: "",
-        Editor: "",
-    });
-};
-
-const handleDialogClosed = () => {
-    formRef.value?.resetFields();
-    resetForm();
-};
-
-const openAdd = () => {
-    dialogType.value = "add";
-    resetForm();
-    dialogVisible.value = true;
+const resetEditForm = () => {
+    Object.assign(editForm, { ID: "", pn: "", side: "", mode: "" });
 };
 
 const openEdit = (row: any) => {
-    dialogType.value = "edit";
-    Object.assign(form, {
+    Object.assign(editForm, {
         ID: row.ID || "",
-        pn: row.PN || "",
+        pn: row.pn || "",
         side: row.Side || "",
-        mode: row.ModeName || "",
-        cProgram: row.CProgram || "",
-        sProgram: row.SProgram || "",
-        Editor: row.Editor || "",
+        mode: row.ModeCode != null && row.ModeCode !== ""
+            ? `${row.ModeCode}.${row.ModeName}`
+            : (row.ModeName || ""),
     });
-    dialogVisible.value = true;
+    editVisible.value = true;
 };
 
-const submitForm = async () => {
-    await formRef.value?.validate();
+const handleEditClosed = () => {
+    editFormRef.value?.resetFields();
+    resetEditForm();
+};
+
+const submitEdit = async () => {
+    await editFormRef.value?.validate();
     submitLoading.value = true;
     try {
         const userNo = userStore.getUserInfo || "";
-        const params = {
-            ID: form.ID,
-            pn: form.pn,
-            side: form.side,
-            mode: form.mode,
-            cProgram: form.cProgram,
-            sProgram: form.sProgram,
+        const res: any = await UpdateLaserPnConfig({
+            ID: editForm.ID,
+            pn: editForm.pn,
+            side: editForm.side,
+            mode: editForm.mode,
             Editor: userNo,
             UserNo: userNo,
-        };
-        const apiFn = dialogType.value === "add" ? AddLaserPnConfig : UpdateLaserPnConfig;
-        const res: any = await apiFn(params);
+        });
         if (res.Success || res.Code === 0 || res.code === 200) {
-            ElMessage.success(dialogType.value === "add" ? t("message.addSuccess") : t("message.editSuccess"));
-            dialogVisible.value = false;
+            ElMessage.success(res.Msg || res.Message || t("message.editSuccess"));
+            editVisible.value = false;
             getData();
         } else {
-            ElMessage.error(res.Msg || res.Message || (dialogType.value === "add" ? t("message.addFailure") : t("message.editFailure")));
+            ElMessage.error(res.Msg || res.Message || t("message.editFailure"));
         }
     } catch (error) {
-        ElMessage.error(dialogType.value === "add" ? t("message.addFailure") : t("message.editFailure"));
+        ElMessage.error(t("message.editFailure"));
     } finally {
         submitLoading.value = false;
     }
@@ -298,7 +409,7 @@ const submitForm = async () => {
 const handleDelete = (row: any) => {
     ElMessageBox.confirm(
         t("smtapply.laserPnConfig.deleteConfirm")
-            .replace("{pn}", row.PN || "")
+            .replace("{pn}", row.pn || "")
             .replace("{side}", row.Side || ""),
         t("publicText.tip"),
         { confirmButtonText: t("publicText.confirm"), cancelButtonText: t("publicText.cancel"), type: "warning" }
@@ -306,10 +417,9 @@ const handleDelete = (row: any) => {
         .then(async () => {
             loading.value = true;
             try {
-                const userNo = userStore.getUserInfo || "";
-                const res: any = await DeleteLaserPnConfig({ ID: row.ID, pn: row.PN, side: row.Side, UserNo: userNo });
+                const res: any = await DeleteLaserPnConfig({ ID: row.ID });
                 if (res.Success || res.Code === 0 || res.code === 200) {
-                    ElMessage.success(t("message.deleteSuccess"));
+                    ElMessage.success(res.Msg || res.Message || t("message.deleteSuccess"));
                     getData();
                 } else {
                     ElMessage.error(res.Msg || res.Message || t("message.deleteFailure"));
@@ -329,8 +439,12 @@ const getData = async () => {
     try {
         const params = {
             pn: searchForm.pn,
+            pannelShape: searchForm.pannelShape,
+            panelName: searchForm.pannelShape ? panelNameMap[searchForm.pannelShape] : "",
             side: searchForm.side,
             mode: searchForm.mode,
+            startTime: searchForm.timeRange?.[0] || "",
+            endTime: searchForm.timeRange?.[1] || "",
         };
         const res: any = await QueryLaserPnConfigList(params);
         if (res.Success || res.Code === 0 || res.code === 200) {
@@ -352,17 +466,29 @@ const getData = async () => {
     }
 };
 
-// 获取模式列表
+// 镭雕可选产品
+const getProductOptions = async () => {
+    try {
+        const res: any = await QueryLaserProductList({ pn: "" });
+        if (res.Success || res.Code === 0 || res.code === 200) {
+            productOptions.value = Array.isArray(res.Data) ? res.Data : [];
+        }
+    } catch (error) {
+        // 静默失败
+    }
+};
+
+// 镭雕模式列表
 const getModeOptions = async () => {
     try {
         const res: any = await QueryLaserModeList({});
         if (res.Success || res.Code === 0 || res.code === 200) {
             if (res.Data && Array.isArray(res.Data)) {
-                modeOptions.value = res.Data;
+                modeList.value = res.Data;
             } else if (res.Data && Array.isArray(res.Data.rows)) {
-                modeOptions.value = res.Data.rows;
+                modeList.value = res.Data.rows;
             } else {
-                modeOptions.value = [];
+                modeList.value = [];
             }
         }
     } catch (error) {
@@ -371,14 +497,16 @@ const getModeOptions = async () => {
 };
 
 const handleSearch = () => {
-    currentPage.value = 1;
+    getData();
 };
 
 const resetSearch = () => {
     searchForm.pn = "";
+    searchForm.pannelShape = "";
     searchForm.side = "";
     searchForm.mode = "";
-    currentPage.value = 1;
+    searchForm.timeRange = [];
+    getData();
 };
 
 const handleSizeChange = (val: number) => {
@@ -397,13 +525,14 @@ const formatDate = (dateStr: string) => {
 
 const getScreenHeight = () => {
     nextTick(() => {
-        tableHeight.value = window.innerHeight - 190;
+        tableHeight.value = window.innerHeight - 220;
     });
 };
 
 onMounted(() => {
     getScreenHeight();
     window.addEventListener("resize", getScreenHeight);
+    getProductOptions();
     getModeOptions();
     getData();
 });

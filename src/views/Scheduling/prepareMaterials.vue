@@ -79,8 +79,8 @@
                     :min-width="getColumnWidth1('MaterialPreparationStatusText')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.IsKitted')" prop="IsKittedText"
                     :min-width="getColumnWidth1('IsKittedText')" />
-                <el-table-column :label="t('Scheduling.PrepareMaterials.KittingStatus')" prop="KittingStatusText"
-                    :min-width="getColumnWidth1('KittingStatusText')" />
+                <!-- <el-table-column :label="t('Scheduling.PrepareMaterials.KittingStatus')" prop="KittingStatusText"
+                    :min-width="getColumnWidth1('KittingStatusText')" /> -->
                 <el-table-column :label="t('Scheduling.PrepareMaterials.Reason')" prop="Reason"
                     :min-width="getColumnWidth1('Reason')" />
                 <el-table-column fixed="right" :label="$t('publicText.operation')" width="80" align="center">

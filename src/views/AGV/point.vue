@@ -9,6 +9,28 @@
                             @keyup.enter="handleSearch" style="width: 200px"
                             :placeholder="$t('AGV.point.inputPoint')" />
                     </el-form-item>
+                    <el-form-item :label="$t('AGV.point.pointType')" prop="pointType" class="mb-2">
+                        <el-select v-model="searchForm.pointType" clearable filterable style="width: 180px"
+                            :placeholder="$t('AGV.point.selectPointType')">
+                            <el-option v-for="item in pointTypeOptions" :key="'sp-' + item.value" :label="item.label"
+                                :value="String(item.value)" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item :label="$t('AGV.point.pathType')" prop="pathtype" class="mb-2">
+                        <el-select v-model="searchForm.pathtype" clearable filterable style="width: 180px"
+                            :placeholder="$t('AGV.point.selectPathType')">
+                            <el-option v-for="item in pathTypeOptions" :key="'spa-' + item.pointtype_no"
+                                :value="String(item.pointtype_no)"
+                                :label="`${item.pointtype_no} ${item.pointtype_name ?? ''}`" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item :label="$t('AGV.point.lineList')" prop="line" class="mb-2">
+                        <el-select v-model="searchForm.line" clearable filterable style="width: 180px"
+                            :placeholder="$t('AGV.point.lineListPlaceholder')">
+                            <el-option v-for="item in lineOptions" :key="'sl-' + item.line" :value="String(item.line)"
+                                :label="item.line" />
+                        </el-select>
+                    </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button :type="'primary'" @click="handleSearch">{{
                             t("publicText.query")
@@ -313,6 +335,9 @@ const lineOptions = ref<any[]>([]);
 
 const searchForm = reactive({
     point: "",
+    pointType: "",
+    pathtype: "",
+    line: "",
 });
 
 const pageObj = reactive({
@@ -529,6 +554,9 @@ const getData = () => {
     loading.value = true;
     const params = {
         point: searchForm.point || "",
+        pointType: searchForm.pointType || "",
+        pathtype: searchForm.pathtype || "",
+        line: searchForm.line || "",
         PageIndex: pageObj.currentPage,
         PageSize: pageObj.pageSize,
     };
@@ -559,6 +587,9 @@ const handleSearch = () => {
 
 const handleReset = () => {
     searchForm.point = "";
+    searchForm.pointType = "";
+    searchForm.pathtype = "";
+    searchForm.line = "";
     pageObj.currentPage = 1;
     getData();
 };

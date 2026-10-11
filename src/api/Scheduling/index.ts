@@ -203,9 +203,19 @@ export function DeleteProductionReturnAllocationDetail(data:any) {
 }
 
 //重新回传生产退料
+//重新提交
 export function ResubmitProductionReturnAllocation(data:any) {
     return request({
         url: "/api/mes/allocation/ResubmitProductionReturnAllocation",
+        method: "post",
+        data
+    });
+}
+
+//锁料
+export function LockSaiYiAllocation(data:any) {
+    return request({
+        url: "/api/mes/allocation/LockSaiYiAllocation",
         method: "post",
         data
     });

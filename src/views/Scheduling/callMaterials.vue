@@ -138,8 +138,8 @@
                     :min-width="getListColumnWidth('MaterialRequestList_ActiveQty')" align="right" />
                 <el-table-column fixed="right" :label="t('Scheduling.CallMaterials.Result')" :min-width="getListColumnWidth('MaterialRequestList_Result')" align="center">
                     <template #default="{ row }">
-                        <el-tag :type="row.MaterialRequestList_ActiveQty >= row.MaterialRequestList_Qty ? 'success' : 'danger'" size="small">
-                            {{ row.MaterialRequestList_ActiveQty >= row.MaterialRequestList_Qty ? t('Scheduling.CallMaterials.Satisfied') : t('Scheduling.CallMaterials.NotSatisfied') }}
+                        <el-tag :type="row.MaterialRequestList_ActiveQty > 0 && row.MaterialRequestList_ActiveQty >= row.MaterialRequestList_Qty ? 'success' : 'danger'" size="small">
+                            {{ row.MaterialRequestList_ActiveQty > 0 && row.MaterialRequestList_ActiveQty >= row.MaterialRequestList_Qty ? t('Scheduling.CallMaterials.Satisfied') : t('Scheduling.CallMaterials.NotSatisfied') }}
                         </el-tag>
                     </template>
                 </el-table-column>
@@ -324,7 +324,7 @@ const detailSpanMethod = ({ rowIndex, columnIndex }: { row: any; column: any; ro
 const listStatistics = computed(() => {
     const total = detailData.list.length;
     const satisfied = detailData.list.filter(
-        (row: any) => row.MaterialRequestList_ActiveQty >= row.MaterialRequestList_Qty
+        (row: any) => row.MaterialRequestList_ActiveQty > 0 && row.MaterialRequestList_ActiveQty >= row.MaterialRequestList_Qty
     ).length;
     return { total, satisfied, notSatisfied: total - satisfied };
 });

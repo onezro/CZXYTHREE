@@ -151,6 +151,21 @@
                                             size="small" />
                                     </template>
                                 </el-table-column>
+                                <el-table-column :label="t('baseData.puzzlesBase.caseNo2')" width="120">
+                                    <template #default="scope">
+                                        <el-select v-model="scope.row.caseno2" size="small" clearable filterable
+                                            >
+                                            <el-option v-for="item in boxInfoList" :key="item.box_code"
+                                                :label="item.box_code" :value="item.box_code" />
+                                        </el-select>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('baseData.puzzlesBase.caseNoProductNum2')" width="120">
+                                    <template #default="scope">
+                                        <el-input v-model.number="scope.row.casenoproductnum2" type="number"
+                                            size="small" />
+                                    </template>
+                                </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.name')" prop="name">
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.spec')" prop="model" width="200" show-overflow-tooltip>
@@ -270,6 +285,21 @@
                                             size="small" />
                                     </template>
                                 </el-table-column>
+                                <el-table-column :label="t('baseData.puzzlesBase.caseNo2')" width="120">
+                                    <template #default="scope">
+                                        <el-select v-model="scope.row.caseno2" size="small" clearable filterable
+                                           >
+                                            <el-option v-for="item in boxInfoList" :key="item.box_code"
+                                                :label="item.box_code" :value="item.box_code" />
+                                        </el-select>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column :label="t('baseData.puzzlesBase.caseNoProductNum2')" width="120">
+                                    <template #default="scope">
+                                        <el-input v-model.number="scope.row.casenoproductnum2" type="number"
+                                            size="small" />
+                                    </template>
+                                </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.name')" prop="name">
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.spec')" prop="model" width="200" show-overflow-tooltip>
@@ -376,7 +406,9 @@ const form = ref({
             module_end: 0,
             boxtype: '',
             caseno: '',
-            casenoproductnum: 0
+            casenoproductnum: 0,
+            caseno2: '',
+            casenoproductnum2: 0
         }
     ]
 })
@@ -500,7 +532,9 @@ const removeBoardItem = (index: number) => {
             module_end: 0,
             boxtype: '',
             caseno: '',
-            casenoproductnum: 0
+            casenoproductnum: 0,
+            caseno2: '',
+            casenoproductnum2: 0
         })
     }
 }
@@ -518,7 +552,9 @@ const addSmallBoard = () => {
         module_end: 0,
         boxtype: '',
         caseno: '',
-        casenoproductnum: 0
+        casenoproductnum: 0,
+        caseno2: '',
+        casenoproductnum2: 0
     })
 }
 
@@ -660,7 +696,9 @@ const restForm = () => {
             module_end: 0,
             boxtype: '',
             caseno: '',
-            casenoproductnum: 0
+            casenoproductnum: 0,
+            caseno2: '',
+            casenoproductnum2: 0
         }
     ]
 }
@@ -696,7 +734,9 @@ const handleEdit = (row: any) => {
               module_end: 0,
               boxtype: '',
               caseno: '',
-              casenoproductnum: 0
+              casenoproductnum: 0,
+              caseno2: '',
+              casenoproductnum2: 0
             }
           ]
         } else {
@@ -738,7 +778,9 @@ const handleDetailEdit = () => {
         module_end: 0,
         boxtype: '',
         caseno: '',
-        casenoproductnum: 0
+        casenoproductnum: 0,
+        caseno2: '',
+        casenoproductnum2: 0
     })
 }
 
@@ -759,7 +801,9 @@ const handleDetailDelete = (row: any) => {
             module_end: 0,
             boxtype: '',
             caseno: '',
-            casenoproductnum: 0
+            casenoproductnum: 0,
+            caseno2: '',
+            casenoproductnum2: 0
         })
     }
 }

@@ -2,6 +2,13 @@
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.native.prevent>
+                <el-form-item :label="t('permissions.operationLog.apiType')" prop="ApiType" class="mb-2">
+                    <el-select v-model="getForm.ApiType" placeholder="请选择接口类型" clearable style="width: 200px;"
+                        @change="searchData" @clear="searchData">
+                        <el-option label="Web" value="Web" />
+                        <el-option label="Iot" value="Iot" />
+                    </el-select>
+                </el-form-item>
                 <el-form-item :label="t('permissions.operationLog.timeRange')" prop="TimeRange" class="mb-2">
                     <el-date-picker style="width: 350px;" v-model="queryTime" type="datetimerange" range-separator="-"
                         start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD HH:mm:ss"
@@ -179,6 +186,7 @@ const total = ref(0);
 const queryTime = ref<any[]>([]);
 
 const getForm = reactive({
+    ApiType: "Web",
     RequestUrl: "",
     StartTime: "",
     EndTime: "",
@@ -319,6 +327,7 @@ const truncateJson = (jsonStr: string) => {
 };
 
 const resetForm = () => {
+    getForm.ApiType = "Web";
     const start = new Date();
     start.setHours(0, 0, 0, 0);
     const end = new Date();

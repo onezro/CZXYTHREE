@@ -138,6 +138,14 @@ export function UpdateLaserMode(data: any) {
     });
 }
 
+export function UpdateLaserModeStatus(data: any) {
+    return request({
+        url: "/api/LaserMode/UpdateLaserModeStatus",
+        method: "post",
+        data,
+    });
+}
+
 export function DeleteLaserMode(data: any) {
     return request({
         url: "/api/LaserMode/DeleteLaserMode",

@@ -115,16 +115,20 @@
                                     </el-tag>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="ExecuteTime" :label="t('esd.task.executeTime')"
-                                :min-width="getColumnWidth('ExecuteTime')" />
-                            <el-table-column prop="CreateTime" :label="t('esd.checklist.createTime')"
-                                :min-width="getColumnWidth('CreateTime')" />
-                            <el-table-column prop="CreateUser" :label="t('esd.checklist.createUser')"
-                                :min-width="getColumnWidth('CreateUser')" />
+                            <el-table-column prop="EffectiveTime" :label="t('esd.task.effectiveTime')"
+                                :min-width="getColumnWidth('EffectiveTime')">
+                                <template #default="{ row }">{{ formatDateTime(row.EffectiveTime) }}</template>
+                            </el-table-column>
+                            
+                            <el-table-column prop="CreateTime" :label="t('esd.task.taskCreateTime')"
+                                :min-width="getColumnWidth('CreateTime')">
+                                <template #default="{ row }">{{ formatDateTime(row.CreateTime) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="UserName" :label="t('esd.checklist.createUser')"
+                                :min-width="getColumnWidth('UserName')" />
                             <el-table-column :label="t('publicText.operation')" fixed="right" width="260"
                                 align="center">
                                 <template #default="{ row }">
-                                   
                                     <el-button size="small" type="warning" @click="viewTaskDetail(row.TaskCode)" icon="Tickets"></el-button>
                                     <el-button size="small" type="primary" @click="openEditTask(row)" icon="Edit" />
                                     <el-button size="small" type="info" @click="handleScrapTask(row)"
@@ -236,12 +240,16 @@
                                     </el-tag>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="ExecuteTime" :label="t('esd.task.executeTime')"
-                                :min-width="getColumnWidth2('ExecuteTime')" />
-                            <el-table-column prop="CreateTime" :label="t('esd.checklist.createTime')"
-                                :min-width="getColumnWidth2('CreateTime')" />
-                            <el-table-column prop="CreateUser" :label="t('esd.checklist.createUser')"
-                                :min-width="getColumnWidth2('CreateUser')" />
+                            <el-table-column prop="EffectiveTime" :label="t('esd.task.effectiveTime')"
+                                :min-width="getColumnWidth2('EffectiveTime')">
+                                <template #default="{ row }">{{ formatDateTime(row.EffectiveTime) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="CreateTime" :label="t('esd.task.taskCreateTime')"
+                                :min-width="getColumnWidth2('CreateTime')">
+                                <template #default="{ row }">{{ formatDateTime(row.CreateTime) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="UserName" :label="t('esd.checklist.createUser')"
+                                :min-width="getColumnWidth2('UserName')" />
                             <el-table-column :label="t('publicText.operation')" fixed="right" width="120"
                                 align="center">
                                 <template #default="{ row }">
@@ -349,12 +357,16 @@
                                     </el-tag>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="ExecuteTime" :label="t('esd.task.executeTime')"
-                                :min-width="getColumnWidth3('ExecuteTime')" />
-                            <el-table-column prop="CreateTime" :label="t('esd.checklist.createTime')"
-                                :min-width="getColumnWidth3('CreateTime')" />
-                            <el-table-column prop="CreateUser" :label="t('esd.checklist.createUser')"
-                                :min-width="getColumnWidth3('CreateUser')" />
+                            <el-table-column prop="EffectiveTime" :label="t('esd.task.effectiveTime')"
+                                :min-width="getColumnWidth3('EffectiveTime')">
+                                <template #default="{ row }">{{ formatDateTime(row.EffectiveTime) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="CreateTime" :label="t('esd.task.taskCreateTime')"
+                                :min-width="getColumnWidth3('CreateTime')">
+                                <template #default="{ row }">{{ formatDateTime(row.CreateTime) }}</template>
+                            </el-table-column>
+                            <el-table-column prop="UserName" :label="t('esd.checklist.createUser')"
+                                :min-width="getColumnWidth3('UserName')" />
                             <!-- 列同上，无操作列（仅查看详情） -->
                             <el-table-column :label="t('publicText.operation')" fixed="right" width="120"
                                 align="center">
@@ -543,7 +555,7 @@
                     <el-input v-model="addTaskForm.ProductionBatch" placeholder="生产批次" />
                 </el-form-item>
                 <el-form-item :label="t('esd.task.effectiveTime')" prop="EffectiveTime">
-                    <el-date-picker v-model="addTaskForm.EffectiveTime" type="datetime" placeholder="选择生效时间"
+                    <el-date-picker v-model="addTaskForm.EffectiveTime" type="datetime" placeholder="选择计划执行时间"
                         value-format="YYYY-MM-DD HH:mm:ss" style="width:100%" />
                 </el-form-item>
             </el-form>
@@ -719,6 +731,7 @@
 import { ref, reactive, computed, onBeforeMount, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useI18n } from 'vue-i18n';
+import dayjs from 'dayjs';
 import { useUserStoreWithOut } from '@/stores/modules/user';
 import {
     QueryPendingTaskList,
@@ -750,6 +763,8 @@ import { calculateColumnsWidth } from "@/utils/tableminWidth";
 
 const { t } = useI18n();
 const userStore = useUserStoreWithOut();
+
+const formatDateTime = (val: any) => val ? dayjs(val).format('YYYY-MM-DD HH:mm:ss') : '';
 
 // ==================== 公共下拉数据（ESD类型、点检频率） ====================
 const selectData = reactive({
@@ -866,8 +881,10 @@ const groupTasks = (rows: any[]) => {
                 FormCode: row.FormCode,
                 ExecuteStatus: row.ExecuteStatus,
                 ExecuteTime: row.ExecuteTime,
+                EffectiveTime: row.EffectiveTime,
                 CreateTime: row.CreateTime,
                 CreateUser: row.CreateUser,
+                UserName: row.UserName,
                 // 其他主字段
                 _items: []
             });
@@ -1074,6 +1091,7 @@ const addTaskForm = reactive({
 });
 const addTaskRules = {
     FormId: [{ required: true, message: t('message.pleaseSelect') + t('esd.task.selectForm'), trigger: 'change' }],
+    EffectiveTime: [{ required: true, message: t('message.pleaseSelect') + t('esd.task.effectiveTime'), trigger: 'change' }],
 };
 const openAddTask = () => {
     addTaskForm.FormId = undefined;
@@ -1095,6 +1113,7 @@ const submitAddTask = async () => {
             ? addTaskForm.ResponsibleUser.join(',') 
             : addTaskForm.ResponsibleUser;
         const params = {
+            PlanId: null,
             FormId: addTaskForm.FormId,
             EsdTypeCode: addTaskForm.EsdTypeCode,
             WorkStation: addTaskForm.WorkStation,

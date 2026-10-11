@@ -95,14 +95,14 @@
                     align="right" />
                 <el-table-column :label="t('incomingManage.inventoryCheck.cellId')" prop="cell_id"
                     :min-width="getColumnWidth('cell_id')" show-overflow-tooltip />
-                <el-table-column :label="t('incomingManage.inventoryCheck.isFirst')" prop="is_first" width="100"
+                <!-- <el-table-column :label="t('incomingManage.inventoryCheck.isFirst')" prop="is_first" width="100"
                     align="center">
                     <template #default="{ row }">
                         <el-tag :type="row.is_first ? 'success' : 'info'" size="small">
                             {{ row.is_first ? t('publicText.yes') : t('publicText.no') }}
                         </el-tag>
                     </template>
-                </el-table-column>
+                </el-table-column> -->
                 <el-table-column :label="t('incomingManage.inventoryCheck.createrName')" prop="creater_name" width="100"
                     align="center" />
                 <el-table-column :label="t('incomingManage.inventoryCheck.createrTime')" prop="creater_time"

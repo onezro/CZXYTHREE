@@ -24,22 +24,15 @@
                         {{ $index + 1 + (currentPage - 1) * pageSize }}
                     </template>
                 </el-table-column>
+                <el-table-column prop="ModeCode" :label="t('baseData.laserEngravingMode.modeCode')"
+                    width="110" fixed="left" align="center" />
                 <el-table-column prop="ModeName" :label="t('baseData.laserEngravingMode.modeName')"
-                    :min-width="getColumnWidth('ModeName')" fixed="left" show-overflow-tooltip />
-                <el-table-column prop="HasCProgram" :label="t('baseData.laserEngravingMode.hasCProgram')"
-                    :min-width="getColumnWidth('HasCProgram')" align="center">
+                    :min-width="getColumnWidth('ModeName')" show-overflow-tooltip />
+                <el-table-column prop="Status" :label="t('baseData.laserEngravingMode.status')"
+                    width="110" align="center">
                     <template #default="{ row }">
-                        <el-tag :type="row.HasCProgram ? 'success' : 'info'" size="small">
-                            {{ row.HasCProgram ? t('publicText.yes') : t('publicText.no') }}
-                        </el-tag>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="HasSProgram" :label="t('baseData.laserEngravingMode.hasSProgram')"
-                    :min-width="getColumnWidth('HasSProgram')" align="center">
-                    <template #default="{ row }">
-                        <el-tag :type="row.HasSProgram ? 'success' : 'info'" size="small">
-                            {{ row.HasSProgram ? t('publicText.yes') : t('publicText.no') }}
-                        </el-tag>
+                        <el-switch :model-value="isStatusEnabled(row.Status)" :loading="row._toggleLoading"
+                            @change="(val: boolean) => handleToggleStatus(row, val)" />
                     </template>
                 </el-table-column>
                 <el-table-column prop="Editor" :label="t('baseData.laserEngravingMode.editor')"
@@ -50,10 +43,9 @@
                         {{ formatDate(row.LastUpdated) }}
                     </template>
                 </el-table-column>
-                <el-table-column fixed="right" :label="t('publicText.operation')" width="140" align="center">
+                <el-table-column fixed="right" :label="t('publicText.operation')" width="100" align="center">
                     <template #default="{ row }">
                         <el-button size="small" type="primary" @click="openEdit(row)" icon="Edit" />
-                        <el-button size="small" type="danger" @click="handleDelete(row)" icon="Delete" />
                     </template>
                 </el-table-column>
                 <template #empty>
@@ -77,17 +69,15 @@
             v-model="dialogVisible" width="520px"
             :close-on-click-modal="false" @closed="handleDialogClosed">
             <el-form ref="formRef" :model="form" :rules="formRules" label-width="130px" size="small">
+                <el-form-item :label="t('baseData.laserEngravingMode.modeCode')" prop="modeCode">
+                    <el-select v-model="form.modeCode" style="width: 100%"
+                        :placeholder="t('baseData.laserEngravingMode.modeCodePlaceholder')">
+                        <el-option v-for="n in 12" :key="n" :label="String(n)" :value="String(n)" />
+                    </el-select>
+                </el-form-item>
                 <el-form-item :label="t('baseData.laserEngravingMode.modeName')" prop="mode">
                     <el-input v-model="form.mode"
                         :placeholder="t('baseData.laserEngravingMode.modeNamePlaceholder')" />
-                </el-form-item>
-                <el-form-item :label="t('baseData.laserEngravingMode.hasCProgram')" prop="hasCProgram">
-                    <el-switch v-model="form.hasCProgram"
-                        :active-text="t('publicText.yes')" :inactive-text="t('publicText.no')" />
-                </el-form-item>
-                <el-form-item :label="t('baseData.laserEngravingMode.hasSProgram')" prop="hasSProgram">
-                    <el-switch v-model="form.hasSProgram"
-                        :active-text="t('publicText.yes')" :inactive-text="t('publicText.no')" />
                 </el-form-item>
             </el-form>
             <template #footer>
@@ -103,10 +93,10 @@ import {
     QueryLaserModeList,
     AddLaserMode,
     UpdateLaserMode,
-    DeleteLaserMode,
+    UpdateLaserModeStatus,
 } from "@/api/baseData/index";
 import { ref, reactive, computed, nextTick, watch, onMounted, onBeforeUnmount } from "vue";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import { useI18n } from "vue-i18n";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
@@ -159,13 +149,15 @@ const dialogType = ref<"add" | "edit">("add");
 const formRef = ref();
 const form = reactive({
     ID: "",
+    modeCode: "",
     mode: "",
-    hasCProgram: false,
-    hasSProgram: false,
     Editor: "",
 });
 
 const formRules = {
+    modeCode: [
+        { required: true, message: t("baseData.laserEngravingMode.modeCodeRequired"), trigger: "change" },
+    ],
     mode: [
         { required: true, message: t("baseData.laserEngravingMode.modeRequired"), trigger: "blur" },
     ],
@@ -174,9 +166,8 @@ const formRules = {
 const resetForm = () => {
     Object.assign(form, {
         ID: "",
+        modeCode: "",
         mode: "",
-        hasCProgram: false,
-        hasSProgram: false,
         Editor: "",
     });
 };
@@ -196,9 +187,8 @@ const openEdit = (row: any) => {
     dialogType.value = "edit";
     Object.assign(form, {
         ID: row.ID || "",
+        modeCode: row.ModeCode != null ? String(row.ModeCode) : "",
         mode: row.ModeName || "",
-        hasCProgram: !!row.HasCProgram,
-        hasSProgram: !!row.HasSProgram,
         Editor: row.Editor || "",
     });
     dialogVisible.value = true;
@@ -211,9 +201,8 @@ const submitForm = async () => {
         const userNo = userStore.getUserInfo || "";
         const params = {
             ID: form.ID,
+            modeCode: form.modeCode,
             mode: form.mode,
-            hasCProgram: form.hasCProgram,
-            hasSProgram: form.hasSProgram,
             Editor: userNo,
             UserNo: userNo,
         };
@@ -233,30 +222,31 @@ const submitForm = async () => {
     }
 };
 
-const handleDelete = (row: any) => {
-    ElMessageBox.confirm(
-        t("baseData.laserEngravingMode.deleteConfirm").replace("{name}", row.ModeName || ""),
-        t("publicText.tip"),
-        { confirmButtonText: t("publicText.confirm"), cancelButtonText: t("publicText.cancel"), type: "warning" }
-    )
-        .then(async () => {
-            loading.value = true;
-            try {
-                const userNo = userStore.getUserInfo || "";
-                const res: any = await DeleteLaserMode({ ID: row.ID, UserNo: userNo });
-                if (res.Success || res.Code === 0 || res.code === 200) {
-                    ElMessage.success(t("message.deleteSuccess"));
-                    getData();
-                } else {
-                    ElMessage.error(res.Msg || res.Message || t("message.deleteFailure"));
-                }
-            } catch (error) {
-                ElMessage.error(t("message.deleteFailure"));
-            } finally {
-                loading.value = false;
-            }
-        })
-        .catch(() => { });
+const isStatusEnabled = (value: any) => String(value) !== "-1";
+
+const handleToggleStatus = async (row: any, enabled: boolean) => {
+    const targetStatus = enabled ? "0" : "-1";
+    if (isStatusEnabled(row.Status) === enabled) return;
+    row._toggleLoading = true;
+    try {
+        const userNo = userStore.getUserInfo || "";
+        const res: any = await UpdateLaserModeStatus({
+            ID: row.ID,
+            status: targetStatus,
+            Editor: userNo,
+            UserNo: userNo,
+        });
+        if (res.Success || res.Code === 0 || res.code === 200) {
+            row.Status = targetStatus;
+            ElMessage.success(res.Msg || res.Message || t("message.editSuccess"));
+        } else {
+            ElMessage.error(res.Msg || res.Message || t("message.editFailure"));
+        }
+    } catch (error) {
+        ElMessage.error(t("message.editFailure"));
+    } finally {
+        row._toggleLoading = false;
+    }
 };
 
 // 查询 - 后端返回数组（无分页），前端做过滤+分页
