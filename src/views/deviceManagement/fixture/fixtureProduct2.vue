@@ -327,8 +327,8 @@ const getProductList = async () => {
   try {
     const res: any = await queryToolsSpec(params);
     if (res.Success) {
-      tableData.value = res.Data || [];
-      total.value = res.TotalCount || 0;
+      tableData.value = res.Data?.list || [];
+      total.value = res.Data?.Total || 0;
     } else {
       ElMessage.error(res.Msg || t("message.queryFailure"));
       tableData.value = [];

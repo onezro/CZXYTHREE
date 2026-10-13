@@ -6,6 +6,12 @@
                     <el-input v-model="getForm.orderName" placeholder="" clearable @clear="searhData"
                         @keyup.enter.native="searhData" style="width: 200px" />
                 </el-form-item>
+                <el-form-item :label="t('Scheduling.generatePrepare.LXLine')" class="mb-2">
+                    <el-select v-model="getForm.Line" placeholder="" clearable filterable @clear="searhData"
+                        @change="searhData" style="width: 200px">
+                        <el-option v-for="item in lineList" :key="item.line" :label="item.line" :value="item.line" />
+                    </el-select>
+                </el-form-item>
                 <el-form-item class="mb-2">
                     <el-button :type="'primary'" @click="searhData">查询</el-button>
                     <el-button :type="'warning'" @click="handleGenerate"
@@ -77,6 +83,7 @@
 
 <script setup lang="ts">
 import { QueryWorkOrderList, GenerateMaterialPreparation } from "@/api/Scheduling/index"
+import { GetSMTValorLine } from "@/api/smtApply/changeover"
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
 import {
     ref,
@@ -103,8 +110,10 @@ const pageObj = reactive({
 const getForm = ref({
     PageIndex: 1,
     PageSize: 50,
-    orderName: ''
+    orderName: '',
+    Line: ''
 })
+const lineList = ref<any[]>([])
 const total = ref(0)
 const selectList = ref<any>([])
 const addVisible = ref(false)
@@ -126,6 +135,13 @@ const getData = () => {
         if (res.Success) {
             total.value = res.Data.total
             tableData.value = res.Data.rows
+        }
+    })
+}
+const getLineList = () => {
+    GetSMTValorLine({}).then((res: any) => {
+        if (res.Success) {
+            lineList.value = res.Data
         }
     })
 }
@@ -184,6 +200,7 @@ onBeforeMount(() => {
 });
 onMounted(() => {
     window.addEventListener("resize", getScreenHeight);
+    getLineList();
     getData();
 
 });

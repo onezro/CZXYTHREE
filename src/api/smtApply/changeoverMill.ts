@@ -18,6 +18,15 @@ export function GetMillingValorChangeLineWoList(data:any) {
     });
 }
 
+//按类型获取产品编码及对应工单（type: AOI/ICT）
+export function GetChangeLineWoPN(data:any) {
+    return request({
+        url: "/api/ChangeOver/GetChangeLineWoPN",
+        method: "post",
+        data,
+    });
+}
+
 //获取工单详细信息
 export function GetMillingValorChangeLineWoNew(data:any) {
     return request({

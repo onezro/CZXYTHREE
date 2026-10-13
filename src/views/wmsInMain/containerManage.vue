@@ -1,7 +1,7 @@
 <template>
   <div class="p-2">
     <el-card class="box-card" :body-style="{ padding: '8px' }">
-      <el-form :inline="true" :model="getlistText" class="mb-2" @submit.prevent>
+      <el-form :inline="true" :model="getlistText" class="search-form" @submit.prevent>
         <el-form-item :label="t('wmsInMain.containerManage.pn')">
           <el-input v-model="getlistText.Pn" :placeholder="t('wmsInMain.containerManage.pn')" clearable
             style="width: 160px" size="small" @keyup.enter="handleSearch" @clear="handleSearch" />
@@ -349,6 +349,7 @@ watch(
 const getData = () => {
   queryPageContainer(getlistText)
     .then((res: any) => {
+      console.log(res);
       if (res.Success) {
         total.value = res.Data?.Total || 0;
         tableData.value = res.Data?.list || [];
@@ -566,5 +567,17 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .el-pagination {
   justify-content: center;
+}
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0 !important;
+  :deep(.el-form-item) {
+    margin-bottom: 8px;
+  }
+  .search-actions {
+    margin-left: auto;
+  }
 }
 </style>

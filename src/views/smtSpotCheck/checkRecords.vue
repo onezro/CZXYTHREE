@@ -523,7 +523,7 @@ const getLineList = async () => {
 };
 onBeforeMount(() => {
   getScreenHeight()
-  value1.value = [setLastDate() + ' 00:00:00', setTodayDate() + ' 23:59:59']
+  value1.value = [setTodayDate() + ' 00:00:00', setTodayDate() + ' 23:59:59']
   getDataText.inspect = '*'
 })
 onMounted(() => {
