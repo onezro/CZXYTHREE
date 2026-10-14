@@ -122,6 +122,22 @@ export function DeleteInspectionRule(data:any) {
         data
     });
 }
+//查询物料检验项目
+export function QueryMaterialInspectionProject(data:any) {
+    return request({
+        url: "/api/iqc/QueryMaterialInspectionProject",
+        method: "get",
+        params:data
+    });
+}
+//删除物料已维护的一个检验项目组
+export function DeleteMaterialInspectionProject(data:any) {
+    return request({
+        url: "/api/iqc/DeleteMaterialInspectionProject",
+        method: "post",
+        data
+    });
+}
 //模糊搜索
 export function QueryPartNumbersIqc(data:any) {
     return request({

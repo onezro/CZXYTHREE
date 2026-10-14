@@ -98,6 +98,14 @@
                     :min-width="getColumnWidth('agvmcid_Result')" show-overflow-tooltip>
                     <template #default="{ row }">{{ cellText(row.agvmcid_Result) }}</template>
                 </el-table-column>
+                <el-table-column prop="agv_upstts" :label="t('AGV.plateBaseData.actualResult')"
+                    :min-width="getColumnWidth('agv_upstts')" show-overflow-tooltip>
+                    <template #default="{ row }">{{ cellText(row.agv_upstts) }}</template>
+                </el-table-column>
+                <el-table-column prop="agv_listenDt" :label="t('AGV.plateBaseData.listenDt')"
+                    :min-width="getColumnWidth('agv_listenDt')">
+                    <template #default="{ row }">{{ formatDateTime(row.agv_listenDt) }}</template>
+                </el-table-column>
                 <el-table-column prop="agvmcid_Operate" :label="t('AGV.plateBaseData.operate')"
                     :min-width="getColumnWidth('agvmcid_Operate')" align="center">
                     <template #default="{ row }">
@@ -173,6 +181,10 @@
                 <el-table-column prop="InStoreType" :label="t('AGV.plateBaseData.inStoreType')"
                     :min-width="getColumnWidth('InStoreType')" align="center">
                     <template #default="{ row }">{{ cellText(row.InStoreType) }}</template>
+                </el-table-column>
+                <el-table-column prop="InStoreType2" :label="t('AGV.plateBaseData.inStoreType2')"
+                    :min-width="getColumnWidth('InStoreType2')" align="center">
+                    <template #default="{ row }">{{ cellText(row.InStoreType2) }}</template>
                 </el-table-column>
                 <el-table-column prop="AcceptType" :label="t('AGV.plateBaseData.acceptType')"
                     :min-width="getColumnWidth('AcceptType')" align="center">
@@ -344,6 +356,14 @@
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.inStoreType2')" prop="InStoreType2">
+                            <el-input v-model="addForm.InStoreType2"
+                                :placeholder="t('AGV.plateBaseData.inputInStoreType2')" clearable />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
                     <el-col :span="24">
                         <el-form-item :label="t('AGV.plateBaseData.remark')" prop="agvmcid_Remark">
                             <el-input v-model="addForm.agvmcid_Remark" type="textarea" :rows="2"
@@ -497,6 +517,14 @@
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.inStoreType2')" prop="InStoreType2">
+                            <el-input v-model="editForm.InStoreType2"
+                                :placeholder="t('AGV.plateBaseData.inputInStoreType2')" clearable />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
                     <el-col :span="24">
                         <el-form-item :label="t('AGV.plateBaseData.remark')" prop="agvmcid_Remark">
                             <el-input v-model="editForm.agvmcid_Remark" type="textarea" :rows="2"
@@ -579,6 +607,7 @@ const defaultForm = () => ({
     VerifyMcidUrl: "",
     IsAutoVerify: "Y" as string | null,
     IsCalcBox: "N" as string | null,
+    InStoreType2: null as string | null,
 });
 
 const addForm = reactive(defaultForm());
@@ -675,6 +704,7 @@ const pickFields = (src: any) => ({
     VerifyMcidUrl: src.VerifyMcidUrl ?? "",
     IsAutoVerify: src.IsAutoVerify ?? "",
     IsCalcBox: src.IsCalcBox ?? "",
+    InStoreType2: src.InStoreType2 ?? null,
 });
 
 const resetAddForm = () => {

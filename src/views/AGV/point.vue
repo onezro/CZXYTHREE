@@ -58,6 +58,10 @@
                     :min-width="getColumnWidth('pointID')" show-overflow-tooltip />
                 <el-table-column prop="pointName" :label="$t('AGV.point.pointName')"
                     :min-width="getColumnWidth('pointName')" show-overflow-tooltip />
+                <el-table-column prop="lock_no" :label="$t('AGV.point.taskNo')"
+                    :min-width="getColumnWidth('lock_no')" show-overflow-tooltip>
+                   
+                </el-table-column>
                 <el-table-column prop="workstationID" :label="$t('AGV.workstation.workstationID')"
                     :min-width="getColumnWidth('workstationID')" show-overflow-tooltip>
                     <template #default="{ row }">
@@ -442,7 +446,7 @@ const parsePathType = (value: any): string[] => {
 const getPathTypeName = (row: any) => {
     if (row.pathtypeName) return row.pathtypeName;
     const codes = parsePathType(row.pathtype);
-    if (!codes.length) return "-";
+    if (!codes.length) return "";
     return codes.map((code) => {
         const item = pathTypeOptions.value.find(opt => String(opt.pointtype_no) === String(code));
         return item ? `${item.pointtype_no}-${item.pointtype_name}` : code;

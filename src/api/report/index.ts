@@ -5,6 +5,11 @@ import request3 from "@/request/smtSet/smtSetReuqest";
 
 export { QueryPackingData } from "./packingDataQuery";
 
+export {
+  QueryMagazineStockReportPage,
+  ExportMagazineStockReport,
+} from "./magazineStockReport";
+
 export function XY_Assembly_OrderStatus(data: any) {
   return request3({
     url: "/XingYuAPI/XY_Assembly_OrderStatus",
