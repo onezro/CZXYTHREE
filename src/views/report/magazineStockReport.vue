@@ -4,7 +4,7 @@
             <div class="flex justify-between">
                 <el-form ref="searchFormRef" :model="searchForm" label-width="auto" :inline="true" :size="'small'"
                     @submit.prevent>
-                     <el-form-item :label="t('report.magazineStockReport.time')" prop="TimeRange" class="mb-2">
+                    <el-form-item :label="t('report.magazineStockReport.time')" prop="TimeRange" class="mb-2">
                         <el-date-picker style="width: 330px;" v-model="queryTime" type="datetimerange"
                             range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"
                             value-format="YYYY-MM-DD HH:mm:ss" :shortcuts="shortcuts1" :default-time="[
@@ -18,6 +18,12 @@
                             @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductionOrderNo')" />
                     </el-form-item>
+                    <el-form-item :label="t('report.magazineStockReport.productionOrderRow')" prop="ProductionOrderRow"
+                        class="mb-2">
+                        <el-input v-model="searchForm.ProductionOrderRow" clearable @clear="handleSearch"
+                            @keyup.enter="handleSearch" style="width: 180px"
+                            :placeholder="t('report.magazineStockReport.inputProductionOrderRow')" />
+                    </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productCode')" prop="ProductCode" class="mb-2">
                         <el-input v-model="searchForm.ProductCode" clearable @clear="handleSearch"
                             @keyup.enter="handleSearch" style="width: 180px"
@@ -28,17 +34,68 @@
                             @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductSpec')" />
                     </el-form-item>
+                    <el-form-item :label="t('report.magazineStockReport.bomVersion')" prop="BomVersion" class="mb-2">
+                        <el-input v-model="searchForm.BomVersion" clearable @clear="handleSearch"
+                            @keyup.enter="handleSearch" style="width: 180px"
+                            :placeholder="t('report.magazineStockReport.inputBomVersion')" />
+                    </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.workOrderNo')" prop="WorkOrderNo" class="mb-2">
                         <el-input v-model="searchForm.WorkOrderNo" clearable @clear="handleSearch"
                             @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputWorkOrderNo')" />
+                    </el-form-item>
+                    <el-form-item :label="t('report.magazineStockReport.workOrderQuantity')" class="mb-2">
+                        <el-input-number v-model="searchForm.WorkOrderQuantityMin" :min="0" :precision="0"
+                            :controls="false" style="width: 100px"
+                            :placeholder="t('report.magazineStockReport.min')" />
+                        <span style="margin: 0 4px">-</span>
+                        <el-input-number v-model="searchForm.WorkOrderQuantityMax" :min="0" :precision="0"
+                            :controls="false" style="width: 100px"
+                            :placeholder="t('report.magazineStockReport.max')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.containerNo')" prop="ContainerNo" class="mb-2">
                         <el-input v-model="searchForm.ContainerNo" clearable @clear="handleSearch"
                             @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputContainerNo')" />
                     </el-form-item>
-                   
+                    <el-form-item :label="t('report.magazineStockReport.panelQuantityRange')" class="mb-2">
+                        <el-input-number v-model="searchForm.PanelQuantityMin" :min="0" :precision="0" :controls="false"
+                            style="width: 100px" :placeholder="t('report.magazineStockReport.min')" />
+                        <span style="margin: 0 4px">-</span>
+                        <el-input-number v-model="searchForm.PanelQuantityMax" :min="0" :precision="0" :controls="false"
+                            style="width: 100px" :placeholder="t('report.magazineStockReport.max')" />
+                    </el-form-item>
+                    <el-form-item :label="t('report.magazineStockReport.warehouse')" prop="Warehouse" class="mb-2">
+                        <el-select v-model="searchForm.Warehouse" clearable style="width: 140px"
+                            :placeholder="t('report.magazineStockReport.selectWarehouse')">
+                            <el-option label="Magazine" value="Magazine" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item :label="t('report.magazineStockReport.storageLocation')" prop="StorageLocation"
+                        class="mb-2">
+                        <el-input v-model="searchForm.StorageLocation" clearable @clear="handleSearch"
+                            @keyup.enter="handleSearch" style="width: 180px"
+                            :placeholder="t('report.magazineStockReport.inputStorageLocation')" />
+                    </el-form-item>
+                    <el-form-item :label="t('report.magazineStockReport.side')" prop="Side" class="mb-2">
+                        <el-select v-model="searchForm.Side" clearable style="width: 140px"
+                            :placeholder="t('report.magazineStockReport.selectSide')">
+                            <el-option label="TOP" value="TOP" />
+                            <el-option label="BOT" value="BOT" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item :label="t('report.magazineStockReport.registeredOperation')" prop="RegisteredOperation"
+                        class="mb-2">
+                        <el-input v-model="searchForm.RegisteredOperation" clearable @clear="handleSearch"
+                            @keyup.enter="handleSearch" style="width: 180px"
+                            :placeholder="t('report.magazineStockReport.inputRegisteredOperation')" />
+                    </el-form-item>
+                    <el-form-item :label="t('report.magazineStockReport.completedOperation')" prop="CompletedOperation"
+                        class="mb-2">
+                        <el-input v-model="searchForm.CompletedOperation" clearable @clear="handleSearch"
+                            @keyup.enter="handleSearch" style="width: 180px"
+                            :placeholder="t('report.magazineStockReport.inputCompletedOperation')" />
+                    </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button type="primary" @click="handleSearch">{{ t("publicText.query") }}</el-button>
                         <el-button @click="handleReset">{{ t("publicText.reset") }}</el-button>
@@ -105,7 +162,7 @@
             <div class="mt-2">
                 <el-pagination :size="'small'" background @size-change="handleSizeChange"
                     @current-change="handleCurrentChange" :pager-count="5" :current-page="pageObj.currentPage"
-                    :page-size="pageObj.pageSize" :page-sizes="[10, 20, 30, 50, 100]"
+                    :page-size="pageObj.pageSize" :page-sizes="[10, 20, 50, 100, 200, 500]"
                     layout="total, sizes, prev, pager, next" :total="total" />
             </div>
         </el-card>
@@ -138,10 +195,21 @@ const queryTime = ref<any[]>([]);
 
 const searchForm = reactive({
     ProductionOrderNo: "",
+    ProductionOrderRow: "",
     ProductCode: "",
     ProductSpec: "",
+    BomVersion: "",
     WorkOrderNo: "",
+    WorkOrderQuantityMin: null as number | null,
+    WorkOrderQuantityMax: null as number | null,
     ContainerNo: "",
+    PanelQuantityMin: null as number | null,
+    PanelQuantityMax: null as number | null,
+    Warehouse: "",
+    StorageLocation: "",
+    Side: "",
+    RegisteredOperation: "",
+    CompletedOperation: "",
     StartTime: "",
     EndTime: "",
 });
@@ -165,15 +233,41 @@ const handleDateRangeChange = (val: any[]) => {
     searchForm.EndTime = val?.[1] || "";
 };
 
-// 查询与导出使用相同的筛选条件
+// 数量最小值不能大于最大值
+const validateRanges = () => {
+    const pairs: [number | null, number | null][] = [
+        [searchForm.WorkOrderQuantityMin, searchForm.WorkOrderQuantityMax],
+        [searchForm.PanelQuantityMin, searchForm.PanelQuantityMax],
+    ];
+    for (const [min, max] of pairs) {
+        if (min != null && max != null && Number(min) > Number(max)) {
+            ElMessage.warning(t("report.magazineStockReport.rangeInvalid"));
+            return false;
+        }
+    }
+    return true;
+};
+
+// 查询与导出使用相同的筛选条件（字符串传空串，数量和时间不筛选时传 null）
 const getFilterParams = () => ({
     ProductionOrderNo: searchForm.ProductionOrderNo || "",
+    ProductionOrderRow: searchForm.ProductionOrderRow || "",
     ProductCode: searchForm.ProductCode || "",
     ProductSpec: searchForm.ProductSpec || "",
+    BomVersion: searchForm.BomVersion || "",
     WorkOrderNo: searchForm.WorkOrderNo || "",
+    WorkOrderQuantityMin: searchForm.WorkOrderQuantityMin ?? null,
+    WorkOrderQuantityMax: searchForm.WorkOrderQuantityMax ?? null,
     ContainerNo: searchForm.ContainerNo || "",
-    StartTime: searchForm.StartTime || "",
-    EndTime: searchForm.EndTime || "",
+    PanelQuantityMin: searchForm.PanelQuantityMin ?? null,
+    PanelQuantityMax: searchForm.PanelQuantityMax ?? null,
+    Warehouse: searchForm.Warehouse || "",
+    StorageLocation: searchForm.StorageLocation || "",
+    Side: searchForm.Side || "",
+    RegisteredOperation: searchForm.RegisteredOperation || "",
+    CompletedOperation: searchForm.CompletedOperation || "",
+    StartTime: searchForm.StartTime || null,
+    EndTime: searchForm.EndTime || null,
 });
 
 const getData = () => {
@@ -205,16 +299,21 @@ const getData = () => {
 };
 
 const handleSearch = () => {
+    if (!validateRanges()) return;
     pageObj.currentPage = 1;
     getData();
 };
 
 const handleExport = async () => {
+    if (!validateRanges()) return;
     exporting.value = true;
     try {
+        // 导出全部符合条件的数据，不传分页参数
         const res: any = await ExportMagazineStockReport(getFilterParams());
-        // 当后端返回 JSON（如异常信息）时，responseType 为 blob，需要单独处理
-        if (res && res.type && res.type.includes("application/json")) {
+        // 当后端返回 JSON（如参数校验/服务异常）时，responseType 为 blob，需要单独识别
+        const isJsonBlob =
+            res instanceof Blob && res.type && res.type.includes("application/json");
+        if (isJsonBlob) {
             const text = await res.text();
             let msg = t("message.queryFailure");
             try {
@@ -256,11 +355,23 @@ const handleReset = () => {
     searchForm.StartTime = queryTime.value[0] || "";
     searchForm.EndTime = queryTime.value[1] || "";
     searchForm.ProductionOrderNo = "";
+    searchForm.ProductionOrderRow = "";
     searchForm.ProductCode = "";
     searchForm.ProductSpec = "";
+    searchForm.BomVersion = "";
     searchForm.WorkOrderNo = "";
+    searchForm.WorkOrderQuantityMin = null;
+    searchForm.WorkOrderQuantityMax = null;
     searchForm.ContainerNo = "";
+    searchForm.PanelQuantityMin = null;
+    searchForm.PanelQuantityMax = null;
+    searchForm.Warehouse = "";
+    searchForm.StorageLocation = "";
+    searchForm.Side = "";
+    searchForm.RegisteredOperation = "";
+    searchForm.CompletedOperation = "";
     pageObj.currentPage = 1;
+    pageObj.pageSize = 50;
     getData();
 };
 

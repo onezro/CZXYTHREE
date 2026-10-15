@@ -56,8 +56,7 @@
             </div>
 
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
-                border fit highlight-current-row 
-                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                border fit highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{ scope.$index + pageObj.pageSize * (pageObj.currentPage - 1) + 1 }}</span>
@@ -177,6 +176,13 @@
                 <el-table-column prop="IsCalcBox" :label="t('AGV.plateBaseData.isCalcBox')"
                     :min-width="getColumnWidth('IsCalcBox')" align="center">
                     <template #default="{ row }">{{ yesNoText(row.IsCalcBox) }}</template>
+                </el-table-column>
+                <el-table-column prop="IsAuto" :label="t('AGV.plateBaseData.isAuto')"
+                    :min-width="getColumnWidth('IsAuto')" align="center"  :fixed="'right'">
+                    <template #default="{ row }">
+                        <el-switch v-model="row.IsAuto" active-value="Y" inactive-value="N"
+                            :loading="row._autoLoading" @change="handleAutoChange(row)" />
+                    </template>
                 </el-table-column>
                 <el-table-column prop="InStoreType" :label="t('AGV.plateBaseData.inStoreType')"
                     :min-width="getColumnWidth('InStoreType')" align="center">
@@ -362,6 +368,12 @@
                                 :placeholder="t('AGV.plateBaseData.inputInStoreType2')" clearable />
                         </el-form-item>
                     </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.isAuto')" prop="IsAuto">
+                            <el-switch v-model="addForm.IsAuto" active-value="Y" inactive-value="N"
+                                :active-text="t('publicText.enable')" :inactive-text="t('publicText.disable')" />
+                        </el-form-item>
+                    </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="24">
@@ -377,7 +389,7 @@
                     <el-button @click="addVisible = false">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitAdd" :loading="submitLoading">{{
                         t("publicText.confirm")
-                    }}</el-button>
+                        }}</el-button>
                 </div>
             </template>
         </el-dialog>
@@ -523,6 +535,12 @@
                                 :placeholder="t('AGV.plateBaseData.inputInStoreType2')" clearable />
                         </el-form-item>
                     </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.isAuto')" prop="IsAuto">
+                            <el-switch v-model="editForm.IsAuto" active-value="Y" inactive-value="N"
+                                :active-text="t('publicText.enable')" :inactive-text="t('publicText.disable')" />
+                        </el-form-item>
+                    </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="24">
@@ -538,7 +556,7 @@
                     <el-button @click="editVisible = false">{{ t("publicText.cancel") }}</el-button>
                     <el-button type="primary" @click="submitEdit" :loading="submitLoading">{{
                         t("publicText.confirm")
-                    }}</el-button>
+                        }}</el-button>
                 </div>
             </template>
         </el-dialog>
@@ -607,6 +625,7 @@ const defaultForm = () => ({
     VerifyMcidUrl: "",
     IsAutoVerify: "Y" as string | null,
     IsCalcBox: "N" as string | null,
+    IsAuto: "N" as string | null,
     InStoreType2: null as string | null,
 });
 
@@ -704,6 +723,7 @@ const pickFields = (src: any) => ({
     VerifyMcidUrl: src.VerifyMcidUrl ?? "",
     IsAutoVerify: src.IsAutoVerify ?? "",
     IsCalcBox: src.IsCalcBox ?? "",
+    IsAuto: src.IsAuto ?? "",
     InStoreType2: src.InStoreType2 ?? null,
 });
 
@@ -733,6 +753,13 @@ const formatDateTime = (dt: any) => {
     return d.isValid() ? d.format("YYYY-MM-DD HH:mm:ss") : String(dt);
 };
 
+// 后端 IsAuto 可能是 null/1/true 等，统一成 "Y"/"N"：
+// 否则 el-switch 初始化时值不在 active/inactive 内，会立刻 emit change 触发误保存
+const toYn = (value: any) => {
+    const s = String(value ?? "").toUpperCase();
+    return s === "Y" || s === "1" || s === "TRUE" ? "Y" : "N";
+};
+
 const getData = () => {
     loading.value = true;
     const params = {
@@ -749,7 +776,11 @@ const getData = () => {
         .then((res: any) => {
             if (res.Success) {
                 const data = res.Data || {};
-                tableData.value = data.list || data.rows || [];
+                const list = data.list || data.rows || [];
+                tableData.value = list.map((row: any) => {
+                    const isAuto = toYn(row.IsAuto);
+                    return { ...row, IsAuto: isAuto, _autoSaved: isAuto };
+                });
                 total.value = data.Total ?? data.total ?? 0;
             } else {
                 tableData.value = [];
@@ -897,6 +928,34 @@ const handleStatusChange = (row: any) => {
         })
         .finally(() => {
             row._statusLoading = false;
+        });
+};
+
+// 列表自动开关：调用 Update 接口保存，失败则回滚
+const handleAutoChange = (row: any) => {
+    const newVal = row.IsAuto;
+    // 与后端原值一致说明不是用户手动切换（如组件挂载时的回填），不提交
+    if (newVal === row._autoSaved) return;
+    row._autoLoading = true;
+    UpdatePlateBaseData({
+        ...pickFields(row),
+        UserNo: userStore.getUserInfo || "",
+    })
+        .then((res: any) => {
+            if (res.Success) {
+                row._autoSaved = newVal;
+                ElMessage.success(res.Message || res.Msg || t("message.editSuccess"));
+            } else {
+                row.IsAuto = row._autoSaved;
+                ElMessage.error(res.Message || res.Msg || t("message.editFailure"));
+            }
+        })
+        .catch(() => {
+            row.IsAuto = row._autoSaved;
+            ElMessage.error(t("message.editFailure"));
+        })
+        .finally(() => {
+            row._autoLoading = false;
         });
 };
 

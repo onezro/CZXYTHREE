@@ -34,12 +34,9 @@
                         </el-form-item>
 
                         <el-form-item label="SIDE面">
-                            <el-select v-model="form.Side" @change="handleSideChoice" placeholder="选择SIDE"
-                                class="full-width">
-                                <el-option v-for="item in sideList" :key="item.sideType" :label="item.sideType"
-                                    :value="item.sideType">
-                                </el-option>
-                            </el-select>
+                            <div class="line-info">
+                                <span class="line-name">{{ form.Side || "TOP" }}</span>
+                            </div>
                         </el-form-item>
 
                         <el-form-item label="当前线体">
@@ -382,15 +379,13 @@ const guideCarouselRef = ref(null);
 const form = ref({
     Order: "",
     LineName: "",
-    Side: "",
+    Side: "TOP",
     Product: "",
     Program: "",
     BomVer: "",
     ProductVer: "",
     Code: "",
 });
-
-const sideList = ref<any[]>([{ sideType: "TOP" }, { sideType: "BOT" }]);
 
 const lineList = ref<any[]>([]);
 const workOrderList = ref<any[]>([]);
@@ -554,7 +549,7 @@ const getPNList = async () => {
 const changePN = (pn: any) => {
     clearAll();
     form.value.Order = "";
-    form.value.Side = "";
+    form.value.Side = "TOP";
     form.value.Product = "";
     form.value.Program = "";
     form.value.BomVer = "";
@@ -581,7 +576,6 @@ const getLineList = async () => {
 const changeOrder = (order: any) => {
     clearAll();
     form.value.LineName = lineName.value;
-    form.value.Side = "";
     GetValorChangeLineWoNew({ workOrder: form.value.Order }).then((res: any) => {
         form.value.Product = res.Data.Product;
         form.value.Program = res.Data.Soft;
@@ -589,6 +583,11 @@ const changeOrder = (order: any) => {
         form.value.ProductVer = res.Data.SoftVer;
         form.value.Code = res.Data.Side == "1" ? form.value.Order : "";
         sideCode.value = res.Data.Side;
+        // 面别固定为 TOP，双面工单直接按 TOP 生成二维码内容
+        if (sideCode.value == "2") {
+            const arr = form.value.Order.split("_");
+            form.value.Code = arr[0] + "_TOP_" + arr[1];
+        }
         getStatus();
     });
 };
@@ -763,15 +762,6 @@ const handleChangeOverError = (error: any) => {
     });
 };
 
-const handleSideChoice = (type: any) => {
-    // console.log(sideCode.value);
-    clearAll();
-    if (sideCode.value == "2") {
-        const arr = form.value.Order.split("_");
-        form.value.Code = arr[0] + "_" + type + "_" + arr[1];
-    }
-    getStatus();
-};
 //选择线体
 const handleLineSetting = async () => {
     clearAll();
