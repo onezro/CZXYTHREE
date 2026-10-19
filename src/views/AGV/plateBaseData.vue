@@ -192,6 +192,10 @@
                     :min-width="getColumnWidth('InStoreType2')" align="center">
                     <template #default="{ row }">{{ cellText(row.InStoreType2) }}</template>
                 </el-table-column>
+                <el-table-column prop="BoxNum" :label="t('AGV.plateBaseData.boxNum')"
+                    :min-width="getColumnWidth('BoxNum')" align="center">
+                    <template #default="{ row }">{{ cellText(row.BoxNum) }}</template>
+                </el-table-column>
                 <el-table-column prop="AcceptType" :label="t('AGV.plateBaseData.acceptType')"
                     :min-width="getColumnWidth('AcceptType')" align="center">
                     <template #default="{ row }">{{ cellText(row.AcceptType) }}</template>
@@ -376,6 +380,14 @@
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.boxNum')" prop="BoxNum">
+                            <el-input-number v-model="addForm.BoxNum" :min="0" controls-position="right"
+                                style="width: 100%" :placeholder="t('AGV.plateBaseData.inputBoxNum')" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
                     <el-col :span="24">
                         <el-form-item :label="t('AGV.plateBaseData.remark')" prop="agvmcid_Remark">
                             <el-input v-model="addForm.agvmcid_Remark" type="textarea" :rows="2"
@@ -543,6 +555,14 @@
                     </el-col>
                 </el-row>
                 <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.boxNum')" prop="BoxNum">
+                            <el-input-number v-model="editForm.BoxNum" :min="0" controls-position="right"
+                                style="width: 100%" :placeholder="t('AGV.plateBaseData.inputBoxNum')" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
                     <el-col :span="24">
                         <el-form-item :label="t('AGV.plateBaseData.remark')" prop="agvmcid_Remark">
                             <el-input v-model="editForm.agvmcid_Remark" type="textarea" :rows="2"
@@ -627,6 +647,7 @@ const defaultForm = () => ({
     IsCalcBox: "N" as string | null,
     IsAuto: "N" as string | null,
     InStoreType2: null as string | null,
+    BoxNum: null as number | null,
 });
 
 const addForm = reactive(defaultForm());
@@ -725,6 +746,7 @@ const pickFields = (src: any) => ({
     IsCalcBox: src.IsCalcBox ?? "",
     IsAuto: src.IsAuto ?? "",
     InStoreType2: src.InStoreType2 ?? null,
+    BoxNum: src.BoxNum ?? null,
 });
 
 const resetAddForm = () => {

@@ -512,6 +512,7 @@ const clearData = () => {
 }
 
 const openAdd = () => {
+    getPuzzles()
     dialogVisible.value = true
 }
 
@@ -616,6 +617,7 @@ const addCancel = () => {
 
 // 编辑
 const handleEdit = (row: any) => {
+    getPuzzles()
     QueryPanelmerge({ id: row.id }).then((res:any) => {
       if (res.Success) {
         editForm.value = res.Data
@@ -706,7 +708,6 @@ const getScreenHeight = () => {
 onBeforeMount(() => {
     getScreenHeight()
     getData()
-    getPuzzles()
 })
 
 onMounted(() => {

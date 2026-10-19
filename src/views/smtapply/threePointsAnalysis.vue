@@ -28,8 +28,6 @@
                         <el-option label="AOI" value="AOI" />
                         <el-option label="SPI" value="SPI" />
                     </el-select>
-                    <el-input v-model="getForm.Process" :placeholder="t('smtapply.threePointsAnalysis.processPlaceholder')"
-                        style="width: 200px;" size="small" clearable @keyup.enter="handleQuery"></el-input>
                 </el-form-item>
                 <el-form-item :label="t('smtapply.threePointsAnalysis.status')" class="mb-1">
                     <el-select v-model="getForm.Status" :placeholder="t('smtapply.threePointsAnalysis.statusPlaceholder')"

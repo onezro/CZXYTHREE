@@ -29,7 +29,7 @@
                 <el-table-column width="45" align="center" fixed>
                     <template #default="{ row }">
                         <el-radio v-model="selectedNo" :value="row.MaterialRequest_No"
-                            :disabled="row.MaterialRequest_Status === 3"><span /></el-radio>
+                            :disabled="row.MaterialRequest_Status === 3 && row.RequestInfo !== 0"><span /></el-radio>
                     </template>
                 </el-table-column>
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
@@ -261,7 +261,8 @@ const btnLoading = reactive({ call: false, push: false, cancelShelter: false, ca
 // 按钮可用条件
 const canCall = computed(() => { const r = selectedRow.value; return !!r && r.RequestInfo === 1 && r.MaterialRequest_Status !== 3; });
 const canPush = computed(() => { const r = selectedRow.value; return !!r && r.RequestInfo === 0 && r.MaterialRequest_Status !== 3; });
-const canCancelShelter = computed(() => { const r = selectedRow.value; return !!r && r.RequestInfo === 0 && r.MaterialRequest_Status !== 3 && r.MaterialRequest_Status !== 99; });
+// 请求来源为MES(0)时可取消下发方仓，已取消(3)状态下仍可点击
+const canCancelShelter = computed(() => { const r = selectedRow.value; return !!r && r.RequestInfo === 0 && r.MaterialRequest_Status !== 99; });
 const canCancel = computed(() => { const r = selectedRow.value; return !!r && r.MaterialRequest_Status !== 3 && r.MaterialRequest_Status !== 99; });
 
 // 详情弹窗相关

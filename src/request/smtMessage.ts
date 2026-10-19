@@ -100,6 +100,7 @@ service.interceptors.response.use(
           title: "提示信息",
           message:response.data.msg,
           type: "error",
+          duration: 0
         });
         return response.data;
         // ElMessageBox.alert(response.data.msg, "提示信息", {

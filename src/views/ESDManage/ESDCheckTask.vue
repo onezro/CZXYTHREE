@@ -521,7 +521,7 @@
             <el-form ref="addTaskFormRef" :model="addTaskForm" :rules="addTaskRules" label-width="120px" size="small">
                 <el-form-item :label="t('esd.task.selectForm')" prop="FormId" required>
                     <el-select v-model="addTaskForm.FormId" placeholder="请选择点检表单" clearable style="width:100%"
-                        popper-class="form-popper" v-loading="formLoading" filterable>
+                        popper-class="form-popper" v-loading="formLoading" filterable @change="handleFormChange">
                         <el-option v-for="item in formOptions" :key="item.value" :label="item.label"
                             :value="item.value" />
                         <!-- 如果有分页，也可以加footer -->
@@ -801,7 +801,7 @@ const loadCheckFrequencyData = async () => {
 };
 
 // ==================== 表单选择下拉（用于新增任务/计划） ====================
-const formOptions = ref<{ label: string; value: number }[]>([]);
+const formOptions = ref<{ label: string; value: number; EsdTypeCode: string }[]>([]);
 const formLoading = ref(false);
 const loadFormOptions = async (keyword = '') => {
     formLoading.value = true;
@@ -809,12 +809,22 @@ const loadFormOptions = async (keyword = '') => {
         const res: any = await QueryCheckFormList({ FormName: keyword, PageIndex: 1, PageSize: 100 });
         if (res.Success) {
             const rows = res.Data.rows || [];
-            // 去重（按FormId）
-            const map = new Map<number, string>();
-            rows.forEach((item: any) => { if (!map.has(item.FormId)) map.set(item.FormId, item.FormName); });
-            formOptions.value = Array.from(map).map(([value, label]) => ({ label, value }));
+            // 去重（按FormId），保留表单对应的 ESD类型编码
+            const map = new Map<number, { label: string; value: number; EsdTypeCode: string }>();
+            rows.forEach((item: any) => {
+                if (!map.has(item.FormId)) {
+                    map.set(item.FormId, { label: item.FormName, value: item.FormId, EsdTypeCode: item.EsdTypeCode || '' });
+                }
+            });
+            formOptions.value = Array.from(map.values());
         }
     } finally { formLoading.value = false; }
+};
+
+// 选择点检表单后，自动带出其 ESD类型编码
+const handleFormChange = (formId: number) => {
+    const form = formOptions.value.find((item) => item.value === formId);
+    addTaskForm.EsdTypeCode = form?.EsdTypeCode || '';
 };
 
 const employeeList = ref<any[]>([]);

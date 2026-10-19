@@ -39,6 +39,14 @@
                                 :value="getLineValue(item)" />
                         </el-select>
                     </el-form-item>
+                    <el-form-item :label="t('AGV.taskQuery.returnStatus')" prop="ReturnStatusList" class="mb-2">
+                        <el-select v-model="searchForm.ReturnStatusList" multiple collapse-tags collapse-tags-tooltip
+                            clearable @change="handleSearch" style="width: 180px"
+                            :placeholder="t('AGV.taskQuery.selectReturnStatus')">
+                            <el-option v-for="item in returnStatusOptions" :key="item.value" :label="t(item.label)"
+                                :value="item.value" />
+                        </el-select>
+                    </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button type="primary" @click="handleSearch">{{ t("publicText.query") }}</el-button>
                         <el-button @click="handleReset">{{ t("publicText.reset") }}</el-button>
@@ -309,7 +317,16 @@ const searchForm = reactive({
     StartPoint: "",
     EndPoint: "",
     LineName: "",
+    ReturnStatusList: [] as number[],
 });
+
+const returnStatusOptions = [
+    { value: 0, label: "AGV.taskQuery.returnStatusPrepare" },
+    { value: 2, label: "AGV.taskQuery.returnStatusStart" },
+    { value: 1, label: "AGV.taskQuery.returnStatusDone" },
+    { value: -1, label: "AGV.taskQuery.returnStatusCanceled" },
+    { value: -2, label: "AGV.taskQuery.returnStatusFailed" },
+];
 
 const lineList = ref<any[]>([]);
 
@@ -363,6 +380,7 @@ const getData = () => {
         StartPoint: searchForm.StartPoint || "",
         EndPoint: searchForm.EndPoint || "",
         LineName: searchForm.LineName || "",
+        ReturnStatusList: searchForm.ReturnStatusList,
         PageIndex: pageObj.currentPage,
         PageSize: pageObj.pageSize,
     };
@@ -407,6 +425,7 @@ const handleReset = () => {
     searchForm.StartPoint = "";
     searchForm.EndPoint = "";
     searchForm.LineName = "";
+    searchForm.ReturnStatusList = [];
     pageObj.currentPage = 1;
     getData();
 };

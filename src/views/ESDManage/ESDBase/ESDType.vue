@@ -211,12 +211,21 @@ import dayjs from 'dayjs';
 const { t } = useI18n();
 const userStore = useUserStoreWithOut();
 
-// 车间选项：SMT车间/ICT车间/铣板车间 有线体，组装车间/各车间 无线体
+// 车间选项：SMT车间/ICT车间/铣板车间 有线体，其余车间及仓库 无线体
 const workshopOptions = [
   { label: "SMT车间", value: "SMT车间", type: "SMT" },
   { label: "ICT车间", value: "ICT车间", type: "ICT" },
   { label: "铣板车间", value: "铣板车间", type: "Depanel" },
   { label: "组装车间", value: "组装车间", type: "" },
+  { label: "电子料仓库", value: "电子料仓库", type: "" },
+  { label: "半成品仓库", value: "半成品仓库", type: "" },
+  { label: "成品仓库", value: "成品仓库", type: "" },
+  { label: "不良品仓库", value: "不良品仓库", type: "" },
+  { label: "喷涂三防车间", value: "喷涂三防车间", type: "" },
+  { label: "DIP车间", value: "DIP车间", type: "" },
+  { label: "自动化车间", value: "自动化车间", type: "" },
+  { label: "老化测试车间", value: "老化测试车间", type: "" },
+  { label: "成品包装车间", value: "成品包装车间", type: "" },
   { label: "各车间", value: "各车间", type: "" },
 ];
 const workshopTypeMap: Record<string, string> = workshopOptions.reduce((acc, cur) => {

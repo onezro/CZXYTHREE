@@ -137,6 +137,7 @@ const ja = {
   Scheduling: {
     WorkOrderIssue: {
       groupOrder: "工単グループ番号",
+      ncOrderLine: "NC注文番号+行番号",
       reelId: "リールバーコード",
       workOrder: "MES工単番号",
       materialPn: "部品番号",
@@ -161,6 +162,13 @@ const ja = {
       resetFailure: "リセットに失敗しました",
       sendIssueData: "計算",
       confirmSendIssueData: "計算",
+      confirmIssue: "手動確認",
+      confirmConfirmIssue: "工単グループ【{0}】の材料控除結果を確認してもよろしいですか？",
+      confirmSuccess: "確認に成功しました",
+      confirmFailure: "確認に失敗しました",
+      confirmStatus: "確認状態",
+      unconfirmed: "未確認",
+      confirmed: "確認済み",
       sendSuccess: "WMSアップロードに成功しました",
       sendFailure: "WMSアップロードに失敗しました",
       yes: "はい",

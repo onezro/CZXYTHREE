@@ -53,3 +53,11 @@ export function SendIssueData(data:any) {
     data
   });
 }
+
+export function ConfirmIssueData(data:any) {
+  return request({
+    url: "/api/WorkOrderGroupMaterialIssue/ConfirmIssueData",
+    method: "post",
+    data
+  });
+}

@@ -47,6 +47,8 @@
         </el-table-column>
         <el-table-column :label="t('Scheduling.WorkOrderIssue.groupOrder')" prop="group_order"
           :min-width="getColumnWidth('group_order')" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line"
+          :min-width="getColumnWidth('nc_order_line')" show-overflow-tooltip />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.createTime')" prop="create_time"
           :min-width="getColumnWidth('create_time')" show-overflow-tooltip>
           <template #default="{ row }">
@@ -61,12 +63,29 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column :label="t('publicText.operation')" fixed="right" width="320" align="center">
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.confirmStatus')" prop="confirm_status_name"
+          :min-width="getColumnWidth('confirm_status_name')" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="row.confirm_status === 0" type="warning" size="small">
+              {{ row.confirm_status_name || t('Scheduling.WorkOrderIssue.unconfirmed') }}
+            </el-tag>
+            <el-tag v-else-if="row.confirm_status === 1" type="success" size="small">
+              {{ row.confirm_status_name || t('Scheduling.WorkOrderIssue.confirmed') }}
+            </el-tag>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('publicText.operation')" fixed="right" width="420" align="center">
           <template #default="{ row }">
              <el-button type="primary" size="small" @click.stop="handleCalculateIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.sendIssueData') }}
             </el-button>
-            <el-button type="success" size="small" @click.stop="handleSendIssue(row)">
+            <el-button v-if="isCalculated(row) && row.confirm_status !== 1" type="warning" size="small"
+              @click.stop="handleConfirmIssue(row)">
+              {{ t('Scheduling.WorkOrderIssue.confirmIssue') }}
+            </el-button>
+            <el-button type="success" size="small" :disabled="row.confirm_status === 0"
+              @click.stop="handleSendIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.issueMaterials') }}
             </el-button>
             <el-button type="danger" size="small" @click.stop="handleResetIssue(row)">
@@ -159,7 +178,7 @@
 </template>
 
 <script setup lang="ts">
-import { QueryReturnMaterials, QueryReturnMaterialDetails, IssueMaterials, ResetIssueData, SendIssueData } from "@/api/Scheduling/WorkOrderIssue";
+import { QueryReturnMaterials, QueryReturnMaterialDetails, IssueMaterials, ResetIssueData, SendIssueData, ConfirmIssueData } from "@/api/Scheduling/WorkOrderIssue";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import { ref, reactive, nextTick, onMounted, onBeforeUnmount, watch, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -199,6 +218,13 @@ const detailRowClassName = ({ row }: any) => (isUnusedStatus(row) ? "unused-row"
 
 const total = ref(0);
 const currentRow = reactive<any>({});
+
+// 本次会话中已执行过“计算”的工单组，用于控制“确认”按钮的显示
+const calculatedGroupOrders = ref<Set<string>>(new Set());
+const isCalculated = (row: any) => {
+  if (row?.confirm_status === 0 || row?.confirm_status === 1) return true;
+  return !!row?.group_order && calculatedGroupOrders.value.has(row.group_order);
+};
 
 const getForm = reactive({
   PageIndex: 1,
@@ -364,9 +390,45 @@ const calculateIssue = (group_order: string) => {
     .then((res: any) => {
       if (res.Success) {
         ElMessage.success(res.Message || t("publicText.success"));
+        calculatedGroupOrders.value.add(group_order);
         queryReturnMaterials();
       } else {
         ElMessage.error(res.Message || t("publicText.failure"));
+      }
+    })
+    .catch(() => { });
+};
+
+const handleConfirmIssue = (row: any) => {
+  const group_order = row?.group_order;
+  if (!group_order) {
+    ElMessage.warning(t("Scheduling.WorkOrderIssue.pleaseInputGroupOrder"));
+    return;
+  }
+  ElMessageBox.confirm(
+    t("Scheduling.WorkOrderIssue.confirmConfirmIssue", [group_order]),
+    t("publicText.tip"),
+    {
+      confirmButtonText: t("publicText.confirm"),
+      cancelButtonText: t("publicText.cancel"),
+      type: "warning",
+    }
+  )
+    .then(() => {
+      confirmIssue(group_order);
+    })
+    .catch(() => { });
+};
+
+const confirmIssue = (group_order: string) => {
+  ConfirmIssueData({ group_order })
+    .then((res: any) => {
+      if (res.Success) {
+        ElMessage.success(res.Message || t("Scheduling.WorkOrderIssue.confirmSuccess"));
+        calculatedGroupOrders.value.add(group_order);
+        queryReturnMaterials();
+      } else {
+        ElMessage.error(res.Message || t("Scheduling.WorkOrderIssue.confirmFailure"));
       }
     })
     .catch(() => { });

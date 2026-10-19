@@ -112,6 +112,7 @@ service.interceptors.response.use(
           title: "提示信息",
           message: response.data.Message,
           type: "error",
+          duration: 0
         });
       }
 

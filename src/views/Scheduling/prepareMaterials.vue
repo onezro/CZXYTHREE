@@ -77,6 +77,10 @@
                     :min-width="getColumnWidth1('PlanEndTime')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPreparationStatus')" prop="MaterialPreparationStatusText"
                     :min-width="getColumnWidth1('MaterialPreparationStatusText')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.uploadStatus')" prop="upload_status_name"
+                    :min-width="getColumnWidth1('upload_status_name')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.confirmStatus')" prop="confirm_status_name"
+                    :min-width="getColumnWidth1('confirm_status_name')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.IsKitted')" prop="IsKittedText"
                     :min-width="getColumnWidth1('IsKittedText')" />
                 <!-- <el-table-column :label="t('Scheduling.PrepareMaterials.KittingStatus')" prop="KittingStatusText"

@@ -10,47 +10,49 @@
                             value-format="YYYY-MM-DD HH:mm:ss" :shortcuts="shortcuts1" :default-time="[
                                 new Date(2000, 1, 1, 0, 0, 0),
                                 new Date(2000, 1, 1, 23, 59, 59),
-                            ]" :clearable="false" @change="handleDateRangeChange" />
+                            ]" :clearable="false" :disabled="searchForm.OnlyEmptyContainers"
+                            @change="handleDateRangeChange" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productionOrderNo')" prop="ProductionOrderNo"
                         class="mb-2">
-                        <el-input v-model="searchForm.ProductionOrderNo" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 180px"
+                        <el-input v-model="searchForm.ProductionOrderNo" clearable :disabled="searchForm.OnlyEmptyContainers"
+                            @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductionOrderNo')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productionOrderRow')" prop="ProductionOrderRow"
                         class="mb-2">
-                        <el-input v-model="searchForm.ProductionOrderRow" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 180px"
+                        <el-input v-model="searchForm.ProductionOrderRow" clearable
+                            :disabled="searchForm.OnlyEmptyContainers" @clear="handleSearch" @keyup.enter="handleSearch"
+                            style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductionOrderRow')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productCode')" prop="ProductCode" class="mb-2">
-                        <el-input v-model="searchForm.ProductCode" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 180px"
+                        <el-input v-model="searchForm.ProductCode" clearable :disabled="searchForm.OnlyEmptyContainers"
+                            @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductCode')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productSpec')" prop="ProductSpec" class="mb-2">
-                        <el-input v-model="searchForm.ProductSpec" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 180px"
+                        <el-input v-model="searchForm.ProductSpec" clearable :disabled="searchForm.OnlyEmptyContainers"
+                            @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductSpec')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.bomVersion')" prop="BomVersion" class="mb-2">
-                        <el-input v-model="searchForm.BomVersion" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 180px"
+                        <el-input v-model="searchForm.BomVersion" clearable :disabled="searchForm.OnlyEmptyContainers"
+                            @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputBomVersion')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.workOrderNo')" prop="WorkOrderNo" class="mb-2">
-                        <el-input v-model="searchForm.WorkOrderNo" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 180px"
+                        <el-input v-model="searchForm.WorkOrderNo" clearable :disabled="searchForm.OnlyEmptyContainers"
+                            @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputWorkOrderNo')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.workOrderQuantity')" class="mb-2">
                         <el-input-number v-model="searchForm.WorkOrderQuantityMin" :min="0" :precision="0"
-                            :controls="false" style="width: 100px"
+                            :controls="false" :disabled="searchForm.OnlyEmptyContainers" style="width: 100px"
                             :placeholder="t('report.magazineStockReport.min')" />
                         <span style="margin: 0 4px">-</span>
                         <el-input-number v-model="searchForm.WorkOrderQuantityMax" :min="0" :precision="0"
-                            :controls="false" style="width: 100px"
+                            :controls="false" :disabled="searchForm.OnlyEmptyContainers" style="width: 100px"
                             :placeholder="t('report.magazineStockReport.max')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.containerNo')" prop="ContainerNo" class="mb-2">
@@ -60,10 +62,12 @@
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.panelQuantityRange')" class="mb-2">
                         <el-input-number v-model="searchForm.PanelQuantityMin" :min="0" :precision="0" :controls="false"
-                            style="width: 100px" :placeholder="t('report.magazineStockReport.min')" />
+                            :disabled="searchForm.OnlyEmptyContainers" style="width: 100px"
+                            :placeholder="t('report.magazineStockReport.min')" />
                         <span style="margin: 0 4px">-</span>
                         <el-input-number v-model="searchForm.PanelQuantityMax" :min="0" :precision="0" :controls="false"
-                            style="width: 100px" :placeholder="t('report.magazineStockReport.max')" />
+                            :disabled="searchForm.OnlyEmptyContainers" style="width: 100px"
+                            :placeholder="t('report.magazineStockReport.max')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.warehouse')" prop="Warehouse" class="mb-2">
                         <el-select v-model="searchForm.Warehouse" clearable style="width: 140px"
@@ -78,23 +82,30 @@
                             :placeholder="t('report.magazineStockReport.inputStorageLocation')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.side')" prop="Side" class="mb-2">
-                        <el-select v-model="searchForm.Side" clearable style="width: 140px"
-                            :placeholder="t('report.magazineStockReport.selectSide')">
+                        <el-select v-model="searchForm.Side" clearable :disabled="searchForm.OnlyEmptyContainers"
+                            style="width: 140px" :placeholder="t('report.magazineStockReport.selectSide')">
                             <el-option label="TOP" value="TOP" />
                             <el-option label="BOT" value="BOT" />
                         </el-select>
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.registeredOperation')" prop="RegisteredOperation"
                         class="mb-2">
-                        <el-input v-model="searchForm.RegisteredOperation" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 180px"
+                        <el-input v-model="searchForm.RegisteredOperation" clearable
+                            :disabled="searchForm.OnlyEmptyContainers" @clear="handleSearch" @keyup.enter="handleSearch"
+                            style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputRegisteredOperation')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.completedOperation')" prop="CompletedOperation"
                         class="mb-2">
-                        <el-input v-model="searchForm.CompletedOperation" clearable @clear="handleSearch"
-                            @keyup.enter="handleSearch" style="width: 180px"
+                        <el-input v-model="searchForm.CompletedOperation" clearable
+                            :disabled="searchForm.OnlyEmptyContainers" @clear="handleSearch" @keyup.enter="handleSearch"
+                            style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputCompletedOperation')" />
+                    </el-form-item>
+                    <el-form-item class="mb-2">
+                        <el-checkbox v-model="searchForm.OnlyEmptyContainers" @change="handleEmptyContainersChange">
+                            {{ t("report.magazineStockReport.onlyEmptyContainers") }}
+                        </el-checkbox>
                     </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button type="primary" @click="handleSearch">{{ t("publicText.query") }}</el-button>
@@ -107,7 +118,7 @@
             </div>
 
             <el-table :data="tableData" size="small" ref="eltableRef" :style="{ width: '100%' }" :height="tableHeight"
-                border fit highlight-current-row v-loading="loading"
+                border fit highlight-current-row
                 :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="60">
                     <template #default="scope">
@@ -133,6 +144,17 @@
                     :min-width="getColumnWidth('WorkOrderQuantity')" show-overflow-tooltip />
                 <el-table-column prop="ContainerNo" :label="t('report.magazineStockReport.containerNo')"
                     :min-width="getColumnWidth('ContainerNo')" show-overflow-tooltip />
+                <el-table-column prop="ContainerStatus" align="center"
+                    :label="t('report.magazineStockReport.containerStatus')"
+                    :min-width="getColumnWidth('ContainerStatus')">
+                    <template #default="{ row }">
+                        <el-tag v-if="getContainerStatusKey(row.ContainerStatus)"
+                            :type="getContainerStatusTagType(row.ContainerStatus)" size="small">
+                            {{ getContainerStatusLabel(row.ContainerStatus) }}
+                        </el-tag>
+                        <span v-else>{{ row.ContainerStatus ?? "" }}</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="PanelQuantity" align="center"
                     :label="t('report.magazineStockReport.panelQuantity')"
                     :min-width="getColumnWidth('PanelQuantity')" show-overflow-tooltip />
@@ -212,6 +234,7 @@ const searchForm = reactive({
     CompletedOperation: "",
     StartTime: "",
     EndTime: "",
+    OnlyEmptyContainers: false,
 });
 
 const pageObj = reactive({
@@ -220,8 +243,33 @@ const pageObj = reactive({
 });
 
 const formatDate = (dateStr: string) => {
-    if (!dateStr || dateStr === "1900-01-01T00:00:00") return "-";
+    if (!dateStr || dateStr === "1900-01-01T00:00:00") return "";
     return dayjs(dateStr).format("YYYY-MM-DD HH:mm:ss");
+};
+
+// 框状态：兼容后端返回的中文/英文枚举值，未知值原样展示
+const getContainerStatusKey = (status: any) => {
+    if (status == null) return "";
+    const value = String(status).trim().toLowerCase();
+    if (["empty", "blank", "空", "空料框", "emptycontainer"].includes(value)) return "empty";
+    if (["full", "loaded", "hasmaterial", "有料", "有料框", "material"].includes(value)) return "full";
+    if (["abnormal", "error", "exception", "异常", "状态异常"].includes(value)) return "abnormal";
+    return "";
+};
+
+const getContainerStatusLabel = (status: any) => {
+    const key = getContainerStatusKey(status);
+    if (key === "empty") return t("report.magazineStockReport.containerStatusEmpty");
+    if (key === "full") return t("report.magazineStockReport.containerStatusFull");
+    if (key === "abnormal") return t("report.magazineStockReport.containerStatusAbnormal");
+    return status == null ? "" : String(status);
+};
+
+const getContainerStatusTagType = (status: any) => {
+    const key = getContainerStatusKey(status);
+    if (key === "full") return "success";
+    if (key === "abnormal") return "danger";
+    return "info";
 };
 
 const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {
@@ -231,6 +279,12 @@ const { getColumnWidth } = useTableColumnWidth(eltableRef, tableData, {
 const handleDateRangeChange = (val: any[]) => {
     searchForm.StartTime = val?.[0] || "";
     searchForm.EndTime = val?.[1] || "";
+};
+
+// 切换“只看空料框”后重置页码并重新查询
+const handleEmptyContainersChange = () => {
+    pageObj.currentPage = 1;
+    getData();
 };
 
 // 数量最小值不能大于最大值
@@ -249,7 +303,9 @@ const validateRanges = () => {
 };
 
 // 查询与导出使用相同的筛选条件（字符串传空串，数量和时间不筛选时传 null）
+// 空料框模式下仍提交完整字段，由后端只取 ContainerNo / Warehouse / StorageLocation
 const getFilterParams = () => ({
+    OnlyEmptyContainers: searchForm.OnlyEmptyContainers,
     ProductionOrderNo: searchForm.ProductionOrderNo || "",
     ProductionOrderRow: searchForm.ProductionOrderRow || "",
     ProductCode: searchForm.ProductCode || "",
@@ -370,6 +426,7 @@ const handleReset = () => {
     searchForm.Side = "";
     searchForm.RegisteredOperation = "";
     searchForm.CompletedOperation = "";
+    searchForm.OnlyEmptyContainers = false;
     pageObj.currentPage = 1;
     pageObj.pageSize = 50;
     getData();

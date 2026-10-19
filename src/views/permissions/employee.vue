@@ -664,6 +664,7 @@ const addSubmit = () => {
           ElNotification.error({
             title: "提示信息",
             message: res.Message || "添加失败",
+            duration: 0,
           });
         }
         getData();

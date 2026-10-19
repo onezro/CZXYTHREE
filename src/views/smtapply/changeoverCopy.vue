@@ -768,9 +768,9 @@ const showDevice = (device: any, index: any) => {
     // if (["Line4", "Line5", "Line6", "Line7"].includes(lineName)) {
     //     return index === 0; // 只显示 Laser
     // }
-    if (device.EquipName === "ICT") {
-        return false; // 隐藏 Reflow、S-AOI 和 ICT
-    }
+    // if (device.EquipName === "ICT") {
+    //     return false; // 隐藏 Reflow、S-AOI 和 ICT
+    // }
     return true;
 };
 const getDeviceStatusTextType = (device: any) => {
