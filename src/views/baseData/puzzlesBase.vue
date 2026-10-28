@@ -229,29 +229,29 @@
                     <el-tabs type="border-card">
                         <el-tab-pane :label="t('baseData.puzzlesBase.smallBoardDetail')">
                             <el-table :data="smallBoardTable" style="width: 100%" border :height="350" size="small">
-                                <el-table-column :label="t('publicText.index')" width="55">
+                                <el-table-column :label="t('publicText.index')" width="55" fixed="left">
                                     <template #default="scope">
                                         <span>{{ scope.$index + 1 }}</span>
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.pcbCode')" prop="pcb_code" width="150">
+                                <el-table-column :label="t('baseData.puzzlesBase.pcbCode')" prop="pcb_code" width="150" fixed="left">
                                     <template #default="scope">
                                         <el-autocomplete v-model="scope.row.pcb_code" :fetch-suggestions="remoteMethod"
                                             @select="(item: any) => change1(item, scope.$index)" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.pcbQty')" prop="small_board_qty" width="100">
+                                <el-table-column :label="t('baseData.puzzlesBase.pcbQty')" prop="small_board_qty" width="80">
                                     <template #default="scope">
                                         <el-input v-model.number="scope.row.small_board_qty" type="number"
                                             size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.moduleStart')" prop="module_start" width="150">
+                                <el-table-column :label="t('baseData.puzzlesBase.moduleStart')" prop="module_start" width="100">
                                     <template #default="scope">
                                         <el-input v-model.number="scope.row.module_start" type="number" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.moduleEnd')" prop="module_end" width="120">
+                                <el-table-column :label="t('baseData.puzzlesBase.moduleEnd')" prop="module_end" width="100">
                                     <template #default="scope">
                                         <el-input v-model.number="scope.row.module_end" type="number" size="small" />
                                     </template>
@@ -261,7 +261,7 @@
                                         <el-input v-model="scope.row.finished_code" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.boxType')" width="120">
+                                <el-table-column :label="t('baseData.puzzlesBase.boxType')" width="100">
                                     <template #default="scope">
                                         <el-select v-model="scope.row.boxtype" size="small" clearable filterable
                                            >
@@ -270,7 +270,7 @@
                                         </el-select>
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.boxType.caseNo')" width="120">
+                                <el-table-column :label="t('baseData.boxType.caseNo')" width="150">
                                     <template #default="scope">
                                         <el-select v-model="scope.row.caseno" size="small" clearable filterable
                                            >
@@ -279,13 +279,13 @@
                                         </el-select>
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.caseNoProductNum')" width="120">
+                                <el-table-column :label="t('baseData.puzzlesBase.caseNoProductNum')" width="80">
                                     <template #default="scope">
                                         <el-input v-model.number="scope.row.casenoproductnum" type="number"
                                             size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.caseNo2')" width="120">
+                                <el-table-column :label="t('baseData.puzzlesBase.caseNo2')" width="150">
                                     <template #default="scope">
                                         <el-select v-model="scope.row.caseno2" size="small" clearable filterable
                                            >
@@ -294,7 +294,7 @@
                                         </el-select>
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.caseNoProductNum2')" width="120">
+                                <el-table-column :label="t('baseData.puzzlesBase.caseNoProductNum2')" width="90">
                                     <template #default="scope">
                                         <el-input v-model.number="scope.row.casenoproductnum2" type="number"
                                             size="small" />
@@ -366,9 +366,9 @@ const boxInfoList = ref<any[]>([])
 
 // 盒箱类型固定三种：L左 R右 C共用
 const boxTypeOptions = [
-    { value: 'L', label: 'L-左' },
-    { value: 'R', label: 'R-右' },
-    { value: 'C', label: 'C-共用' }
+    { value: 'L', label: t('baseData.puzzlesBase.boxTypeOptionL') },
+    { value: 'R', label: t('baseData.puzzlesBase.boxTypeOptionR') },
+    { value: 'C', label: t('baseData.puzzlesBase.boxTypeOptionC') }
 ]
 
 const getForm = ref({
@@ -435,10 +435,10 @@ const upDateForm = reactive({
 const smallBoardTable = ref<any[]>([])
 
 const rules = {
-    'list.pn': [{ required: true, message: '拼板物料编号不能为空', trigger: 'blur' }],
-    'list.name': [{ required: true, message: '物料名称不能为空', trigger: 'change' }],
-    'list.model': [{ required: true, message: '物料规格不能为空', trigger: 'change' }],
-    'list.side': [{ required: true, message: '单双面不能为空', trigger: 'change' }]
+    'list.pn': [{ required: true, message: t('baseData.puzzlesBase.pnRequired'), trigger: 'blur' }],
+    'list.name': [{ required: true, message: t('baseData.puzzlesBase.nameRequired'), trigger: 'change' }],
+    'list.model': [{ required: true, message: t('baseData.puzzlesBase.specRequired'), trigger: 'change' }],
+    'list.side': [{ required: true, message: t('baseData.puzzlesBase.sideRequired'), trigger: 'change' }]
 }
 
 const getData = () => {
@@ -496,7 +496,7 @@ const remoteMethod = (query: string, cb: any) => {
             ElNotification({
               type: 'error',
               title: t('publicText.tip'),
-              message: t('puzzles.noData')
+              message: t('baseData.puzzlesBase.noData')
             })
             cb([])
             return
@@ -590,7 +590,7 @@ const handleSyncSaiYi = (row: any) => {
 }
 
 const handleDelete = (row: any) => {
-    ElMessageBox.confirm(t('puzzles.deleteConfirm'), t('publicText.tip'), {
+    ElMessageBox.confirm(t('baseData.puzzlesBase.deleteConfirm', { pn: row.PN }), t('publicText.tip'), {
         confirmButtonText: t('publicText.confirm'),
         cancelButtonText: t('publicText.cancel'),
         type: 'warning'
@@ -617,7 +617,7 @@ const handleDelete = (row: any) => {
             ElNotification({
                 type: 'info',
                 title: t('publicText.tip'),
-                message: t('puzzles.cancelDelete')
+                message: t('baseData.puzzlesBase.cancelDelete')
             })
         })
 }
@@ -625,14 +625,6 @@ const handleDelete = (row: any) => {
 const onSubmit = () => {
     formRef.value.validate((valid: boolean) => {
         if (valid) {
-            if (form.value.Detail.length === 1 && form.value.Detail[0].finished_code === '') {
-                ElNotification({
-                    type: 'error',
-                    title: t('publicText.tip'),
-                    message: t('puzzles.smallBoardRequired')
-                })
-                return
-            }
             const filteredDetail = form.value.Detail.filter((item) => item.finished_code !== '')
             form.value.list.cr_user = userStore.getUserInfo
             form.value.list.cr_time = dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -662,7 +654,7 @@ const onSubmit = () => {
             ElNotification({
                 type: 'error',
                 title: t('publicText.tip'),
-                message: t('puzzles.checkForm')
+                message: t('baseData.puzzlesBase.checkForm')
             })
             return false
         }

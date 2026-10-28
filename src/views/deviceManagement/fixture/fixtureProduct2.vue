@@ -108,8 +108,8 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.side')" prop="Side">
-              <el-select v-model="form.Side" clearable :placeholder="$t('deviceManage.fixtureProduct.sidePlaceholder')"
-                style="width: 100%">
+              <el-select v-model="form.Side" clearable :disabled="isEdit"
+                :placeholder="$t('deviceManage.fixtureProduct.sidePlaceholder')" style="width: 100%">
                 <el-option label="TOP" value="TOP" />
                 <el-option label="BOT" value="BOT" />
               </el-select>
@@ -117,7 +117,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.type')" prop="ToolsMold">
-              <el-select v-model="form.ToolsMold" filterable
+              <el-select v-model="form.ToolsMold" filterable :disabled="isEdit"
                 :placeholder="$t('deviceManage.fixtureProduct.typePlaceholder')" style="width: 100%"
                 @change="handleTypeChange">
                 <el-option v-for="item in typeList" :key="item.ToolsMold" :label="item.ToolsMold"
@@ -129,7 +129,7 @@
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item :label="$t('deviceManage.fixtureProduct.equipType')" prop="EquipType">
-              <el-select v-model="form.EquipType" filterable
+              <el-select v-model="form.EquipType" filterable :disabled="isEdit"
                 :placeholder="$t('deviceManage.fixtureProduct.equipTypePlaceholder')" style="width: 100%">
                 <el-option v-for="item in equipTypeList" :key="item.EquipmentModel" :label="item.EquipmentModel"
                   :value="item.EquipmentModel" />

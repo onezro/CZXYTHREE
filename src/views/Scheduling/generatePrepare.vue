@@ -1,15 +1,37 @@
 <template>
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
-            <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.native.prevent>
+            <el-form ref="formRef" :inline="true" size="small"  @submit.native.prevent>
                 <el-form-item :label="t('Scheduling.generatePrepare.MesOrder')" prop="MergeGroup" class="mb-2">
                     <el-input v-model="getForm.orderName" placeholder="" clearable @clear="searhData"
+                        @keyup.enter.native="searhData" style="width: 200px" />
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line" class="mb-2">
+                    <el-input v-model="getForm.nc_order_line" clearable @clear="searhData"
                         @keyup.enter.native="searhData" style="width: 200px" />
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.generatePrepare.LXLine')" class="mb-2">
                     <el-select v-model="getForm.Line" placeholder="" clearable filterable @clear="searhData"
                         @change="searhData" style="width: 200px">
                         <el-option v-for="item in lineList" :key="item.line" :label="item.line" :value="item.line" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.generatePrepare.OrderGroup')" class="mb-2">
+                    <el-input v-model="getForm.WOGroup" placeholder="" clearable @clear="searhData"
+                        @keyup.enter.native="searhData" style="width: 200px" />
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.generatePrepare.UploadStatus')" class="mb-2">
+                    <el-select v-model="getForm.status" placeholder="" clearable @clear="searhData"
+                        @change="searhData" style="width: 200px">
+                        <el-option :label="t('Scheduling.generatePrepare.statusNotUploaded')" :value="0" />
+                        <el-option :label="t('Scheduling.generatePrepare.statusUploaded')" :value="1" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.generatePrepare.GroupStatus')" class="mb-2">
+                    <el-select v-model="getForm.groupStatus" placeholder="" clearable @clear="searhData"
+                        @change="searhData" style="width: 200px">
+                        <el-option v-for="item in groupStatusOptions" :key="item.value" :label="item.label"
+                            :value="item.value" />
                     </el-select>
                 </el-form-item>
                 <el-form-item class="mb-2">
@@ -36,8 +58,8 @@
                     :min-width="getColumnWidth('TeamOrder')" /> -->
                 <el-table-column :label="t('Scheduling.generatePrepare.MesOrder')" prop="wo"
                     :min-width="getColumnWidth('wo')" />
-                <el-table-column :label="t('Scheduling.generatePrepare.BtOrder')" prop="orderName"
-                    :min-width="getColumnWidth('orderName')" />
+                <el-table-column :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line"
+                    :min-width="getColumnWidth('nc_order_line')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.Product')" prop="PN"
                     :min-width="getColumnWidth('PN')" />
                 <el-table-column :label="t('Scheduling.generatePrepare.BomVersion')" prop="BomVer"
@@ -85,13 +107,12 @@
 import { QueryWorkOrderList, GenerateMaterialPreparation } from "@/api/Scheduling/index"
 import { GetSMTValorLine } from "@/api/smtApply/changeover"
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
+import { useTableHeight } from '@/hooks/useTableHeight';
 import {
     ref,
     reactive,
-    nextTick,
+    computed,
     onMounted,
-    onBeforeMount,
-    onBeforeUnmount,
 } from "vue";
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
 import dayjs from "dayjs";
@@ -99,7 +120,6 @@ import { useUserStoreWithOut } from "@/stores/modules/user";
 const userStore = useUserStoreWithOut();
 import { useI18n } from "vue-i18n";
 const { t } = useI18n();
-const tableHeight = ref(0);
 const tableData = ref([
 ]);
 
@@ -111,8 +131,21 @@ const getForm = ref({
     PageIndex: 1,
     PageSize: 50,
     orderName: '',
-    Line: ''
+    nc_order_line: '',
+    Line: '',
+    WOGroup: '',
+    status: '',
+    groupStatus: ''
 })
+const groupStatusOptions = computed(() => [
+    { value: 0, label: t('Scheduling.generatePrepare.statusScheduled') },
+    { value: 1, label: t('Scheduling.generatePrepare.statusPrepared') },
+    { value: 2, label: t('Scheduling.generatePrepare.statusCalled') },
+    { value: 3, label: t('Scheduling.generatePrepare.statusReceived') },
+    { value: 4, label: t('Scheduling.generatePrepare.statusReceivedCompleted') },
+    { value: 99, label: t('Scheduling.generatePrepare.statusWorkOrderCompleted') },
+    { value: 999, label: t('Scheduling.generatePrepare.statusWorkOrderCancelled') },
+])
 const lineList = ref<any[]>([])
 const total = ref(0)
 const selectList = ref<any>([])
@@ -123,6 +156,7 @@ const addForm = ref({
 const editForm = ref({
 })
 const tableMasterRef = ref()
+const { tableHeight } = useTableHeight(tableMasterRef);
 const handleSelectionChange = (val: any) => {
     selectList.value = val
 }
@@ -194,25 +228,10 @@ const { getColumnWidth } = useTableColumnWidth(tableMasterRef, tableData, {
     excludeLabels: [t('publicText.index'), t('publicText.operation')],
     excludeTypes: ['selection']
 });
-onBeforeMount(() => {
-    getScreenHeight();
-
-});
 onMounted(() => {
-    window.addEventListener("resize", getScreenHeight);
     getLineList();
     getData();
-
 });
-onBeforeUnmount(() => {
-    window.removeEventListener("resize", getScreenHeight);
-});
-
-const getScreenHeight = () => {
-    nextTick(() => {
-        tableHeight.value = window.innerHeight - 190;
-    });
-};
 
 const getGroupStatusName = (status: number) => {
     const statusMap: Record<number, string> = {

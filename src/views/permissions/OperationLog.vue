@@ -20,6 +20,9 @@
                 <el-form-item :label="t('permissions.operationLog.requestUrl')" prop="RequestUrl" class="mb-2">
                     <el-input v-model="getForm.RequestUrl"  placeholder="请输入请求URL" clearable style="width: 350px;" @keyup.enter="searchData" @clear="searchData" />
                 </el-form-item>
+                <el-form-item :label="t('permissions.operationLog.ipAddress')" prop="IpAddress" class="mb-2">
+                    <el-input v-model="getForm.IpAddress" placeholder="请输入请求IP地址" clearable style="width: 200px;" @keyup.enter="searchData" @clear="searchData" />
+                </el-form-item>
                 <el-form-item class="mb-2">
                     <el-button :type="'primary'" @click="searchData">{{
                         t("publicText.query")
@@ -171,8 +174,9 @@
 <script setup lang="ts">
 import { QueryOperationLog } from "@/api/Scheduling/index";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
+import { useTableHeight } from "@/hooks/useTableHeight";
 import { shortcuts1 } from "@/utils/dataMenu";
-import { ref, reactive, onMounted, nextTick, watch } from "vue";
+import { ref, reactive, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { ElMessage } from "element-plus";
 import dayjs from "dayjs";
@@ -180,7 +184,7 @@ const { t } = useI18n();
 
 const formRef = ref();
 const tableMasterRef = ref();
-const tableHeight = ref();
+const { tableHeight, calcTableHeight } = useTableHeight(tableMasterRef);
 const total = ref(0);
 
 const queryTime = ref<any[]>([]);
@@ -188,6 +192,7 @@ const queryTime = ref<any[]>([]);
 const getForm = reactive({
     ApiType: "Web",
     RequestUrl: "",
+    IpAddress: "",
     StartTime: "",
     EndTime: "",
     PageIndex: 1,
@@ -309,6 +314,8 @@ const getData = () => {
             })) || [];
             total.value = res.Data?.total || 0;
         }
+    }).finally(() => {
+        calcTableHeight();
     });
 };
 
@@ -328,6 +335,8 @@ const truncateJson = (jsonStr: string) => {
 
 const resetForm = () => {
     getForm.ApiType = "Web";
+    getForm.RequestUrl = "";
+    getForm.IpAddress = "";
     const start = new Date();
     start.setHours(0, 0, 0, 0);
     const end = new Date();
@@ -353,11 +362,6 @@ const handleCurrentChange = (val: number) => {
     getData();
 };
 
-const getScreenHeight = () => {
-    nextTick(() => {
-        tableHeight.value = window.innerHeight - 190;
-    });
-};
 watch(
     () => queryTime.value,
     (newVal: any[]) => {
@@ -365,7 +369,6 @@ watch(
     },
 );
 onMounted(() => {
-    getScreenHeight();
     resetForm();
 });
 </script>

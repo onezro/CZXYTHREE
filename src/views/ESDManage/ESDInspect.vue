@@ -426,6 +426,10 @@ const confirmValue = async (row: any) => {
     const res: any = await UpdateExecutionDetail({
       ExecutionDetailId: row.ExecutionDetailId,
       CheckValue: inputStr,
+      ProductionBatch: row.ProductionBatch || inspectTask.value.ProductionBatch || '',
+      AbnormalPhenomenon: row.AbnormalPhenomenon || '',
+      ProblemLocation: row.ProblemLocation || '',
+      PreliminaryCause: row.PreliminaryCause || '',
       UserName: userStore.getUserInfo || 'system',
     });
     if (!res.Success) {
@@ -487,7 +491,7 @@ const submitTask = () => {
 
   const details = detailList.value.map((item: any) => ({
     ExecutionDetailId: item.ExecutionDetailId,
-    CheckValue: String(item._actualValue),
+    CheckValue: String(item._actualValue ?? ''),
     ProductionBatch: item.ProductionBatch || inspectTask.value.ProductionBatch || '',
     AbnormalPhenomenon: item.AbnormalPhenomenon || '',
     ProblemLocation: item.ProblemLocation || '',
@@ -509,16 +513,17 @@ const submitTask = () => {
           ProductionBatch: inspectTask.value.ProductionBatch || '',
           Details: details,
         });
-        if (res.Success) {
-          ElMessage.success(t('esd.inspect.submitSuccess'));
+        if (res?.Success) {
+          ElMessage.success(res.Message || t('esd.inspect.submitSuccess'));
           drawerVisible.value = false;
           fetchTasks();
         } else {
-          ElMessage.error(res.Message || t('esd.inspect.submitFailure'));
+          // 直接展示后端返回的 Message
+          ElMessage.error(res?.Message || res?.msg || t('esd.inspect.submitFailure'));
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('提交点检失败:', error);
-        ElMessage.error(t('esd.inspect.submitFailure'));
+        ElMessage.error(error?.Message || error?.msg || error?.message || t('esd.inspect.submitFailure'));
       } finally {
         submitting.value = false;
       }

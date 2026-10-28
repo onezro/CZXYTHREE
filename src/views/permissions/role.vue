@@ -332,47 +332,50 @@ const editCancel = () => {
   editVisible.value = false;
   roleData.value = [];
 };
+// 递归取出接口返回数据中的全部菜单 ID
+const flattenMenuIds = (menus: any[], ids: string[] = []) => {
+  menus.forEach((menu: any) => {
+    ids.push(menu.ID);
+    if (menu.childMenu && menu.childMenu.length > 0) {
+      flattenMenuIds(menu.childMenu, ids);
+    }
+  });
+  return ids;
+};
+
+// 取出树中真正的叶子节点 ID。el-tree 非 check-strictly 模式下，
+// 传入父节点 ID 会级联勾选它下面的所有子节点
+const getTreeLeafIds = (nodes: any[], ids = new Set<string>()) => {
+  nodes.forEach((node: any) => {
+    if (node.childMenu && node.childMenu.length > 0) {
+      getTreeLeafIds(node.childMenu, ids);
+    } else {
+      ids.add(node.ID);
+    }
+  });
+  return ids;
+};
+
 const handleAssigned = (row: any) => {
   editForm.id = row.ID;
   editForm.RoleName = row.RoleName;
   editForm.RoleDesc=row.RoleDesc
+  roleData.value = [];
+  roleAllMeun.value = [];
   editVisible.value = true;
   // console.log(editVisible.value);
   getMeunRole(row.ID).then((data: any) => {
-    if (data.Data == null ||data.Data == undefined) {
-      roleData.value = []
-      // return
-    } else {
-      const dataText =data.Data
-      // console.log(dataText);
-      dataText.forEach((item: any) => {
-        if (item.childMenu !== null) {
-          item.childMenu.forEach((i: any) => {
-            // console.log(i)
-            if (i.childMenu == null) {
-              roleData.value.push(i.ID);
-            } else {
-              i.childMenu.forEach((v: any) => {
-                if (v.childMenu !== null) {
-                  v.childMenu.forEach((c: any) => {
-                    roleData.value.push(c.ID);
-                  })
-                } else {
-                  roleData.value.push(v.ID)
-                }
-              })
-            }
-          });
-        } else {
-          roleData.value.push(item.ID);
-        }
-      });
-    }
-    tree1.value.setCheckedKeys(roleData.value);
-    roleAllMeun.value = [
-      ...tree1.value.getCheckedKeys(),
-      ...tree1.value.getHalfCheckedKeys(),
-    ];
+    const menuIds = flattenMenuIds(data.Data || []);
+    const leafIds = getTreeLeafIds(treeData.value as any[]);
+    // 只把叶子节点交给 setCheckedKeys，避免父节点 ID 触发整棵子树被勾选
+    roleData.value = menuIds.filter((id: string) => leafIds.has(id));
+    nextTick(() => {
+      tree1.value.setCheckedKeys(roleData.value);
+      roleAllMeun.value = [
+        ...tree1.value.getCheckedKeys(),
+        ...tree1.value.getHalfCheckedKeys(),
+      ];
+    });
   });
 };
 

@@ -18,7 +18,8 @@ const routeData = userStore.getRoleRouters
 const loginName = userStore.getUserInfo
 import { filterBreadcrumb } from "@/components/bread/helper";
 import { filter, treeToList } from "@/utils/tree";
-import { updatePassword, GetVersion } from "@/api/permiss"
+import { GetVersion } from "@/api/permiss"
+import { updateSelfPassword } from "@/api/localAccounts"
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
 import screenfull from 'screenfull'
 import { useI18n } from "vue-i18n";
@@ -48,12 +49,14 @@ const versionForm = ref({
 })
 const upPwVisible = ref(false)
 const upPwForm = reactive({
-    employeeName: '',
+    currentPwd: '',
     pwd: '',
     confirmPwd: ''
 })
 
 const upPwFormRef = ref()
+
+const getUtf8ByteLength = (value: string) => new TextEncoder().encode(value).length
 
 const equalToPassword = (rule: any, value: any, callback: any) => {
     if (upPwForm.pwd !== value) {
@@ -62,9 +65,29 @@ const equalToPassword = (rule: any, value: any, callback: any) => {
         callback();
     }
 }
+
+const validateNewPassword = (rule: any, value: any, callback: any) => {
+    if (!value) {
+        callback(new Error("请输入新密码"));
+        return;
+    }
+    if (value.length < 8) {
+        callback(new Error("密码至少8个字符"));
+        return;
+    }
+    if (getUtf8ByteLength(value) > 72) {
+        callback(new Error("密码长度不能超过72字节"));
+        return;
+    }
+    callback();
+}
+
 const rules1 = reactive<any>({
+    currentPwd: [
+        { required: true, message: '请输入原密码', trigger: 'blur' },
+    ],
     pwd: [
-        { required: true, message: '请输入新密码', trigger: 'blur' },
+        { required: true, validator: validateNewPassword, trigger: 'blur' },
     ],
     confirmPwd: [
         { required: true, trigger: "blur", message: "请再次输入您的密码" },
@@ -166,16 +189,19 @@ const upDateCancel = () => {
 const upDateSubmit = () => {
     upPwFormRef.value.validate((valid: any) => {
         if (valid) {
-            let data = {
-                employeeName: userStore.getUserInfo,
-                pwd: upPwForm.pwd
+            const data = {
+                CurrentPassword: upPwForm.currentPwd,
+                NewPassword: upPwForm.pwd
             }
-            updatePassword(data).then((res: any) => {
-                if (res.code == 100200) {
+            updateSelfPassword(data).then((res: any) => {
+                const success = !!res && (res.Success === true || res.Success === "true" || res.Code == 100200)
+                if (success) {
                     ElNotification({
                         title: "修改成功",
                         type: "success",
                     });
+                    upPwVisible.value = false
+                    upPwFormRef.value.resetFields();
                     ElMessageBox.confirm("密码修改成功即将退出登录", "提示", {
                         confirmButtonText: "确定",
                         type: "warning",
@@ -189,11 +215,12 @@ const upDateSubmit = () => {
                 } else {
                     ElNotification({
                         title: "修改失败",
-                        message: res.msg,
+                        message: res?.Message || res?.msg || "修改失败",
                         type: "error",
                     });
                 }
-                upPwVisible.value = false
+            }).catch(() => {
+                // 错误提示由请求拦截器统一处理
             })
 
         } else {
@@ -581,6 +608,9 @@ const changeOperator = (val: any) => {
         <el-dialog :append-to-body="true" :close-on-click-modal="false" title="修改密码" v-model="upPwVisible" width="400px"
             @close="upDateCancel()">
             <el-form :model="upPwForm" ref="upPwFormRef" :rules="rules1" label-width="auto">
+                <el-form-item label="原密码" prop="currentPwd">
+                    <el-input v-model="upPwForm.currentPwd" placeholder="请输入原密码" show-password clearable></el-input>
+                </el-form-item>
                 <el-form-item label="新密码" prop="pwd">
                     <el-input v-model="upPwForm.pwd" placeholder="请输入新密码" show-password clearable></el-input>
                 </el-form-item>

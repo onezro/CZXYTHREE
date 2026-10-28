@@ -228,3 +228,12 @@ export function GiveAgvTask(data: any) {
     data,
   });
 }
+
+// 强制结束AGV任务
+export function ConfirmAgvTask(data: any) {
+  return request({
+    url: "/api/AgvTask/ConfirmAgvTask",
+    method: "post",
+    data,
+  });
+}

@@ -10,7 +10,7 @@
                             value-format="YYYY-MM-DD HH:mm:ss" :shortcuts="shortcuts1" :default-time="[
                                 new Date(2000, 1, 1, 0, 0, 0),
                                 new Date(2000, 1, 1, 23, 59, 59),
-                            ]" :clearable="false" :disabled="searchForm.OnlyEmptyContainers"
+                            ]" :clearable="false"
                             @change="handleDateRangeChange" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productionOrderNo')" prop="ProductionOrderNo"
@@ -247,13 +247,13 @@ const formatDate = (dateStr: string) => {
     return dayjs(dateStr).format("YYYY-MM-DD HH:mm:ss");
 };
 
-// 框状态：兼容后端返回的中文/英文枚举值，未知值原样展示
+// 框状态：有料框 / 空料框 / 待核实，兼容后端返回的中英文枚举值，未知值原样展示
 const getContainerStatusKey = (status: any) => {
     if (status == null) return "";
     const value = String(status).trim().toLowerCase();
     if (["empty", "blank", "空", "空料框", "emptycontainer"].includes(value)) return "empty";
     if (["full", "loaded", "hasmaterial", "有料", "有料框", "material"].includes(value)) return "full";
-    if (["abnormal", "error", "exception", "异常", "状态异常"].includes(value)) return "abnormal";
+    if (["pending", "verify", "toverify", "unverified", "tobeconfirmed", "待核实", "状态异常"].includes(value)) return "pending";
     return "";
 };
 
@@ -261,14 +261,14 @@ const getContainerStatusLabel = (status: any) => {
     const key = getContainerStatusKey(status);
     if (key === "empty") return t("report.magazineStockReport.containerStatusEmpty");
     if (key === "full") return t("report.magazineStockReport.containerStatusFull");
-    if (key === "abnormal") return t("report.magazineStockReport.containerStatusAbnormal");
+    if (key === "pending") return t("report.magazineStockReport.containerStatusPending");
     return status == null ? "" : String(status);
 };
 
 const getContainerStatusTagType = (status: any) => {
     const key = getContainerStatusKey(status);
     if (key === "full") return "success";
-    if (key === "abnormal") return "danger";
+    if (key === "pending") return "warning";
     return "info";
 };
 
@@ -399,17 +399,10 @@ const handleExport = async () => {
 };
 
 const handleReset = () => {
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-    const start = new Date();
-    start.setDate(start.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
-    queryTime.value = [
-        `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")} 00:00:00`,
-        `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")} 23:59:59`,
-    ];
-    searchForm.StartTime = queryTime.value[0] || "";
-    searchForm.EndTime = queryTime.value[1] || "";
+    // 默认查询时间为空
+    queryTime.value = [];
+    searchForm.StartTime = "";
+    searchForm.EndTime = "";
     searchForm.ProductionOrderNo = "";
     searchForm.ProductionOrderRow = "";
     searchForm.ProductCode = "";

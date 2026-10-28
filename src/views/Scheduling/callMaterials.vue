@@ -1,7 +1,7 @@
 <template>
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
-            <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.prevent>
+            <el-form ref="formRef" :inline="true" size="small" @submit.prevent>
                 <el-form-item :label="t('Scheduling.PrepareMaterials.MaterialPreparationNo')" prop="KittingNo" class="mb-2">
                     <el-input v-model="getForm.KittingNo" :placeholder="t('Scheduling.CallMaterials.inputKittingNo')" clearable
                         @clear="searchData" @keyup.enter="searchData" style="width: 200px" />
@@ -9,6 +9,10 @@
                 <el-form-item :label="t('Scheduling.CallMaterials.GroupOrder')" prop="WOGroup" class="mb-2">
                     <el-input v-model="getForm.WOGroup" :placeholder="t('Scheduling.CallMaterials.inputGroupOrder')" clearable
                         @clear="searchData" @keyup.enter="searchData" style="width: 200px" />
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line" class="mb-2">
+                    <el-input v-model="getForm.nc_order_line" clearable @clear="searchData"
+                        @keyup.enter="searchData" style="width: 200px" />
                 </el-form-item>
                 <el-form-item class="mb-2">
                     <el-button type="primary" @click="searchData">{{ t('publicText.query') }}</el-button>
@@ -50,8 +54,10 @@
                     prop="MaterialRequest_KittingNo" :min-width="getColumnWidth('MaterialRequest_KittingNo')" show-overflow-tooltip />
                 <el-table-column :label="t('Scheduling.CallMaterials.GroupOrder')" fixed prop="MaterialRequest_WoGroup"
                     :min-width="getColumnWidth('MaterialRequest_WoGroup')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line"
+                    :min-width="getColumnWidth('nc_order_line')" show-overflow-tooltip />
                 <el-table-column :label="t('Scheduling.CallMaterials.RequestType')" prop="MaterialRequest_Type"
-                    width="100" align="center">
+                   width="100" align="center">
                     <template #default="{ row }">
                         <el-tag :type="row.MaterialRequest_Type === 0 ? 'primary' : 'warning'" size="small">
                             {{ row.MaterialRequest_Type === 0 ? t('Scheduling.CallMaterials.TypeNormal') : t('Scheduling.CallMaterials.TypeSupplement') }}
@@ -75,7 +81,7 @@
                     </template>
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.ERPDocument.Status')" prop="MaterialRequest_Status"
-                    :min-width="100" align="center">
+                   width="100" align="center">
                     <template #default="{ row }">
                         <el-tag :type="getStatusType(row.MaterialRequest_Status)" size="small">
                             {{ getStatusText(row.MaterialRequest_Status) }}
@@ -85,7 +91,7 @@
                 <el-table-column :label="t('Scheduling.CallMaterials.InsertUser')" prop="MaterialRequest_InsertUser"
                     :min-width="getColumnWidth('MaterialRequest_InsertUser')" />
                 <el-table-column :label="t('Scheduling.CallMaterials.InsertDt')" prop="MaterialRequest_InsertDt"
-                    width="160" show-overflow-tooltip>
+                    :min-width="getColumnWidth('MaterialRequest_InsertDt')" show-overflow-tooltip>
                     <template #default="{ row }">
                         {{ formatDate(row.MaterialRequest_InsertDt) }}
                     </template>
@@ -93,7 +99,7 @@
                 <el-table-column :label="t('Scheduling.CallMaterials.UpdateUser')" prop="MaterialRequest_UpdateUser"
                     :min-width="getColumnWidth('MaterialRequest_UpdateUser')" />
                 <el-table-column :label="t('Scheduling.CallMaterials.UpdateDt')" prop="MaterialRequest_UpdateDt"
-                   width="160" show-overflow-tooltip>
+                   :min-width="getColumnWidth('MaterialRequest_UpdateDt')" show-overflow-tooltip>
                     <template #default="{ row }">
                         {{ formatDate(row.MaterialRequest_UpdateDt) }}
                     </template>
@@ -131,7 +137,7 @@
                 <el-table-column prop="name" :label="t('Scheduling.CallMaterials.PNName')"
                     :min-width="getListColumnWidth('name')" show-overflow-tooltip />
                 <el-table-column prop="pn_spec" :label="t('Scheduling.CallMaterials.PNDesc')"
-                    :min-width="200" show-overflow-tooltip />
+                    :min-width="getListColumnWidth('pn_spec')" show-overflow-tooltip />
                 <el-table-column prop="MaterialRequestList_Qty" :label="t('Scheduling.CallMaterials.RequiredQty')"
                     :min-width="getListColumnWidth('MaterialRequestList_Qty')" align="right" />
                 <el-table-column prop="MaterialRequestList_ActiveQty" :label="t('Scheduling.CallMaterials.ActiveQty')"
@@ -252,6 +258,7 @@ const getForm = reactive({
     PageSize: 50,
     KittingNo: '',
     WOGroup: '',
+    nc_order_line: '',
 });
 
 // 单选 & 操作按钮 loading

@@ -2,9 +2,13 @@
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <!-- 搜索栏 -->
-            <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.native.prevent>
+            <el-form ref="formRef" :inline="true" size="small"  @submit.native.prevent>
                 <el-form-item :label="t('Scheduling.PrepareMaterials.WOGroup')" prop="WOGroup" class="mb-2">
                     <el-input v-model="getForm.WOGroup" clearable @clear="getData"
+                        @keyup.enter.native="getData" style="width: 160px" />
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line" class="mb-2">
+                    <el-input v-model="getForm.nc_order_line" clearable @clear="getData"
                         @keyup.enter.native="getData" style="width: 160px" />
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.PrepareMaterials.Line')" prop="Line" class="mb-2">
@@ -39,15 +43,15 @@
                 <el-form-item class="mb-2">
                     <el-button :type="'primary'" @click="getData">{{ t('publicText.query') }}</el-button>
                     <el-button @click="handleReset">{{ t('publicText.reset') }}</el-button>
-                    <el-button :type="'primary'" :disabled="selectList.length !== 1" @click="handleGenerateCall">
+                    <el-button :type="'primary'" :disabled="!selectedRow" @click="handleGenerateCall">
                         {{ t('Scheduling.PrepareMaterials.generateCall') }}
                     </el-button>
-                    <el-button :type="'success'" :disabled="selectList.length !== 1"  @click="openNonFirstDialog(selectList[0])">
+                    <el-button :type="'success'" :disabled="!selectedRow"  @click="openNonFirstDialog(selectedRow)">
                         {{ t('Scheduling.CallMaterials.nonFirst') }}
                     </el-button>
-                    <el-button :type="'warning'" :disabled="selectList.length !== 1" @click="addMaterial">{{ t('Scheduling.PrepareMaterials.StatusType2')
+                    <el-button :type="'warning'" :disabled="!selectedRow" @click="addMaterial">{{ t('Scheduling.PrepareMaterials.StatusType2')
                     }}</el-button>
-                    <el-button :type="'danger'" :disabled="selectList.length !== 1" @click="handleCancelPrepare">
+                    <el-button :type="'danger'" :disabled="!selectedRow" @click="handleCancelPrepare">
                         {{ t('Scheduling.PrepareMaterials.cancelPrepare') }}
                     </el-button>
                 </el-form-item>
@@ -55,9 +59,13 @@
 
             <!-- 备料单列表 -->
             <el-table ref="tableMasterRef" :data="tableData" size="small" :style="{ width: '100%' }"
-                :height="tableHeight" :tooltip-effect="'dark'" border fit @selection-change="handleSelectionChange"
-                @row-click="fetchDetail" highlight-current-row :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
-                <el-table-column type="selection" width="55" align="center" />
+                :height="tableHeight" :tooltip-effect="'dark'" border fit @row-click="fetchDetail"
+                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                <el-table-column width="45" align="center" fixed>
+                    <template #default="{ row }">
+                        <el-radio v-model="selectedNo" :value="row.MaterialPreparationNo"><span /></el-radio>
+                    </template>
+                </el-table-column>
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{
@@ -69,6 +77,8 @@
                     :min-width="getColumnWidth1('WOGroup')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.PreparationNo')" fixed
                     prop="MaterialPreparationNo" :min-width="getColumnWidth1('MaterialPreparationNo')" />
+                <el-table-column :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line"
+                    :min-width="getColumnWidth1('nc_order_line')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.Line')" prop="Line"
                     :min-width="getColumnWidth1('Line')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.PlanStartTime')" prop="PlanStartTime"
@@ -77,10 +87,10 @@
                     :min-width="getColumnWidth1('PlanEndTime')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPreparationStatus')" prop="MaterialPreparationStatusText"
                     :min-width="getColumnWidth1('MaterialPreparationStatusText')" />
-                <el-table-column :label="t('Scheduling.PrepareMaterials.uploadStatus')" prop="upload_status_name"
+                <!-- <el-table-column :label="t('Scheduling.PrepareMaterials.uploadStatus')" prop="upload_status_name"
                     :min-width="getColumnWidth1('upload_status_name')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.confirmStatus')" prop="confirm_status_name"
-                    :min-width="getColumnWidth1('confirm_status_name')" />
+                    :min-width="getColumnWidth1('confirm_status_name')" /> -->
                 <el-table-column :label="t('Scheduling.PrepareMaterials.IsKitted')" prop="IsKittedText"
                     :min-width="getColumnWidth1('IsKittedText')" />
                 <!-- <el-table-column :label="t('Scheduling.PrepareMaterials.KittingStatus')" prop="KittingStatusText"
@@ -355,16 +365,18 @@ const tableHeight2 = ref(0);
 
 
 // ---------- 表格数据 ----------
-const tableData = ref([]); // 备料单列表
-const tableData2 = ref([
+const tableData = ref<any[]>([]); // 备料单列表
+const tableData2 = ref<any[]>([
 ]); // 备料单明细
 const total = ref(0);
-const selectList = ref<any>([]);
+const selectedNo = ref<string>('');
+const selectedRow = computed<any | undefined>(() => tableData.value.find((r: any) => r.MaterialPreparationNo === selectedNo.value));
 
 const getForm = ref({
     PageIndex: 1,
     PageSize: 50,
     WOGroup: "",
+    nc_order_line: "",
     Line: "",
     Status: "",
     IsKitted: "",
@@ -461,6 +473,7 @@ const getData = () => {
         if (res.Success) {
             total.value = res.Data.total;
             tableData.value = res.Data.rows;
+            selectedNo.value = '';
         }
     });
 };
@@ -520,7 +533,7 @@ const fetchDetail = (row: any) => {
 
 // 生成叫料单
 const handleGenerateCall = () => {
-    const selected = selectList.value[0];
+    const selected = selectedRow.value;
     if (!selected) return;
     const isKitted = selected.IsKitted === 1;
     ElMessageBox.prompt(
@@ -559,7 +572,7 @@ const handleGenerateCall = () => {
 
 // 取消备料单
 const handleCancelPrepare = () => {
-    const selected = selectList.value[0];
+    const selected = selectedRow.value;
     if (!selected) return;
     ElMessageBox.prompt(
         t('Scheduling.PrepareMaterials.inputCancelReason'),
@@ -617,7 +630,7 @@ const handleResend = (row: any) => {
 };
 
 const addMaterial = () => {
-    const selected = selectList.value[0]
+    const selected = selectedRow.value
     if (!selected) return
     addForm.value.WOGroup = selected.WOGroup || ""
     addForm.value.Reason = ""
@@ -706,13 +719,10 @@ const submitAddForm = () => {
 }
 
 // ---------- 选择与分页事件 ----------
-const handleSelectionChange = (val: any[]) => {
-    selectList.value = val;
-};
-
 const handleReset = () => {
     getForm.value.PageIndex = 1;
     getForm.value.WOGroup = "";
+    getForm.value.nc_order_line = "";
     getForm.value.Line = "";
     getForm.value.Status = "";
     getForm.value.IsKitted = "";
@@ -737,8 +747,7 @@ const handleCurrentChange1 = (val: any) => {
 
 // ---------- 列宽自动计算 ----------
 const { getColumnWidth: getColumnWidth1 } = useTableColumnWidth(tableMasterRef, tableData, {
-    excludeLabels: [t('publicText.index'), t('publicText.operation')],
-    excludeTypes: ['selection']
+    excludeLabels: [t('publicText.index'), t('publicText.operation')]
 });
 
 const { getColumnWidth: getColumnWidth2 } = useTableColumnWidth(tableDetailRef, tableData2, {

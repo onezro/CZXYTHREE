@@ -183,13 +183,18 @@
                         </el-button>
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('publicText.operation')" :fixed="'right'" width="80" align="center">
+                <el-table-column :label="t('publicText.operation')" :fixed="'right'" width="110" align="center">
                     <template #default="{ row }">
-                        <el-tooltip :content="[1, -1].includes(row.ReturnStatus) ? t('AGV.taskQuery.cancelTaskDisabled') : t('AGV.taskQuery.cancelTask')" placement="top">
+                        <el-tooltip :content="getCancelTip(row)" placement="top">
                             <el-button size="small" type="danger" icon="Close"
-                                :disabled="[1, -1].includes(row.ReturnStatus)"
+                                :disabled="[1, -1, -2].includes(row.ReturnStatus)"
                                 :loading="row._cancelLoading"
                                 @click="handleCancelTask(row)" />
+                        </el-tooltip>
+                        <el-tooltip :content="t('AGV.taskQuery.forceEndTask')" placement="top">
+                            <el-button size="small" type="warning" icon="SwitchButton"
+                                :loading="row._forceEndLoading"
+                                @click="handleForceEndTask(row)" />
                         </el-tooltip>
                     </template>
                 </el-table-column>
@@ -282,19 +287,18 @@
 </template>
 
 <script setup lang="ts">
-import { QueryAgvTaskPage, GiveAgvTask, GetAllValorLine } from "@/api/AGV/index";
+import { QueryAgvTaskPage, GiveAgvTask, ConfirmAgvTask, GetAllValorLine } from "@/api/AGV/index";
 import { shortcuts1 } from "@/utils/dataMenu";
 import {
     ref,
     reactive,
-    nextTick,
     onMounted,
-    onBeforeUnmount,
     watch,
 } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
+import { useTableHeight } from "@/hooks/useTableHeight";
 import dayjs from 'dayjs';
 import { useI18n } from "vue-i18n";
 
@@ -302,8 +306,8 @@ const { t } = useI18n();
 const userStore = useUserStoreWithOut();
 
 const loading = ref(false);
-const tableHeight = ref(0);
 const eltableRef = ref();
+const { tableHeight } = useTableHeight(eltableRef);
 const tableData = ref<any[]>([]);
 const total = ref(0);
 
@@ -430,6 +434,12 @@ const handleReset = () => {
     getData();
 };
 
+const getCancelTip = (row: any) => {
+    if (row.ReturnStatus === -2) return t("AGV.taskQuery.cancelTaskFailedDisabled");
+    if ([1, -1].includes(row.ReturnStatus)) return t("AGV.taskQuery.cancelTaskDisabled");
+    return t("AGV.taskQuery.cancelTask");
+};
+
 const handleCancelTask = (row: any) => {
     ElMessageBox.confirm(
         t("AGV.taskQuery.confirmCancelTask", [row.TaskGuid || '']),
@@ -458,6 +468,42 @@ const handleCancelTask = (row: any) => {
                 })
                 .finally(() => {
                     row._cancelLoading = false;
+                });
+        })
+        .catch(() => {
+            ElMessage.info(t("publicText.cancel"));
+        });
+};
+
+const handleForceEndTask = (row: any) => {
+    ElMessageBox.confirm(
+        t("AGV.taskQuery.confirmForceEndTask", [row.TaskGuid || '']),
+        t("publicText.tip"),
+        {
+            confirmButtonText: t("publicText.confirm"),
+            cancelButtonText: t("publicText.cancel"),
+            type: "warning",
+        }
+    )
+        .then(() => {
+            row._forceEndLoading = true;
+            ConfirmAgvTask({
+                robotTaskCode: row.TaskGuid,
+                UserNo: userStore.getUserInfo || "",
+            })
+                .then((res: any) => {
+                    if (res.Success) {
+                        ElMessage.success(t("AGV.taskQuery.forceEndSuccess"));
+                        getData();
+                    } else {
+                        ElMessage.error(res.Message || t("AGV.taskQuery.forceEndFailure"));
+                    }
+                })
+                .catch(() => {
+                    ElMessage.error(t("AGV.taskQuery.forceEndFailure"));
+                })
+                .finally(() => {
+                    row._forceEndLoading = false;
                 });
         })
         .catch(() => {
@@ -554,12 +600,6 @@ const handleCurrentChange = (val: number) => {
     getData();
 };
 
-const getScreenHeight = () => {
-    nextTick(() => {
-        tableHeight.value = window.innerHeight - 220;
-    });
-};
-
 watch(
     queryTime,
     (newVal) => {
@@ -568,14 +608,8 @@ watch(
 );
 
 onMounted(() => {
-    getScreenHeight();
-    window.addEventListener("resize", getScreenHeight);
     loadLines();
     handleReset();
-});
-
-onBeforeUnmount(() => {
-    window.removeEventListener("resize", getScreenHeight);
 });
 </script>
 

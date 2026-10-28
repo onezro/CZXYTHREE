@@ -61,3 +61,11 @@ export function ConfirmIssueData(data:any) {
     data
   });
 }
+
+export function QueryMaterialBalanceSummary(data:any) {
+  return request({
+    url: "/api/WorkOrderGroupMaterialIssue/QueryMaterialBalanceSummary",
+    method: "post",
+    data
+  });
+}

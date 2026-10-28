@@ -26,7 +26,7 @@
     <el-card shadow="always" :body-style="{ padding: '8px' }" class="flex-1">
       <div class=" flex justify-between">
         <div>
-          <!-- <el-button type="primary" @click="handleAdd()" size="small">添加员工</el-button> -->
+          <el-button type="primary" @click="handleAdd()" size="small">新增账号</el-button>
         </div>
         <div class="mb-2">
           <el-input v-model="searchName" clearable placeholder="请输入">
@@ -66,9 +66,9 @@
             <el-tooltip content="密码重置" placement="top">
               <el-button type="danger" icon="RefreshLeft" size="small" @click="handleRest(scope.row)" />
             </el-tooltip>
-            <!-- <el-tooltip content="删除" placement="top">
+            <el-tooltip content="删除" placement="top">
               <el-button type="danger" icon="Delete" size="small" @click="handleDelete(scope.row)" />
-            </el-tooltip> -->
+            </el-tooltip>
             <el-tooltip content="历史登录记录" placement="top">
               <el-button icon="Clock" size="small" type="success" @click="handleHistory(scope.row)" />
             </el-tooltip>
@@ -159,20 +159,34 @@
       </template>
     </el-dialog>
 
-    <el-dialog :append-to-body="true" :close-on-click-modal="false" title="添加员工" v-model="addPwdVisible" width="400px"
+    <el-dialog :append-to-body="true" :close-on-click-modal="false" title="新增账号" v-model="addPwdVisible" width="520px"
       @close="addPwdCancel()">
-      <el-form :model="addForm" ref="addFormRef" label-width="auto">
-        <el-form-item label="工号" prop="employeeName">
-          <el-input v-model="addForm.employeeName" clearable></el-input>
+      <el-form :model="addForm" ref="addFormRef" label-width="90px">
+        <el-form-item label="工号" prop="EmpCode">
+          <el-input v-model="addForm.EmpCode" maxlength="50" clearable placeholder="请输入员工工号" />
         </el-form-item>
-        <el-form-item label="员工姓名" prop="FullName">
-          <el-input v-model="addForm.FullName" clearable></el-input>
+        <el-form-item label="员工姓名" prop="EmpName">
+          <el-input v-model="addForm.EmpName" maxlength="50" clearable placeholder="请输入员工姓名" />
+        </el-form-item>
+        <el-form-item label="登录账号" prop="EmployeeName">
+          <el-input v-model="addForm.EmployeeName" maxlength="50" placeholder="请输入登录账号" />
+        </el-form-item>
+        <el-form-item label="密码" prop="Password">
+          <el-input v-model="addForm.Password" type="password" show-password placeholder="至少8个字符" />
+        </el-form-item>
+        <el-form-item label="启用" prop="CanLogin">
+          <el-switch v-model="addForm.CanLogin" />
+        </el-form-item>
+        <el-form-item label="角色" prop="RoleIds">
+          <el-select v-model="addForm.RoleIds" multiple filterable placeholder="请选择角色" style="width: 100%">
+            <el-option v-for="item in optionArr" :key="item.value" :label="item.lable" :value="item.value" />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="addPwdCancel()">取消</el-button>
-          <el-button type="primary" @click="addSubmit()">确定</el-button>
+          <el-button type="primary" :loading="addSaving" @click="addSubmit()">确定</el-button>
         </span>
       </template>
     </el-dialog>
@@ -199,12 +213,12 @@ import {
   deleteEmployee,
   addEmployee,
   getOrganization,
-  OpcenterEmployeeSync,
   ResetEmpPwd,
   AddEmployee,
   findEmpLoginLog
 } from "@/api/permiss";
 import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
+import { saveAccount, deleteAccount } from "@/api/localAccounts";
 import {
   ref,
   unref,
@@ -306,8 +320,36 @@ const rePwForm = ref({
   FullName:''
 });
 const addForm = ref({
-  employeeName: "",
-  FullName: "",
+  EmpCode: "",
+  EmpName: "",
+  EmployeeName: "",
+  Password: "12345678",
+  CanLogin: true,
+  RoleIds: [] as string[],
+});
+const addSaving = ref(false);
+const getUtf8ByteLength = (value: string) => new TextEncoder().encode(value).length;
+const validateAddPassword = (rule: any, value: string, callback: any) => {
+  if (!value) {
+    callback(new Error("请输入密码"));
+    return;
+  }
+  if (value.length < 8) {
+    callback(new Error("密码至少8个字符"));
+    return;
+  }
+  if (getUtf8ByteLength(value) > 72) {
+    callback(new Error("密码长度不能超过72字节"));
+    return;
+  }
+  callback();
+};
+const addRules = reactive<any>({
+  EmployeeName: [
+    { required: true, message: "请输入登录账号", trigger: "blur" },
+    { max: 50, message: "最多50个字符", trigger: "blur" },
+  ],
+  Password: [{ validator: validateAddPassword, trigger: "blur" }],
 });
 const equalToPassword = (rule: any, value: any, callback: any) => {
   if (rePwForm.value.pwd !== value) {
@@ -638,38 +680,43 @@ const handleRest = (row: any) => {
   restVisible.value = true;
 };
 const handleAdd = () => {
+  addForm.value.EmpCode = "";
+  addForm.value.EmpName = "";
+  addForm.value.EmployeeName = "";
+  addForm.value.Password = "12345678";
+  addForm.value.CanLogin = true;
+  addForm.value.RoleIds = [];
   addPwdVisible.value = true;
+  nextTick(() => addFormRef.value?.clearValidate());
 };
 const addPwdCancel = () => {
   addPwdVisible.value = false;
   addFormRef.value?.resetFields();
 };
 const addSubmit = () => {
-  addFormRef.value.validate((valid: any) => {
-    if (valid) {
-      let data = {
-        EmployeeName: addForm.value.employeeName,
-        FullName: addForm.value.FullName,
-        CreateBy: userStore.getUserInfo || "",
-        IsOnline: "Y",
-      };
-      OpcenterEmployeeSync(data).then((res: any) => {
-        if (res.Success) {
-          ElNotification({
-            title: "提示信息",
-            message: "添加成功",
-            type: "success",
-          });
-        } else {
-          ElNotification.error({
-            title: "提示信息",
-            message: res.Message || "添加失败",
-            duration: 0,
-          });
-        }
-        getData();
-        addPwdVisible.value = false;
+  addFormRef.value.validate(async (valid: boolean) => {
+    if (!valid) return;
+    addSaving.value = true;
+    try {
+      const res: any = await saveAccount({
+        EmpCode: addForm.value.EmpCode,
+        EmpName: addForm.value.EmpName,
+        EmployeeName: addForm.value.EmployeeName,
+        Password: addForm.value.Password,
+        CanLogin: addForm.value.CanLogin,
+        RoleIds: addForm.value.RoleIds,
       });
+      if (res?.Success === true) {
+        ElMessage.success(res.Message || "新增成功");
+        addPwdVisible.value = false;
+        getData();
+      } else {
+        ElMessage.error(res?.Message || "新增失败");
+      }
+    } catch (e) {
+      // 错误提示由请求拦截器统一处理
+    } finally {
+      addSaving.value = false;
     }
   });
 };
@@ -730,27 +777,27 @@ const handleDelete = (row: any) => {
     cancelButtonText: "取消",
     type: "warning",
   })
-    .then(() => {
-      OpcenterEmployeeSync({
-        EmployeeName: row.employeeName,
-        FullName: row.fullName,
-        CreateBy: userStore.getUserInfo || "",
-        IsOnline: "N",
-      }).then((res: any) => {
-        if (res.Success) {
+    .then(async () => {
+      try {
+        const res: any = await deleteAccount({
+          EmployeeName: row.employeeName,
+        });
+        if (res?.Success === true) {
           getData();
           ElNotification({
             title: "提示信息",
-            message: "删除成功",
+            message: res.Message || "删除成功",
             type: "success",
           });
         } else {
           ElNotification.error({
             title: "提示信息",
-            message: res.Message || "删除失败",
+            message: res?.Message || "删除失败",
           });
         }
-      });
+      } catch (e) {
+        // 错误提示由请求拦截器统一处理
+      }
     })
     .catch(() => {
       ElMessage({

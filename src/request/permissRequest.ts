@@ -44,7 +44,13 @@ const service = axios.create({
 service.interceptors.request.use(
   (config) => {
     const token = getToken() || ""; //getToken是在另一个JS文件中封装好的方法
-    token && (config.headers["authorization"] = token);
+    if (token) {
+      // 员工/账号/本地登录等新接口要求 Bearer 格式，旧接口继续使用原始 token
+      const needBearer =
+        (config.url || "").startsWith("/api/localAccounts") ||
+        config.url === "/getToken";
+      config.headers["authorization"] = needBearer ? `Bearer ${token}` : token;
+    }
     // return config
     // config.cancelToken = source.token; // 取消请求
     // if (config.cancelToken && config.cancelObj && config.cancelObj.cancel) {
@@ -91,10 +97,19 @@ service.interceptors.response.use(
       return Promise.reject();
     }
     if (response.status === 401) {
-      // userStore.logout()
-      // router.push({path: '/login'});
       removeToken();
-      router.push("/login");
+      if (router.currentRoute.value.path !== "/login") {
+        ElMessage.warning("登录状态已过期，请重新登录");
+        router.push({
+          path: "/login",
+          query: { redirect: router.currentRoute.value.fullPath },
+        });
+      }
+      return Promise.reject(response.data);
+    }
+    if (response.status === 403) {
+      ElMessage.error("没有操作权限");
+      return Promise.reject(response.data);
     }
 
     //成功的返回
@@ -130,26 +145,35 @@ service.interceptors.response.use(
       } else {
         ElNotification({
           title: "提示信息",
-          message: response.data.Message,
+          message: response.data.Message || response.data.msg,
           type: "error",
-          duration: 0
+          duration: 0,
         });
       }
     }
   },
   (error) => {
-    // hideLoading();
-    // removeToken();
-    // 携带 redirect 并避免在登录页重复跳转
-    // if (router.currentRoute.value.path !== "/login") {
-    //   router.push({
-    //     path: "/login",
-    //     query: { redirect: router.currentRoute.value.fullPath },
-    //   });
-    // }
-    ElMessageBox.alert(error, "提示信息", {
-      confirmButtonText: "确定",
-    });
+    hideLoading();
+    const status = error?.response?.status;
+    if (status === 401) {
+      removeToken();
+      if (router.currentRoute.value.path !== "/login") {
+        ElMessage.warning("登录状态已过期，请重新登录");
+        router.push({
+          path: "/login",
+          query: { redirect: router.currentRoute.value.fullPath },
+        });
+      }
+    } else if (status === 403) {
+      ElMessage.error("没有操作权限");
+    } else if (status === 404) {
+      ElMessage.error("接口地址错误");
+    } else if (status >= 500) {
+      ElMessage.error("后台错误");
+    } else {
+      ElMessage.error(error?.message || "请求失败");
+    }
+    return Promise.reject(error);
   },
 );
 

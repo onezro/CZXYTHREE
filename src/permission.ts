@@ -2,7 +2,7 @@ import router from "./router";
 import { useAppStore } from "@/stores/modules/app";
 import type { RouteRecordRaw } from "vue-router";
 import { useTitle } from "@/hooks/useTitle";
-import { getToken } from "@/utils/auth";
+import { getToken, removeToken } from "@/utils/auth";
 import { useNProgress } from "@/hooks/useNProgress";
 import { usePermissionStoreWithOut } from "@/stores/modules/permission";
 import { NO_REDIRECT_WHITE_LIST } from "@/constants";
@@ -31,7 +31,8 @@ router.beforeEach(async (to, from, next) => {
         next();
         return;
       }
-      await getInfo().then(async (data: any) => {
+      try {
+        await getInfo().then(async (data: any) => {
         userStore.setUserInfo(data.Data);
 
         if (data.Code == 100200 || data.Code == 100300) {
@@ -82,6 +83,11 @@ router.beforeEach(async (to, from, next) => {
           });
         }
       });
+      } catch (e) {
+        removeToken();
+        next(`/login?redirect=${to.path}`);
+        return;
+      }
       const redirectPath =
         appStore.getSystemType && localStorage.getItem("OPUIData")
           ? appStore.getOpuiData.path

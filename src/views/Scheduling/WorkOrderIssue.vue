@@ -1,10 +1,14 @@
 <template>
   <div class="p-2">
     <el-card shadow="always" :body-style="{ padding: '8px' }">
-      <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.prevent>
+      <el-form ref="formRef" :inline="true" size="small"  @submit.prevent>
         <el-form-item :label="t('Scheduling.WorkOrderIssue.groupOrder')" prop="groupOrder" class="mb-2">
           <el-input v-model="getForm.group_order" :placeholder="t('Scheduling.WorkOrderIssue.pleaseInputGroupOrder')"
             clearable @clear="queryReturnMaterials" @keyup.enter="queryReturnMaterials" style="width: 200px" />
+        </el-form-item>
+        <el-form-item :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line" class="mb-2">
+          <el-input v-model="getForm.nc_order_line" :placeholder="t('Scheduling.WorkOrderIssue.ncOrderLine')" clearable
+            @clear="queryReturnMaterials" @keyup.enter="queryReturnMaterials" style="width: 200px" />
         </el-form-item>
         <el-form-item :label="t('Scheduling.WorkOrderIssue.reelId')" prop="reelId" class="mb-2">
           <el-input v-model="getForm.reel_id" :placeholder="t('Scheduling.WorkOrderIssue.reelId')" clearable
@@ -46,7 +50,13 @@
           </template>
         </el-table-column>
         <el-table-column :label="t('Scheduling.WorkOrderIssue.groupOrder')" prop="group_order"
-          :min-width="getColumnWidth('group_order')" show-overflow-tooltip />
+          :min-width="getColumnWidth('group_order')" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="call-order-link" @click.stop="handleViewMaterialBalance(row)">
+              {{ row.group_order }}
+            </span>
+          </template>
+        </el-table-column>
         <el-table-column :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line"
           :min-width="getColumnWidth('nc_order_line')" show-overflow-tooltip />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.createTime')" prop="create_time"
@@ -75,20 +85,21 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column :label="t('publicText.operation')" fixed="right" width="420" align="center">
+        <el-table-column :label="t('publicText.operation')" fixed="right" width="300" align="center">
           <template #default="{ row }">
-             <el-button type="primary" size="small" @click.stop="handleCalculateIssue(row)">
+             <el-button type="primary" size="small" :disabled="row.upload_status === 1" @click.stop="handleCalculateIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.sendIssueData') }}
             </el-button>
-            <el-button v-if="isCalculated(row) && row.confirm_status !== 1" type="warning" size="small"
+            <el-button type="warning" size="small"
+              :disabled="row.upload_status === 1 || !isCalculated(row) || row.confirm_status === 1"
               @click.stop="handleConfirmIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.confirmIssue') }}
             </el-button>
-            <el-button type="success" size="small" :disabled="row.confirm_status === 0"
+            <el-button type="success" size="small" :disabled="row.confirm_status === 0 || row.upload_status === 1"
               @click.stop="handleSendIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.issueMaterials') }}
             </el-button>
-            <el-button type="danger" size="small" @click.stop="handleResetIssue(row)">
+            <el-button type="danger" size="small" :disabled="row.upload_status === 1" @click.stop="handleResetIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.resetIssueData') }}
             </el-button>
           </template>
@@ -120,8 +131,8 @@
             {{ scope.$index + (detailPage.PageIndex - 1) * detailPage.PageSize + 1 }}
           </template>
         </el-table-column>
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.programMerge')" prop="program_merge" :min-width="150"
-          show-overflow-tooltip fixed="left" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.programMerge')" prop="program_merge"
+          :min-width="getColumnWidth1('program_merge')" show-overflow-tooltip fixed="left" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.planStartTime')" prop="plan_start_time"
           :min-width="getColumnWidth1('plan_start_time')">
           <template #default="{ row }">
@@ -144,23 +155,26 @@
           :min-width="getColumnWidth1('reel_id')" show-overflow-tooltip />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.materialPn')" prop="material_pn"
           :min-width="getColumnWidth1('material_pn')" show-overflow-tooltip />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.bomQty')" prop="bom_qty" width="100" align="center" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.totalQty')" prop="total_qty" width="100" align="center" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.reelOriginalQty')" prop="reel_original_qty" width="110"
-          align="center" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.deductQty')" prop="deduct_qty" width="100"
-          align="center" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.remainQtyAfter')" prop="remain_qty_after" width="110"
-          align="center" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.actRetQty')" prop="act_ret_qty" width="100"
-          align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.bomQty')" prop="bom_qty"
+          :min-width="getColumnWidth1('bom_qty')" align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.totalQty')" prop="total_qty"
+          :min-width="getColumnWidth1('total_qty')" align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.reelOriginalQty')" prop="reel_original_qty"
+          :min-width="getColumnWidth1('reel_original_qty')" align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.deductQty')" prop="deduct_qty"
+          :min-width="getColumnWidth1('deduct_qty')" align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.remainQtyAfter')" prop="remain_qty_after"
+          :min-width="getColumnWidth1('remain_qty_after')" align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.actRetQty')" prop="act_ret_qty"
+          :min-width="getColumnWidth1('act_ret_qty')" align="center" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.batchId')" prop="batch_id"
           :min-width="getColumnWidth1('batch_id')" show-overflow-tooltip />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.supperlier')" prop="supperlier"
           :min-width="getColumnWidth1('supperlier')" show-overflow-tooltip />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.supperlierName')" prop="supperlier_name"
           :min-width="getColumnWidth1('supperlier_name')" show-overflow-tooltip />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.status')" prop="status" width="100" align="center" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.status')" prop="status"
+          :min-width="getColumnWidth1('status')" align="center" />
         <template #empty>
           <div class="flex items-center justify-center h-100%">
             <el-empty />
@@ -174,11 +188,72 @@
           :total="detailPage.total" />
       </div>
     </el-card>
+
+    <!-- 物料平衡汇总弹窗 -->
+    <el-dialog v-model="balanceDialogVisible" :title="balanceDialogTitle" width="90%" top="5vh" destroy-on-close>
+      <el-table v-loading="balanceDialogLoading" :data="balanceDialogPaged" size="small" border fit
+        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }" style="width: 100%" height="500">
+        <el-table-column type="index" align="center" :label="t('publicText.index')" width="50"
+          :index="(index: number, row: any) => (balancePage.PageIndex - 1) * balancePage.PageSize + index + 1" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.materialPn')" prop="material_pn" min-width="140" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.issueQty')" prop="issue_qty" min-width="100" align="right" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.bomDemandQty')" prop="bom_demand_qty" min-width="110" align="right" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.issueMinusBomQty')" prop="issue_minus_bom_qty" min-width="140" align="right">
+          <template #default="{ row }">
+            <span :style="{ color: Number(row.issue_minus_bom_qty) > 0 ? '#67c23a' : Number(row.issue_minus_bom_qty) < 0 ? '#f56c6c' : '' }">
+              {{ row.issue_minus_bom_qty }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.actualReturnQty')" prop="actual_return_qty" min-width="110" align="right" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.returnCheckApplicable')" prop="return_check_applicable" min-width="140" align="center">
+          <template #default="{ row }">
+            {{ row.return_check_applicable === 1 || row.return_check_applicable === '是' ? t('Scheduling.WorkOrderIssue.yes') : t('Scheduling.WorkOrderIssue.no') }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.expectedReturnQty')" prop="expected_return_qty" min-width="110" align="right" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.materialShortageQty')" prop="material_shortage_qty" min-width="120" align="right">
+          <template #default="{ row }">
+            <span v-if="Number(row.material_shortage_qty) > 0" style="color: #f56c6c; font-weight: bold;">{{ row.material_shortage_qty }}</span>
+            <span v-else>{{ row.material_shortage_qty || 0 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.overReturnQty')" prop="over_return_qty" min-width="110" align="right">
+          <template #default="{ row }">
+            <span v-if="Number(row.over_return_qty) > 0" style="color: #e6a23c; font-weight: bold;">{{ row.over_return_qty }}</span>
+            <span v-else>{{ row.over_return_qty || 0 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.shortReturnQty')" prop="short_return_qty" min-width="110" align="right">
+          <template #default="{ row }">
+            <span v-if="Number(row.short_return_qty) > 0" style="color: #f56c6c; font-weight: bold;">{{ row.short_return_qty }}</span>
+            <span v-else>{{ row.short_return_qty || 0 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.calculateTime')" prop="calculate_time" min-width="160" align="center">
+          <template #default="{ row }">
+            {{ formatDate(row.calculate_time) }}
+          </template>
+        </el-table-column>
+        <template #empty>
+          <el-empty />
+        </template>
+      </el-table>
+      <div class="mt-2">
+        <el-pagination background size="small" layout="total, sizes, prev, pager, next"
+          :page-sizes="[20, 50, 100, 200]" :total="balanceDialogData.length"
+          :current-page="balancePage.PageIndex" :page-size="balancePage.PageSize"
+          @size-change="handleBalanceSizeChange" @current-change="handleBalanceCurrentChange" />
+      </div>
+      <template #footer>
+        <el-button @click="balanceDialogVisible = false">{{ t('publicText.close') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { QueryReturnMaterials, QueryReturnMaterialDetails, IssueMaterials, ResetIssueData, SendIssueData, ConfirmIssueData } from "@/api/Scheduling/WorkOrderIssue";
+import { QueryReturnMaterials, QueryReturnMaterialDetails, IssueMaterials, ResetIssueData, SendIssueData, ConfirmIssueData, QueryMaterialBalanceSummary } from "@/api/Scheduling/WorkOrderIssue";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import { ref, reactive, nextTick, onMounted, onBeforeUnmount, watch, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
@@ -230,6 +305,7 @@ const getForm = reactive({
   PageIndex: 1,
   PageSize: 50,
   group_order: '',
+  nc_order_line: '',
   reel_id: '',
   status: 0,
   upload_status: 0,
@@ -283,6 +359,7 @@ const queryReturnMaterials = () => {
     status: getForm.status,
     upload_status: getForm.upload_status,
     group_order: getForm.group_order,
+    nc_order_line: getForm.nc_order_line,
   };
   // if (getForm.start_time) params.start_time = getForm.start_time;
   // if (getForm.end_time) params.end_time = getForm.end_time;
@@ -351,6 +428,7 @@ const handleDetailCurrentChange = (val: number) => {
 const resetQuery = () => {
   queryTime.value = getDefaultDateRange();
   getForm.group_order = '';
+  getForm.nc_order_line = '';
   getForm.reel_id = '';
   getForm.upload_status = 0;
   getForm.PageIndex = 1;
@@ -506,6 +584,51 @@ const sendIssueData = (group_order: string) => {
     .catch(() => { });
 };
 
+// 物料平衡汇总弹窗
+const balanceDialogVisible = ref(false);
+const balanceDialogLoading = ref(false);
+const balanceDialogTitle = ref("");
+const balanceDialogData = ref<any[]>([]);
+const balancePage = reactive({ PageIndex: 1, PageSize: 20 });
+const balanceDialogPaged = computed(() => {
+  const start = (balancePage.PageIndex - 1) * balancePage.PageSize;
+  return balanceDialogData.value.slice(start, start + balancePage.PageSize);
+});
+const handleBalanceSizeChange = (val: number) => {
+  balancePage.PageSize = val;
+  balancePage.PageIndex = 1;
+};
+const handleBalanceCurrentChange = (val: number) => {
+  balancePage.PageIndex = val;
+};
+
+const handleViewMaterialBalance = (row: any) => {
+  const group_order = row?.group_order;
+  if (!group_order) {
+    ElMessage.warning(t("Scheduling.WorkOrderIssue.pleaseInputGroupOrder"));
+    return;
+  }
+  balanceDialogTitle.value = `${t("Scheduling.WorkOrderIssue.balanceDialogTitle")}: ${group_order}`;
+  balanceDialogVisible.value = true;
+  balanceDialogLoading.value = true;
+  balancePage.PageIndex = 1;
+  QueryMaterialBalanceSummary({ group_order })
+    .then((res: any) => {
+      if (res.Success && Array.isArray(res.Data)) {
+        balanceDialogData.value = res.Data;
+      } else {
+        balanceDialogData.value = [];
+        ElMessage.warning(res.Message || t("publicText.query"));
+      }
+    })
+    .catch(() => {
+      balanceDialogData.value = [];
+    })
+    .finally(() => {
+      balanceDialogLoading.value = false;
+    });
+};
+
 const handleSizeChange = (val: number) => {
   getForm.PageSize = val;
   getForm.PageIndex = 1;
@@ -570,5 +693,11 @@ onBeforeUnmount(() => {
 :deep(.el-table .unused-row > td.el-table__cell) {
   background-color: #f56c6c !important;
   color: #fff;
+}
+
+.call-order-link {
+  color: #006487;
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>
