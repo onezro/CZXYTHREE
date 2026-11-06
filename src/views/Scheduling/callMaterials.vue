@@ -2,17 +2,58 @@
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <el-form ref="formRef" :inline="true" size="small" @submit.prevent>
+                <el-form-item :label="t('Scheduling.CallMaterials.CallOrder')" prop="MaterialRequestNo" class="mb-2">
+                    <el-input v-model="getForm.MaterialRequestNo" clearable
+                        @clear="searchData" @keyup.enter="searchData" style="width: 180px" />
+                </el-form-item>
                 <el-form-item :label="t('Scheduling.PrepareMaterials.MaterialPreparationNo')" prop="KittingNo" class="mb-2">
                     <el-input v-model="getForm.KittingNo" :placeholder="t('Scheduling.CallMaterials.inputKittingNo')" clearable
-                        @clear="searchData" @keyup.enter="searchData" style="width: 200px" />
+                        @clear="searchData" @keyup.enter="searchData" style="width: 180px" />
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.CallMaterials.GroupOrder')" prop="WOGroup" class="mb-2">
                     <el-input v-model="getForm.WOGroup" :placeholder="t('Scheduling.CallMaterials.inputGroupOrder')" clearable
-                        @clear="searchData" @keyup.enter="searchData" style="width: 200px" />
+                        @clear="searchData" @keyup.enter="searchData" style="width: 180px" />
                 </el-form-item>
                 <el-form-item :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line" class="mb-2">
                     <el-input v-model="getForm.nc_order_line" clearable @clear="searchData"
-                        @keyup.enter="searchData" style="width: 200px" />
+                        @keyup.enter="searchData" style="width: 180px" />
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.CallMaterials.WorkOrder')" prop="WO" class="mb-2">
+                    <el-input v-model="getForm.WO" clearable @clear="searchData" @keyup.enter="searchData"
+                        style="width: 180px" />
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.CallMaterials.RequestType')" prop="MaterialRequestType" class="mb-2">
+                    <el-select v-model="getForm.MaterialRequestType" clearable :placeholder="t('publicText.pleaseSelect')"
+                        @clear="searchData" @change="searchData" style="width: 130px">
+                        <el-option :label="t('Scheduling.CallMaterials.TypeNormal')" :value="0" />
+                        <el-option :label="t('Scheduling.CallMaterials.TypeSupplement')" :value="1" />
+                        <el-option :label="t('Scheduling.CallMaterials.TypeSolderPrepare')" :value="2" />
+                        <el-option :label="t('Scheduling.CallMaterials.TypeSolderSupplement')" :value="3" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.CallMaterials.IsFirst')" prop="IsFirst" class="mb-2">
+                    <el-select v-model="getForm.IsFirst" clearable :placeholder="t('publicText.pleaseSelect')"
+                        @clear="searchData" @change="searchData" style="width: 110px">
+                        <el-option :label="t('Scheduling.CallMaterials.FirstSet')" :value="true" />
+                        <el-option :label="t('Scheduling.CallMaterials.NotFirstSet')" :value="false" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.CallMaterials.RequestInfo')" prop="RequestInfo" class="mb-2">
+                    <el-select v-model="getForm.RequestInfo" clearable :placeholder="t('publicText.pleaseSelect')"
+                        @clear="searchData" @change="searchData" style="width: 110px">
+                        <el-option :label="t('Scheduling.CallMaterials.FangCang')" :value="0" />
+                        <el-option :label="t('Scheduling.CallMaterials.SaiYi')" :value="1" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item :label="t('Scheduling.ERPDocument.Status')" prop="Status" class="mb-2">
+                    <el-select v-model="getForm.Status" clearable :placeholder="t('publicText.pleaseSelect')"
+                        @clear="searchData" @change="searchData" style="width: 120px">
+                        <el-option :label="t('Scheduling.CallMaterials.StatusPending')" :value="0" />
+                        <el-option :label="t('Scheduling.CallMaterials.StatusCalled')" :value="1" />
+                        <el-option :label="t('Scheduling.CallMaterials.StatusIssuing')" :value="2" />
+                        <el-option :label="t('Scheduling.CallMaterials.StatusCancelled')" :value="3" />
+                        <el-option :label="t('Scheduling.CallMaterials.StatusCompleted')" :value="99" />
+                    </el-select>
                 </el-form-item>
                 <el-form-item class="mb-2">
                     <el-button type="primary" @click="searchData">{{ t('publicText.query') }}</el-button>
@@ -56,6 +97,8 @@
                     :min-width="getColumnWidth('MaterialRequest_WoGroup')" show-overflow-tooltip />
                 <el-table-column :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line"
                     :min-width="getColumnWidth('nc_order_line')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.CallMaterials.WorkOrder')" prop="WO"
+                    :min-width="getColumnWidth('WO')" show-overflow-tooltip />
                 <el-table-column :label="t('Scheduling.CallMaterials.RequestType')" prop="MaterialRequest_Type"
                    width="100" align="center">
                     <template #default="{ row }">
@@ -193,8 +236,8 @@
                 
                 <el-table-column :label="t('Scheduling.CallMaterials.IsMesCell')" :min-width="getDetailColumnWidth('MaterialRequestDetail_IsMesCell')" align="center">
                     <template #default="{ row }">
-                        <el-tag :type="getRequestInfoType(row.MaterialRequestDetail_IsMesCell)" size="small">
-                            {{ getRequestInfoText(row.MaterialRequestDetail_IsMesCell) }}
+                        <el-tag :type="getRequestInfoTypeText(row.MaterialRequest_CallTypeText)" size="small">
+                            {{ row.MaterialRequest_CallTypeText }}
                         </el-tag>
                     </template>
                 </el-table-column>
@@ -231,13 +274,12 @@ import {
     OutOrderCancel,
 } from "@/api/Scheduling/index"
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
+import { useTableHeight } from "@/hooks/useTableHeight";
 import {
     ref,
     reactive,
     computed,
-    nextTick,
     onMounted,
-    onBeforeUnmount,
 } from "vue";
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -248,7 +290,7 @@ const userStore = useUserStoreWithOut();
 const { t } = useI18n();
 
 const eltableRef = ref();
-const tableHeight = ref(0);
+const { tableHeight } = useTableHeight(eltableRef);
 const loading = ref(false);
 const tableData = ref<any[]>([]);
 const total = ref(0);
@@ -256,9 +298,15 @@ const total = ref(0);
 const getForm = reactive({
     PageIndex: 1,
     PageSize: 50,
+    MaterialRequestNo: '',
     KittingNo: '',
     WOGroup: '',
     nc_order_line: '',
+    WO: '',
+    MaterialRequestType: '',
+    IsFirst: '',
+    RequestInfo: '',
+    Status: '',
 });
 
 // 单选 & 操作按钮 loading
@@ -365,6 +413,14 @@ const getRequestInfoType = (info: number) => {
         case 0: return "primary";
         case 1: return "info";
         case 2: return "warning";
+        default: return "success";
+    }
+};
+const getRequestInfoTypeText = (info: any) => {
+    switch (info) {
+       case 'MES': return "primary";
+        case 'WMS': return "info";
+        case 'Solder': return "warning";
         default: return "success";
     }
 };
@@ -564,20 +620,8 @@ const handleCurrentChange = (val: number) => {
     getData();
 };
 
-const getScreenHeight = () => {
-    nextTick(() => {
-        tableHeight.value = window.innerHeight - 180;
-    });
-};
-
 onMounted(() => {
-    getScreenHeight();
-    window.addEventListener("resize", getScreenHeight);
     getData();
-});
-
-onBeforeUnmount(() => {
-    window.removeEventListener("resize", getScreenHeight);
 });
 </script>
 

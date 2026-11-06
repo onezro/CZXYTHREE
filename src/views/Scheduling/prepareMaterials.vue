@@ -7,6 +7,10 @@
                     <el-input v-model="getForm.WOGroup" clearable @clear="getData"
                         @keyup.enter.native="getData" style="width: 160px" />
                 </el-form-item>
+                <el-form-item :label="t('Scheduling.PrepareMaterials.MaterialPreparationNo')" prop="MaterialPreparationNo" class="mb-2">
+                    <el-input v-model="getForm.MaterialPreparationNo" clearable @clear="getData"
+                        @keyup.enter.native="getData" style="width: 160px" />
+                </el-form-item>
                 <el-form-item :label="t('Scheduling.WorkOrderIssue.ncOrderLine')" prop="nc_order_line" class="mb-2">
                     <el-input v-model="getForm.nc_order_line" clearable @clear="getData"
                         @keyup.enter.native="getData" style="width: 160px" />
@@ -22,6 +26,7 @@
                         :placeholder="t('publicText.pleaseSelect')" style="width: 120px" @change="getData">
                         <el-option :label="t('Scheduling.PrepareMaterials.Status0')" :value="0" />
                         <el-option :label="t('Scheduling.PrepareMaterials.Status1')" :value="1" />
+                        <el-option :label="t('Scheduling.PrepareMaterials.Status3')" :value="3" />
                         <el-option :label="t('Scheduling.PrepareMaterials.Status99')" :value="99" />
                     </el-select>
                 </el-form-item>
@@ -87,6 +92,8 @@
                     :min-width="getColumnWidth1('PlanEndTime')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.MaterialPreparationStatus')" prop="MaterialPreparationStatusText"
                     :min-width="getColumnWidth1('MaterialPreparationStatusText')" />
+                <el-table-column :label="t('Scheduling.PrepareMaterials.CallStage')" prop="CallStageText"
+                    :min-width="getColumnWidth1('CallStageText')" />
                 <!-- <el-table-column :label="t('Scheduling.PrepareMaterials.uploadStatus')" prop="upload_status_name"
                     :min-width="getColumnWidth1('upload_status_name')" />
                 <el-table-column :label="t('Scheduling.PrepareMaterials.confirmStatus')" prop="confirm_status_name"
@@ -376,6 +383,7 @@ const getForm = ref({
     PageIndex: 1,
     PageSize: 50,
     WOGroup: "",
+    MaterialPreparationNo: "",
     nc_order_line: "",
     Line: "",
     Status: "",
@@ -722,6 +730,7 @@ const submitAddForm = () => {
 const handleReset = () => {
     getForm.value.PageIndex = 1;
     getForm.value.WOGroup = "";
+    getForm.value.MaterialPreparationNo = "";
     getForm.value.nc_order_line = "";
     getForm.value.Line = "";
     getForm.value.Status = "";

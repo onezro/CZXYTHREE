@@ -23,6 +23,12 @@
                 <el-form-item :label="t('permissions.operationLog.ipAddress')" prop="IpAddress" class="mb-2">
                     <el-input v-model="getForm.IpAddress" placeholder="请输入请求IP地址" clearable style="width: 200px;" @keyup.enter="searchData" @clear="searchData" />
                 </el-form-item>
+                <el-form-item :label="t('permissions.operationLog.requestJson')" prop="RequestJson" class="mb-2">
+                    <el-input v-model="getForm.RequestJson" :placeholder="t('permissions.operationLog.inputRequestJson')" clearable style="width: 300px;" @keyup.enter="searchData" @clear="searchData" />
+                </el-form-item>
+                <el-form-item :label="t('permissions.operationLog.returnJson')" prop="ReturnJson" class="mb-2">
+                    <el-input v-model="getForm.ReturnJson" :placeholder="t('permissions.operationLog.inputReturnJson')" clearable style="width: 300px;" @keyup.enter="searchData" @clear="searchData" />
+                </el-form-item>
                 <el-form-item class="mb-2">
                     <el-button :type="'primary'" @click="searchData">{{
                         t("publicText.query")
@@ -193,6 +199,8 @@ const getForm = reactive({
     ApiType: "Web",
     RequestUrl: "",
     IpAddress: "",
+    RequestJson: "",
+    ReturnJson: "",
     StartTime: "",
     EndTime: "",
     PageIndex: 1,
@@ -337,6 +345,8 @@ const resetForm = () => {
     getForm.ApiType = "Web";
     getForm.RequestUrl = "";
     getForm.IpAddress = "";
+    getForm.RequestJson = "";
+    getForm.ReturnJson = "";
     const start = new Date();
     start.setHours(0, 0, 0, 0);
     const end = new Date();

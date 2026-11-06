@@ -69,3 +69,57 @@ export function FindPartNumberData(data: any) {
     params: { pn: data },
   });
 }
+
+//拼板草稿-分页查询
+export function FindPanelizationDraftPage(data: any) {
+  return request({
+    url: "/api/PanelizationDraft/FindPage",
+    method: "post",
+    data,
+  });
+}
+
+//拼板草稿-查询单条数据
+export function GetPanelizationDraft(data: any) {
+  return request({
+    url: "/api/PanelizationDraft/Get",
+    method: "post",
+    data,
+  });
+}
+
+//拼板草稿-新增/修改
+export function SavePanelizationDraft(data: any) {
+  return request({
+    url: "/api/PanelizationDraft/Save",
+    method: "post",
+    data,
+  });
+}
+
+//拼板草稿-启用
+export function EnablePanelizationDraft(data: any) {
+  return request({
+    url: "/api/PanelizationDraft/Enable",
+    method: "post",
+    data,
+  });
+}
+
+//拼板草稿-暂存删除
+export function MarkDeletePanelizationDraft(data: any) {
+  return request({
+    url: "/api/PanelizationDraft/MarkDelete",
+    method: "post",
+    data,
+  });
+}
+
+//拼板草稿-放弃草稿
+export function DiscardPanelizationDraft(data: any) {
+  return request({
+    url: "/api/PanelizationDraft/Discard",
+    method: "post",
+    data,
+  });
+}

@@ -81,40 +81,74 @@
                     :min-width="getColumnWidth('reel_id')" fixed show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.inventoryCheck.materialPn')" prop="material_pn"
                     :min-width="getColumnWidth('material_pn')" fixed show-overflow-tooltip />
-                    <el-table-column prop="name" :label="t('Scheduling.CallMaterials.PNName')"
-                    :min-width="200" show-overflow-tooltip />
-                <el-table-column prop="pn_spec" :label="t('Scheduling.CallMaterials.PNDesc')"
-                    :min-width="getColumnWidth('pn_spec')" show-overflow-tooltip />
+                <!-- <el-table-column prop="material_pnname" :label="t('incomingManage.inventoryCheck.materialPnName')"
+                    :min-width="getColumnWidth('material_pnname')" :formatter="formatCell" show-overflow-tooltip /> -->
+                <el-table-column prop="name" :label="t('incomingManage.inventoryCheck.pnName')"
+                    :min-width="getColumnWidth('name')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column prop="pn_spec" :label="t('incomingManage.inventoryCheck.pnSpec')"
+                    :min-width="getColumnWidth('pn_spec')" :formatter="formatCell" show-overflow-tooltip />
+                <!-- <el-table-column prop="material_pndesc" :label="t('incomingManage.inventoryCheck.materialPnDesc')"
+                    :min-width="getColumnWidth('material_pndesc')" :formatter="formatCell" show-overflow-tooltip /> -->
+                <el-table-column prop="dsc" :label="t('incomingManage.inventoryCheck.dsc')"
+                    :min-width="getColumnWidth('dsc')" :formatter="formatCell" show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.inventoryCheck.workOrder')" prop="work_order"
-                    :min-width="getColumnWidth('work_order')" show-overflow-tooltip />
-                <!-- <el-table-column :label="t('incomingManage.inventoryCheck.preparationNo')" prop="preparation_no"
-                    :min-width="getColumnWidth('preparation_no')" show-overflow-tooltip /> -->
-                <!-- <el-table-column :label="t('incomingManage.inventoryCheck.bidNo')" prop="bid_no"
-                    :min-width="getColumnWidth('bid_no')" show-overflow-tooltip /> -->
+                    :min-width="getColumnWidth('work_order')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.preparationNo')" prop="preparation_no"
+                    :min-width="getColumnWidth('preparation_no')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.bidNo')" prop="bid_no"
+                    :min-width="getColumnWidth('bid_no')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.boxSn')" prop="box_sn"
+                    :min-width="getColumnWidth('box_sn')" :formatter="formatCell" show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.inventoryCheck.qty')" prop="qty" width="100"
                     align="right" />
+                <el-table-column :label="t('incomingManage.inventoryCheck.batchId')" prop="batch_id"
+                    :min-width="getColumnWidth('batch_id')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.supplier')" prop="supperlier"
+                    :min-width="getColumnWidth('supperlier')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.supplierName')" prop="supperlier_name"
+                    :min-width="getColumnWidth('supperlier_name')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.manufacturer')" prop="manufacturer"
+                    :min-width="getColumnWidth('manufacturer')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.productionDate')" prop="production_date"
+                    :min-width="getColumnWidth('production_date')" :formatter="formatCell" show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.inventoryCheck.cellId')" prop="cell_id"
-                    :min-width="getColumnWidth('cell_id')" show-overflow-tooltip />
-                <!-- <el-table-column :label="t('incomingManage.inventoryCheck.isFirst')" prop="is_first" width="100"
+                    :min-width="getColumnWidth('cell_id')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.cell')" prop="Cell"
+                    :min-width="getColumnWidth('Cell')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.rack')" prop="rack"
+                    :min-width="getColumnWidth('rack')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.rackpoint')" prop="rackpoint"
+                    :min-width="getColumnWidth('rackpoint')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.inOri')" prop="in_ori"
+                    :min-width="getColumnWidth('in_ori')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.inWareHouse')" prop="in_ware_house"
+                    :min-width="getColumnWidth('in_ware_house')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.outOri')" prop="out_ori"
+                    :min-width="getColumnWidth('out_ori')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.outWareHouse')" prop="out_ware_house"
+                    :min-width="getColumnWidth('out_ware_house')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.groupOrder')" prop="group_order"
+                    :min-width="getColumnWidth('group_order')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.isFirst')" prop="is_first" width="100"
                     align="center">
                     <template #default="{ row }">
                         <el-tag :type="row.is_first ? 'success' : 'info'" size="small">
                             {{ row.is_first ? t('publicText.yes') : t('publicText.no') }}
                         </el-tag>
                     </template>
-                </el-table-column> -->
+                </el-table-column>
+                <el-table-column :label="t('incomingManage.inventoryCheck.mesCode')" prop="mes_code"
+                    :min-width="getColumnWidth('mes_code')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.sourceUser')" prop="source_user"
+                    :min-width="getColumnWidth('source_user')" :formatter="formatCell" show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.inventoryCheck.createrName')" prop="creater_name" width="100"
-                    align="center" />
+                    align="center" :formatter="formatCell" />
                 <el-table-column :label="t('incomingManage.inventoryCheck.createrTime')" prop="creater_time"
-                    :min-width="getColumnWidth('creater_time')" show-overflow-tooltip />
-                <!-- <el-table-column :label="t('incomingManage.inventoryCheck.groupOrder')" prop="group_order"
-                    :min-width="getColumnWidth('group_order')" show-overflow-tooltip />
-                <el-table-column :label="t('incomingManage.inventoryCheck.inOri')" prop="in_ware_house"
-                    :min-width="getColumnWidth('in_ware_house')" show-overflow-tooltip />
-                <el-table-column :label="t('incomingManage.inventoryCheck.outOri')" prop="out_ware_house"
-                    :min-width="getColumnWidth('out_ware_house')" show-overflow-tooltip /> -->
+                    :min-width="getColumnWidth('creater_time')" :formatter="formatCell" show-overflow-tooltip />
+                <el-table-column :label="t('incomingManage.inventoryCheck.updateTime')" prop="updatetime"
+                    :min-width="getColumnWidth('updatetime')" :formatter="formatCell" show-overflow-tooltip />
                 <el-table-column :label="t('incomingManage.inventoryCheck.remark')" prop="Remark"
-                    :min-width="getColumnWidth('Remark')" show-overflow-tooltip />
+                    :min-width="getColumnWidth('Remark')" :formatter="formatCell" show-overflow-tooltip />
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
@@ -168,6 +202,10 @@ const pagedData = computed(() => {
     return tableData.value.slice(start, start + getForm.PageSize);
 });
 
+const formatCell = (_row: any, _column: any, cellValue: any) => {
+    return cellValue === null || cellValue === undefined || cellValue === "" ? "--" : cellValue;
+};
+
 const getData = () => {
     loading.value = true;
     const params: any = {};
@@ -191,6 +229,7 @@ const getData = () => {
                 tableData.value = res.Data.map((item: any) => ({
                     ...item,
                     creater_time: item.creater_time ? dayjs(item.creater_time).format("YYYY-MM-DD HH:mm:ss") : "",
+                    updatetime: item.updatetime ? dayjs(item.updatetime).format("YYYY-MM-DD HH:mm:ss") : "",
                 }));
             } else {
                 tableData.value = [];

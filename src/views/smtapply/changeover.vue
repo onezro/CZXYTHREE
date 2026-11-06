@@ -61,23 +61,38 @@
                                 <div class="info-value">{{ form.ProductVer || "--" }}</div>
                             </div>
                         </div>
+
+                        <div class="info-item info-item--group" v-if="form.WoGroup">
+                            <label>工单组</label>
+                            <div class="info-value">{{ form.WoGroup }}</div>
+                        </div>
                     </el-form>
 
                     <!-- 二维码区域 -->
-                    <div v-if="form.Code != ''" class="qrcode-section">
+                    <div v-if="form.Code != '' || form.WoGroup != ''" class="qrcode-section">
                         <div class="qrcode-header">
                             <h3>
                                 <el-icon>
                                     <Camera />
                                 </el-icon>
-                                工单二维码
+                                二维码
                             </h3>
                         </div>
-                        <div class="qrcode-wrapper">
-                            <vue-qr :text="form.Code" :margin="5" colorDark="#006487" colorLight="#ffffff"
-                                :logoScale="0.25" :size="200">
-                            </vue-qr>
-                            <div class="qrcode-hint">扫描二维码获取工单</div>
+                        <div class="qrcode-list">
+                            <div v-if="form.Code != ''" class="qrcode-wrapper">
+                                <div class="qrcode-label">工单</div>
+                                <vue-qr :text="form.Code" :margin="5" colorDark="#006487" colorLight="#ffffff"
+                                    :logoScale="0.25" :size="200">
+                                </vue-qr>
+                                <div class="qrcode-hint">{{ form.Code }}</div>
+                            </div>
+                            <div v-if="form.WoGroup != ''" class="qrcode-wrapper qrcode-wrapper--group">
+                                <div class="qrcode-label">工单组</div>
+                                <vue-qr :text="form.WoGroup" :margin="5" colorDark="#e6a23c" colorLight="#ffffff"
+                                    :logoScale="0.25" :size="200">
+                                </vue-qr>
+                                <div class="qrcode-hint">{{ form.WoGroup }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -368,6 +383,7 @@ const form = ref({
     BomVer: "",
     ProductVer: "",
     Code: "",
+    WoGroup: "",
 });
 
 const sideList = ref<any[]>([{ sideType: "TOP" }, { sideType: "BOT" }]);
@@ -538,13 +554,24 @@ const changeOrder = (order: any) => {
     clearAll();
     form.value.LineName = lineName.value;
     form.value.Side = "";
-    GetValorChangeLineWoNew({ workOrder: form.value.Order }).then((res: any) => {
-        form.value.Product = res.Data.Product;
-        form.value.Program = res.Data.Soft;
-        form.value.BomVer = res.Data.BomVer;
-        form.value.ProductVer = res.Data.SoftVer;
-        form.value.Code = res.Data.Side == "1" ? form.value.Order : "";
-        sideCode.value = res.Data.Side;
+    loadOrderInfo();
+};
+
+// 根据工单+线体获取工单信息（含工单组 WoGroup）
+const loadOrderInfo = () => {
+    if (!form.value.Order) return;
+    GetValorChangeLineWoNew({
+        WorkOrder: form.value.Order,
+        LineName: form.value.LineName,
+    }).then((res: any) => {
+        const data = res.Data || {};
+        form.value.Product = data.Product;
+        form.value.Program = data.Soft;
+        form.value.BomVer = data.BomVer;
+        form.value.ProductVer = data.SoftVer;
+        form.value.Code = data.Side == "1" ? form.value.Order : "";
+        form.value.WoGroup = data.WoGroup || "";
+        sideCode.value = data.Side;
         getStatus();
     });
 };
@@ -757,6 +784,11 @@ const handleLineSetting = async () => {
     localStorage.setItem("lineName", lineName.value);
     lineChangeVisible.value = false;
     getSMTValorLineEquipMentData();
+    // 线体变化后重新获取工单信息（工单组依赖工单+线体）
+    if (form.value.Order) {
+        form.value.Side = "";
+        loadOrderInfo();
+    }
 };
 
 const clearAll = () => {
@@ -1000,6 +1032,16 @@ const getDeviceStatus = (device: any) => {
     margin-top: 30px;
 }
 
+// 工单组信息 - 橙色主题区分
+.info-item--group {
+    margin-top: 20px;
+
+    .info-value {
+        border-left-color: #e6a23c;
+        color: #b8781f;
+    }
+}
+
 .qrcode-section {
     margin-top: 40px;
     padding-top: 30px;
@@ -1018,17 +1060,44 @@ const getDeviceStatus = (device: any) => {
         }
     }
 
+    .qrcode-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+    }
+
     .qrcode-wrapper {
+        flex: 1 1 0;
+        min-width: 200px;
         text-align: center;
         padding: 25px;
         background: #f8f9fa;
         border-radius: 12px;
         border: 2px dashed rgba(0, 100, 135, 0.2);
 
+        .qrcode-label {
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #006487;
+        }
+
         .qrcode-hint {
             margin-top: 15px;
             color: #7f8c8d;
             font-size: 1rem;
+            word-break: break-all;
+        }
+    }
+
+    // 工单组二维码 - 橙色主题区分
+    .qrcode-wrapper--group {
+        border-color: rgba(230, 162, 60, 0.35);
+
+        .qrcode-label,
+        .qrcode-hint {
+            color: #b8781f;
         }
     }
 }

@@ -22,6 +22,24 @@
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.ProReturnTransfer.returnNo')" fixed prop="return_no"
                     :min-width="getMasterColumnWidth('return_no')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.sourceAllocationNo')" prop="source_allocation_no"
+                    :min-width="getMasterColumnWidth('source_allocation_no')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.documentType')" prop="document_type_name"
+                    :min-width="getMasterColumnWidth('document_type_name')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.materialPn')" prop="material_pn"
+                    :min-width="getMasterColumnWidth('material_pn')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.materialPnName')" prop="material_pn_name"
+                    :min-width="getMasterColumnWidth('material_pn_name')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.materialPnDesc')" prop="material_pn_desc"
+                    :min-width="getMasterColumnWidth('material_pn_desc')" show-overflow-tooltip />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.materialQty')" prop="material_qty"
+                    :min-width="getMasterColumnWidth('material_qty')" align="center" />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.inOri')" prop="in_ori"
+                    :min-width="getMasterColumnWidth('in_ori')" align="center" />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.inWareHouse')" prop="in_ware_house"
+                    :min-width="getMasterColumnWidth('in_ware_house')" align="center" />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.outboundReelCount')" prop="outbound_reel_count"
+                    :min-width="getMasterColumnWidth('outbound_reel_count')" align="center" />
                 <el-table-column :label="t('Scheduling.ProReturnTransfer.reelCount')" prop="reel_count"
                     :min-width="getMasterColumnWidth('reel_count')" align="center" />
                 <el-table-column :label="t('Scheduling.ProReturnTransfer.completedReelCount')" prop="completed_reel_count"
@@ -68,7 +86,7 @@
                         </el-tooltip>
                         <el-tooltip effect="dark" :content="t('publicText.delete')" placement="top">
                             <el-button type="danger" size="small" icon="Delete"
-                                :disabled="!row.can_delete" @click.stop="handleDeleteMaster(row)" />
+                                :disabled="!canDeleteMaster(row)" @click.stop="handleDeleteMaster(row)" />
                         </el-tooltip>
                     </template>
                 </el-table-column>
@@ -226,12 +244,17 @@ const getStatusType = (status: number) => {
     }
 };
 
+const canDeleteMaster = (row: any) => {
+    // 赛意发起（document_type=1）且未锁料（未开始）可删除；MES发起不可删除
+    return Number(row.document_type) === 1 && Number(row.status) === 0;
+};
+
 const canDeleteDetail = (row: any) => {
     return row.status !== 1 && row.status !== 2;
 };
 
 const canResubmit = (row: any) => {
-    return row.status === 0 || row.status === 1;
+    return (row.status === 0 || row.status === 1 )&& row.document_type !== 1;
 };
 
 const handleResubmit = (row: any) => {

@@ -148,6 +148,24 @@ export function ManualCreateSaiYiPreparePlan(data:any) {
     });
 }
 
+//查询工单取消状态
+export function QueryWorkOrderCancelStatus(data:any) {
+    return request({
+        url: "/api/MaterialPreparation/QueryWorkOrderCancelStatus",
+        method: "get",
+        params:data
+    });
+}
+
+//取消或恢复工单
+export function UpdateWorkOrderCancelStatus(data:any) {
+    return request({
+        url: "/api/MaterialPreparation/UpdateWorkOrderCancelStatus",
+        method: "post",
+        data
+    });
+}
+
 //取消备料单
 export function CancelMaterialPreparation(data:any) {
     return request({

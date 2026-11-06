@@ -114,7 +114,7 @@ import {
     computed,
     onMounted,
 } from "vue";
-import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
+import { ElNotification } from "element-plus";
 import dayjs from "dayjs";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 const userStore = useUserStoreWithOut();
@@ -157,6 +157,7 @@ const editForm = ref({
 })
 const tableMasterRef = ref()
 const { tableHeight } = useTableHeight(tableMasterRef);
+
 const handleSelectionChange = (val: any) => {
     selectList.value = val
 }
@@ -218,10 +219,12 @@ const editSubmit = () => {
 const handleSizeChange = (val: any) => {
     getForm.value.PageSize = val
     // pageObj.pageSize = val;
+    getData()
 };
 const handleCurrentChange = (val: any) => {
     getForm.value.PageIndex = val
     // pageObj.currentPage = val;
+    getData()
 };
 
 const { getColumnWidth } = useTableColumnWidth(tableMasterRef, tableData, {

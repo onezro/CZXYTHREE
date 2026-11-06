@@ -90,3 +90,12 @@ export function UpdateMcAndConveyorSetting(data:any) {
         data,
     });
 }
+
+//分页查询一键换线操作记录
+export function GetChangeOverHistory(data:any) {
+    return request({
+        url: "/api/ChangeOver/GetChangeOverHistory",
+        method: "post",
+        data,
+    });
+}

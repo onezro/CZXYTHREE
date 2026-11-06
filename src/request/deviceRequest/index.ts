@@ -114,6 +114,7 @@ service.interceptors.response.use(
         router.push('/login');
       }
       else {
+        console.log(response.data.msg)
         ElNotification({
           title: "提示信息",
           message: response.data.msg,

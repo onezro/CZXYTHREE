@@ -15,44 +15,44 @@
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productionOrderNo')" prop="ProductionOrderNo"
                         class="mb-2">
-                        <el-input v-model="searchForm.ProductionOrderNo" clearable :disabled="searchForm.OnlyEmptyContainers"
+                        <el-input v-model="searchForm.ProductionOrderNo" clearable
                             @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductionOrderNo')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productionOrderRow')" prop="ProductionOrderRow"
                         class="mb-2">
                         <el-input v-model="searchForm.ProductionOrderRow" clearable
-                            :disabled="searchForm.OnlyEmptyContainers" @clear="handleSearch" @keyup.enter="handleSearch"
+                            @clear="handleSearch" @keyup.enter="handleSearch"
                             style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductionOrderRow')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productCode')" prop="ProductCode" class="mb-2">
-                        <el-input v-model="searchForm.ProductCode" clearable :disabled="searchForm.OnlyEmptyContainers"
+                        <el-input v-model="searchForm.ProductCode" clearable
                             @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductCode')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.productSpec')" prop="ProductSpec" class="mb-2">
-                        <el-input v-model="searchForm.ProductSpec" clearable :disabled="searchForm.OnlyEmptyContainers"
+                        <el-input v-model="searchForm.ProductSpec" clearable
                             @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputProductSpec')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.bomVersion')" prop="BomVersion" class="mb-2">
-                        <el-input v-model="searchForm.BomVersion" clearable :disabled="searchForm.OnlyEmptyContainers"
+                        <el-input v-model="searchForm.BomVersion" clearable
                             @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputBomVersion')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.workOrderNo')" prop="WorkOrderNo" class="mb-2">
-                        <el-input v-model="searchForm.WorkOrderNo" clearable :disabled="searchForm.OnlyEmptyContainers"
+                        <el-input v-model="searchForm.WorkOrderNo" clearable
                             @clear="handleSearch" @keyup.enter="handleSearch" style="width: 180px"
                             :placeholder="t('report.magazineStockReport.inputWorkOrderNo')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.workOrderQuantity')" class="mb-2">
                         <el-input-number v-model="searchForm.WorkOrderQuantityMin" :min="0" :precision="0"
-                            :controls="false" :disabled="searchForm.OnlyEmptyContainers" style="width: 100px"
+                            :controls="false" style="width: 100px"
                             :placeholder="t('report.magazineStockReport.min')" />
                         <span style="margin: 0 4px">-</span>
                         <el-input-number v-model="searchForm.WorkOrderQuantityMax" :min="0" :precision="0"
-                            :controls="false" :disabled="searchForm.OnlyEmptyContainers" style="width: 100px"
+                            :controls="false" style="width: 100px"
                             :placeholder="t('report.magazineStockReport.max')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.containerNo')" prop="ContainerNo" class="mb-2">
@@ -62,11 +62,11 @@
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.panelQuantityRange')" class="mb-2">
                         <el-input-number v-model="searchForm.PanelQuantityMin" :min="0" :precision="0" :controls="false"
-                            :disabled="searchForm.OnlyEmptyContainers" style="width: 100px"
+                            style="width: 100px"
                             :placeholder="t('report.magazineStockReport.min')" />
                         <span style="margin: 0 4px">-</span>
                         <el-input-number v-model="searchForm.PanelQuantityMax" :min="0" :precision="0" :controls="false"
-                            :disabled="searchForm.OnlyEmptyContainers" style="width: 100px"
+                            style="width: 100px"
                             :placeholder="t('report.magazineStockReport.max')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.warehouse')" prop="Warehouse" class="mb-2">
@@ -82,7 +82,7 @@
                             :placeholder="t('report.magazineStockReport.inputStorageLocation')" />
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.side')" prop="Side" class="mb-2">
-                        <el-select v-model="searchForm.Side" clearable :disabled="searchForm.OnlyEmptyContainers"
+                        <el-select v-model="searchForm.Side" clearable
                             style="width: 140px" :placeholder="t('report.magazineStockReport.selectSide')">
                             <el-option label="TOP" value="TOP" />
                             <el-option label="BOT" value="BOT" />
@@ -90,22 +90,32 @@
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.registeredOperation')" prop="RegisteredOperation"
                         class="mb-2">
-                        <el-input v-model="searchForm.RegisteredOperation" clearable
-                            :disabled="searchForm.OnlyEmptyContainers" @clear="handleSearch" @keyup.enter="handleSearch"
+                        <el-select v-model="searchForm.RegisteredOperation" clearable
                             style="width: 180px"
-                            :placeholder="t('report.magazineStockReport.inputRegisteredOperation')" />
+                            :placeholder="t('report.magazineStockReport.selectRegisteredOperation')"
+                            @change="handleFilterChange">
+                            <el-option label="AOI" value="AOI" />
+                            <el-option label="ICT" value="ICT" />
+                        </el-select>
                     </el-form-item>
                     <el-form-item :label="t('report.magazineStockReport.completedOperation')" prop="CompletedOperation"
                         class="mb-2">
-                        <el-input v-model="searchForm.CompletedOperation" clearable
-                            :disabled="searchForm.OnlyEmptyContainers" @clear="handleSearch" @keyup.enter="handleSearch"
+                        <el-select v-model="searchForm.CompletedOperation" clearable
                             style="width: 180px"
-                            :placeholder="t('report.magazineStockReport.inputCompletedOperation')" />
+                            :placeholder="t('report.magazineStockReport.selectCompletedOperation')"
+                            @change="handleFilterChange">
+                            <el-option label="ICT-TOP" value="ICT-TOP" />
+                            <el-option label="AOI-BOT" value="AOI-BOT" />
+                            <el-option label="AOI-TOP" value="AOI-TOP" />
+                        </el-select>
                     </el-form-item>
-                    <el-form-item class="mb-2">
-                        <el-checkbox v-model="searchForm.OnlyEmptyContainers" @change="handleEmptyContainersChange">
-                            {{ t("report.magazineStockReport.onlyEmptyContainers") }}
-                        </el-checkbox>
+                    <el-form-item :label="t('report.magazineStockReport.containerStatus')" class="mb-2">
+                        <el-select v-model="searchForm.ContainerStatus" clearable style="width: 140px"
+                            :placeholder="t('report.magazineStockReport.selectContainerStatus')"
+                            @change="handleFilterChange">
+                            <el-option :label="t('report.magazineStockReport.containerStatusFull')" value="有料框" />
+                            <el-option :label="t('report.magazineStockReport.containerStatusEmpty')" value="空料框" />
+                        </el-select>
                     </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button type="primary" @click="handleSearch">{{ t("publicText.query") }}</el-button>
@@ -125,25 +135,37 @@
                         <span>{{ scope.$index + pageObj.pageSize * (pageObj.currentPage - 1) + 1 }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="ProductionOrderNo" fixed
-                    :label="t('report.magazineStockReport.productionOrderNo')"
-                    :min-width="getColumnWidth('ProductionOrderNo')" show-overflow-tooltip />
-                <el-table-column prop="ProductionOrderRow" align="center"
-                    :label="t('report.magazineStockReport.productionOrderRow')"
-                    :min-width="getColumnWidth('ProductionOrderRow')" show-overflow-tooltip />
+                <el-table-column prop="WorkOrderNo" :label="t('report.magazineStockReport.workOrderNo')"
+                    :min-width="getColumnWidth('WorkOrderNo')" show-overflow-tooltip />
+                <el-table-column prop="Side" align="center" :label="t('report.magazineStockReport.side')"
+                    :min-width="getColumnWidth('Side')" show-overflow-tooltip />
+                <el-table-column prop="WorkOrderQuantity" align="center"
+                    :label="t('report.magazineStockReport.workOrderQuantity')"
+                    :min-width="getColumnWidth('WorkOrderQuantity')" show-overflow-tooltip />
                 <el-table-column prop="ProductCode" :label="t('report.magazineStockReport.productCode')"
                     :min-width="getColumnWidth('ProductCode')" show-overflow-tooltip />
                 <el-table-column prop="ProductSpec" :label="t('report.magazineStockReport.productSpec')"
                     :min-width="getColumnWidth('ProductSpec')" show-overflow-tooltip />
                 <el-table-column prop="BomVersion" align="center" :label="t('report.magazineStockReport.bomVersion')"
                     :min-width="getColumnWidth('BomVersion')" show-overflow-tooltip />
-                <el-table-column prop="WorkOrderNo" :label="t('report.magazineStockReport.workOrderNo')"
-                    :min-width="getColumnWidth('WorkOrderNo')" show-overflow-tooltip />
-                <el-table-column prop="WorkOrderQuantity" align="center"
-                    :label="t('report.magazineStockReport.workOrderQuantity')"
-                    :min-width="getColumnWidth('WorkOrderQuantity')" show-overflow-tooltip />
+                <el-table-column prop="ProductionOrderNo"
+                    :label="t('report.magazineStockReport.productionOrderNo')"
+                    :min-width="getColumnWidth('ProductionOrderNo')" show-overflow-tooltip />
+                <el-table-column prop="ProductionOrderRow" align="center"
+                    :label="t('report.magazineStockReport.productionOrderRow')"
+                    :min-width="getColumnWidth('ProductionOrderRow')" show-overflow-tooltip />
                 <el-table-column prop="ContainerNo" :label="t('report.magazineStockReport.containerNo')"
                     :min-width="getColumnWidth('ContainerNo')" show-overflow-tooltip />
+                <el-table-column prop="RegisteredOperation" :label="t('report.magazineStockReport.registeredOperation')"
+                    :min-width="getColumnWidth('RegisteredOperation')" show-overflow-tooltip />
+                <el-table-column prop="CompletedOperation" :label="t('report.magazineStockReport.completedOperation')"
+                    :min-width="getColumnWidth('CompletedOperation')" show-overflow-tooltip />
+                <el-table-column prop="InboundTime" :label="t('report.magazineStockReport.inboundTime')"
+                    :min-width="getColumnWidth('InboundTime')">
+                    <template #default="{ row }">
+                        {{ formatDate(row.InboundTime) }}
+                    </template>
+                </el-table-column>
                 <el-table-column prop="ContainerStatus" align="center"
                     :label="t('report.magazineStockReport.containerStatus')"
                     :min-width="getColumnWidth('ContainerStatus')">
@@ -158,22 +180,6 @@
                 <el-table-column prop="PanelQuantity" align="center"
                     :label="t('report.magazineStockReport.panelQuantity')"
                     :min-width="getColumnWidth('PanelQuantity')" show-overflow-tooltip />
-                <el-table-column prop="Warehouse" :label="t('report.magazineStockReport.warehouse')"
-                    :min-width="getColumnWidth('Warehouse')" show-overflow-tooltip />
-                <el-table-column prop="StorageLocation" :label="t('report.magazineStockReport.storageLocation')"
-                    :min-width="getColumnWidth('StorageLocation')" show-overflow-tooltip />
-                <el-table-column prop="Side" align="center" :label="t('report.magazineStockReport.side')"
-                    :min-width="getColumnWidth('Side')" show-overflow-tooltip />
-                <el-table-column prop="RegisteredOperation" :label="t('report.magazineStockReport.registeredOperation')"
-                    :min-width="getColumnWidth('RegisteredOperation')" show-overflow-tooltip />
-                <el-table-column prop="CompletedOperation" :label="t('report.magazineStockReport.completedOperation')"
-                    :min-width="getColumnWidth('CompletedOperation')" show-overflow-tooltip />
-                <el-table-column prop="InboundTime" :label="t('report.magazineStockReport.time')"
-                    :min-width="getColumnWidth('InboundTime')">
-                    <template #default="{ row }">
-                        {{ formatDate(row.InboundTime) }}
-                    </template>
-                </el-table-column>
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
@@ -234,7 +240,7 @@ const searchForm = reactive({
     CompletedOperation: "",
     StartTime: "",
     EndTime: "",
-    OnlyEmptyContainers: false,
+    ContainerStatus: "",
 });
 
 const pageObj = reactive({
@@ -281,8 +287,8 @@ const handleDateRangeChange = (val: any[]) => {
     searchForm.EndTime = val?.[1] || "";
 };
 
-// 切换“只看空料框”后重置页码并重新查询
-const handleEmptyContainersChange = () => {
+// 筛选条件变化后重置页码并重新查询
+const handleFilterChange = () => {
     pageObj.currentPage = 1;
     getData();
 };
@@ -303,9 +309,9 @@ const validateRanges = () => {
 };
 
 // 查询与导出使用相同的筛选条件（字符串传空串，数量和时间不筛选时传 null）
-// 空料框模式下仍提交完整字段，由后端只取 ContainerNo / Warehouse / StorageLocation
+// 框状态不选时传空串，表示不按框状态筛选
 const getFilterParams = () => ({
-    OnlyEmptyContainers: searchForm.OnlyEmptyContainers,
+    ContainerStatus: searchForm.ContainerStatus || "",
     ProductionOrderNo: searchForm.ProductionOrderNo || "",
     ProductionOrderRow: searchForm.ProductionOrderRow || "",
     ProductCode: searchForm.ProductCode || "",
@@ -419,7 +425,7 @@ const handleReset = () => {
     searchForm.Side = "";
     searchForm.RegisteredOperation = "";
     searchForm.CompletedOperation = "";
-    searchForm.OnlyEmptyContainers = false;
+    searchForm.ContainerStatus = "";
     pageObj.currentPage = 1;
     pageObj.pageSize = 50;
     getData();

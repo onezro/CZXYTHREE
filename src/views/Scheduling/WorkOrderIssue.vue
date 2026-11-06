@@ -52,7 +52,7 @@
         <el-table-column :label="t('Scheduling.WorkOrderIssue.groupOrder')" prop="group_order"
           :min-width="getColumnWidth('group_order')" show-overflow-tooltip>
           <template #default="{ row }">
-            <span class="call-order-link" @click.stop="handleViewMaterialBalance(row)">
+            <span class="call-order-link" @click.stop="handleViewDetail(row)">
               {{ row.group_order }}
             </span>
           </template>
@@ -63,6 +63,20 @@
           :min-width="getColumnWidth('create_time')" show-overflow-tooltip>
           <template #default="{ row }">
             {{ formatDate(row.create_time) }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.sendTime')" prop="send_time"
+          :min-width="getColumnWidth('send_time')" show-overflow-tooltip>
+          <template #default="{ row }">
+            {{ formatDate(row.send_time) }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.returnStatus')" prop="return_status_name"
+          :min-width="getColumnWidth('return_status_name')" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.has_actual_return ? 'success' : 'info'" size="small">
+              {{ row.return_status_name || '-' }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column :label="t('Scheduling.WorkOrderIssue.uploadStatus')" prop="upload_status_name"
@@ -76,11 +90,9 @@
         <el-table-column :label="t('Scheduling.WorkOrderIssue.confirmStatus')" prop="confirm_status_name"
           :min-width="getColumnWidth('confirm_status_name')" align="center">
           <template #default="{ row }">
-            <el-tag v-if="row.confirm_status === 0" type="warning" size="small">
-              {{ row.confirm_status_name || t('Scheduling.WorkOrderIssue.unconfirmed') }}
-            </el-tag>
-            <el-tag v-else-if="row.confirm_status === 1" type="success" size="small">
-              {{ row.confirm_status_name || t('Scheduling.WorkOrderIssue.confirmed') }}
+            <el-tag v-if="row.confirm_status === 0 || row.confirm_status === 1" :type="getConfirmTagType(row)"
+              size="small">
+              {{ row.confirm_status_name || (row.confirm_status === 1 ? t('Scheduling.WorkOrderIssue.confirmed') : t('Scheduling.WorkOrderIssue.unconfirmed')) }}
             </el-tag>
             <span v-else>-</span>
           </template>
@@ -117,20 +129,79 @@
         </el-pagination>
       </div>
 
-      <!-- 下表格：明细 -->
+      <!-- 下表格：详情（物料平衡汇总） -->
       <div class="detail-header">
-        <span>{{ t('Scheduling.WorkOrderIssue.detailTitle') }}
+        <span>{{ t('Scheduling.WorkOrderIssue.balanceDialogTitle') }}
           <template v-if="currentRow.group_order">: {{ currentRow.group_order }}</template>
         </span>
       </div>
-      <el-table :data="pagedDetailData" size="small" :style="{ width: '100%' }" :height="detailTableHeight"
-        :tooltip-effect="'dark'" border fit ref="detailTableRef" :row-class-name="detailRowClassName"
+      <el-table v-loading="balanceLoading" :data="balancePaged" size="small" :style="{ width: '100%' }"
+        :height="detailTableHeight" :tooltip-effect="'dark'" border fit :row-class-name="balanceRowClassName"
         :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
           <template #default="scope">
-            {{ scope.$index + (detailPage.PageIndex - 1) * detailPage.PageSize + 1 }}
+            {{ scope.$index + (balancePage.PageIndex - 1) * balancePage.PageSize + 1 }}
           </template>
         </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.materialPn')" prop="material_pn" min-width="140" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.materialName')" prop="name" min-width="160" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.materialDesc')" prop="pn_spec" min-width="180" show-overflow-tooltip />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.issueQty')" prop="issue_qty" min-width="100" align="right">
+          <template #default="{ row }">
+            <span :style="isLessThanBom(row) ? { color: '#f56c6c', fontWeight: 'bold' } : {}">
+              {{ row.issue_qty }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.bomDemandQty')" prop="bom_demand_qty" min-width="110" align="right" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.lossRate')" prop="loss_rate" min-width="100" align="right" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.issueMinusBomQty')" prop="issue_minus_bom_qty" min-width="140" align="right">
+          <template #default="{ row }">
+            <span :style="{ color: Number(row.issue_minus_bom_qty) > 0 ? '#67c23a' : Number(row.issue_minus_bom_qty) < 0 ? '#f56c6c' : '' }">
+              {{ row.issue_minus_bom_qty }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.actualReturnQty')" prop="actual_return_qty" min-width="110" align="right" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.expectedReturnQty')" prop="expected_return_qty" min-width="110" align="right" />
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.overReturnQty')" prop="over_return_qty" min-width="110" align="right">
+          <template #default="{ row }">
+            <span v-if="Number(row.over_return_qty) > 0" style="color: #e6a23c; font-weight: bold;">{{ row.over_return_qty }}</span>
+            <span v-else>{{ row.over_return_qty || 0 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.shortReturnQty')" prop="short_return_qty" min-width="110" align="right">
+          <template #default="{ row }">
+            <span v-if="Number(row.short_return_qty) > 0" style="color: #f56c6c; font-weight: bold;">{{ row.short_return_qty }}</span>
+            <span v-else>{{ row.short_return_qty || 0 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.calculateTime')" prop="calculate_time" min-width="160" align="center">
+          <template #default="{ row }">
+            {{ formatDate(row.calculate_time) }}
+          </template>
+        </el-table-column>
+        <template #empty>
+          <div class="flex items-center justify-center h-100%">
+            <el-empty />
+          </div>
+        </template>
+      </el-table>
+      <div class="mt-2">
+        <el-pagination :size="'small'" background @size-change="handleBalanceSizeChange"
+          @current-change="handleBalanceCurrentChange" :pager-count="5" :current-page="balancePage.PageIndex"
+          :page-size="balancePage.PageSize" :page-sizes="[20, 50, 100, 200]" layout="total,sizes, prev, pager, next"
+          :total="balanceData.length" />
+      </div>
+    </el-card>
+
+    <!-- 下发明细弹窗 -->
+    <el-dialog v-model="detailDialogVisible" :title="detailDialogTitle" width="90%" top="5vh" destroy-on-close>
+      <el-table v-loading="detailDialogLoading" :data="pagedDetailData" size="small" border fit ref="detailTableRef"
+        :row-class-name="detailRowClassName" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }"
+        style="width: 100%" height="450">
+        <el-table-column type="index" align="center" :label="t('publicText.index')" width="50" fixed="left"
+          :index="(index: number) => (detailPage.PageIndex - 1) * detailPage.PageSize + index + 1" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.programMerge')" prop="program_merge"
           :min-width="getColumnWidth1('program_merge')" show-overflow-tooltip fixed="left" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.planStartTime')" prop="plan_start_time"
@@ -176,77 +247,17 @@
         <el-table-column :label="t('Scheduling.WorkOrderIssue.status')" prop="status"
           :min-width="getColumnWidth1('status')" align="center" />
         <template #empty>
-          <div class="flex items-center justify-center h-100%">
-            <el-empty />
-          </div>
-        </template>
-      </el-table>
-      <div class="mt-2">
-        <el-pagination :size="'small'" background @size-change="handleDetailSizeChange"
-          @current-change="handleDetailCurrentChange" :pager-count="5" :current-page="detailPage.PageIndex"
-          :page-size="detailPage.PageSize" :page-sizes="[30, 50, 100, 200, 300]" layout="total,sizes, prev, pager, next"
-          :total="detailPage.total" />
-      </div>
-    </el-card>
-
-    <!-- 物料平衡汇总弹窗 -->
-    <el-dialog v-model="balanceDialogVisible" :title="balanceDialogTitle" width="90%" top="5vh" destroy-on-close>
-      <el-table v-loading="balanceDialogLoading" :data="balanceDialogPaged" size="small" border fit
-        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }" style="width: 100%" height="500">
-        <el-table-column type="index" align="center" :label="t('publicText.index')" width="50"
-          :index="(index: number, row: any) => (balancePage.PageIndex - 1) * balancePage.PageSize + index + 1" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.materialPn')" prop="material_pn" min-width="140" show-overflow-tooltip />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.issueQty')" prop="issue_qty" min-width="100" align="right" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.bomDemandQty')" prop="bom_demand_qty" min-width="110" align="right" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.issueMinusBomQty')" prop="issue_minus_bom_qty" min-width="140" align="right">
-          <template #default="{ row }">
-            <span :style="{ color: Number(row.issue_minus_bom_qty) > 0 ? '#67c23a' : Number(row.issue_minus_bom_qty) < 0 ? '#f56c6c' : '' }">
-              {{ row.issue_minus_bom_qty }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.actualReturnQty')" prop="actual_return_qty" min-width="110" align="right" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.returnCheckApplicable')" prop="return_check_applicable" min-width="140" align="center">
-          <template #default="{ row }">
-            {{ row.return_check_applicable === 1 || row.return_check_applicable === '是' ? t('Scheduling.WorkOrderIssue.yes') : t('Scheduling.WorkOrderIssue.no') }}
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.expectedReturnQty')" prop="expected_return_qty" min-width="110" align="right" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.materialShortageQty')" prop="material_shortage_qty" min-width="120" align="right">
-          <template #default="{ row }">
-            <span v-if="Number(row.material_shortage_qty) > 0" style="color: #f56c6c; font-weight: bold;">{{ row.material_shortage_qty }}</span>
-            <span v-else>{{ row.material_shortage_qty || 0 }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.overReturnQty')" prop="over_return_qty" min-width="110" align="right">
-          <template #default="{ row }">
-            <span v-if="Number(row.over_return_qty) > 0" style="color: #e6a23c; font-weight: bold;">{{ row.over_return_qty }}</span>
-            <span v-else>{{ row.over_return_qty || 0 }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.shortReturnQty')" prop="short_return_qty" min-width="110" align="right">
-          <template #default="{ row }">
-            <span v-if="Number(row.short_return_qty) > 0" style="color: #f56c6c; font-weight: bold;">{{ row.short_return_qty }}</span>
-            <span v-else>{{ row.short_return_qty || 0 }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.calculateTime')" prop="calculate_time" min-width="160" align="center">
-          <template #default="{ row }">
-            {{ formatDate(row.calculate_time) }}
-          </template>
-        </el-table-column>
-        <template #empty>
           <el-empty />
         </template>
       </el-table>
       <div class="mt-2">
         <el-pagination background size="small" layout="total, sizes, prev, pager, next"
-          :page-sizes="[20, 50, 100, 200]" :total="balanceDialogData.length"
-          :current-page="balancePage.PageIndex" :page-size="balancePage.PageSize"
-          @size-change="handleBalanceSizeChange" @current-change="handleBalanceCurrentChange" />
+          :page-sizes="[30, 50, 100, 200, 300]" :total="detailPage.total"
+          :current-page="detailPage.PageIndex" :page-size="detailPage.PageSize"
+          @size-change="handleDetailSizeChange" @current-change="handleDetailCurrentChange" />
       </div>
       <template #footer>
-        <el-button @click="balanceDialogVisible = false">{{ t('publicText.close') }}</el-button>
+        <el-button @click="detailDialogVisible = false">{{ t('publicText.close') }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -301,6 +312,22 @@ const isCalculated = (row: any) => {
   return !!row?.group_order && calculatedGroupOrders.value.has(row.group_order);
 };
 
+// 确认状态标签颜色：未计算=橙色，待确认=红色，已确认=绿色
+const getConfirmTagType = (row: any) => {
+  if (row?.confirm_status === 1) return "success";
+  const name = row?.confirm_status_name || "";
+  if (/未计算|未計算|not calculated/i.test(name)) return "warning";
+  return "danger";
+};
+
+// 领料数量小于BOM需求数量时整行标红
+const isLessThanBom = (row: any) => {
+  const issue = Number(row?.issue_qty);
+  const bom = Number(row?.bom_demand_qty);
+  return !isNaN(issue) && !isNaN(bom) && issue < bom;
+};
+const balanceRowClassName = ({ row }: any) => (isLessThanBom(row) ? "shortage-row" : "");
+
 const getForm = reactive({
   PageIndex: 1,
   PageSize: 50,
@@ -349,7 +376,7 @@ const { getColumnWidth: getColumnWidth1 } = useTableColumnWidth(detailTableRef, 
 });
 
 const formatDate = (dateStr: string) => {
-  if (!dateStr || dateStr.startsWith("1900-01-01")) return "-";
+  if (!dateStr || dateStr.startsWith("1900-01-01")) return "";
   return dayjs(dateStr).format("YYYY-MM-DD HH:mm:ss");
 };
 
@@ -387,17 +414,19 @@ const clearDetail = () => {
   detailData.value = [];
   detailPage.PageIndex = 1;
   detailPage.total = 0;
+  balanceData.value = [];
+  balancePage.PageIndex = 1;
 };
 
 const handleRowClick = (row: any) => {
   Object.keys(currentRow).forEach(k => delete currentRow[k]);
   Object.assign(currentRow, row);
-  queryDetail(row.group_order);
+  queryBalance(row.group_order);
 };
 
 const queryDetail = (group_order: string) => {
-  if (!group_order) return;
-  QueryReturnMaterialDetails({ group_order })
+  if (!group_order) return Promise.resolve();
+  return QueryReturnMaterialDetails({ group_order })
     .then((res: any) => {
       if (res.Success && Array.isArray(res.Data)) {
         detailData.value = sortDetailData(res.Data);
@@ -584,15 +613,13 @@ const sendIssueData = (group_order: string) => {
     .catch(() => { });
 };
 
-// 物料平衡汇总弹窗
-const balanceDialogVisible = ref(false);
-const balanceDialogLoading = ref(false);
-const balanceDialogTitle = ref("");
-const balanceDialogData = ref<any[]>([]);
+// 详情（物料平衡汇总）：页面下方表格
+const balanceLoading = ref(false);
+const balanceData = ref<any[]>([]);
 const balancePage = reactive({ PageIndex: 1, PageSize: 20 });
-const balanceDialogPaged = computed(() => {
+const balancePaged = computed(() => {
   const start = (balancePage.PageIndex - 1) * balancePage.PageSize;
-  return balanceDialogData.value.slice(start, start + balancePage.PageSize);
+  return balanceData.value.slice(start, start + balancePage.PageSize);
 });
 const handleBalanceSizeChange = (val: number) => {
   balancePage.PageSize = val;
@@ -602,31 +629,46 @@ const handleBalanceCurrentChange = (val: number) => {
   balancePage.PageIndex = val;
 };
 
-const handleViewMaterialBalance = (row: any) => {
+const queryBalance = (group_order: string) => {
+  if (!group_order) {
+    balanceData.value = [];
+    return;
+  }
+  balanceLoading.value = true;
+  balancePage.PageIndex = 1;
+  QueryMaterialBalanceSummary({ group_order })
+    .then((res: any) => {
+      if (res.Success && Array.isArray(res.Data)) {
+        balanceData.value = res.Data;
+      } else {
+        balanceData.value = [];
+      }
+    })
+    .catch(() => {
+      balanceData.value = [];
+    })
+    .finally(() => {
+      balanceLoading.value = false;
+    });
+};
+
+// 下发明细弹窗
+const detailDialogVisible = ref(false);
+const detailDialogLoading = ref(false);
+const detailDialogTitle = ref("");
+
+const handleViewDetail = (row: any) => {
   const group_order = row?.group_order;
   if (!group_order) {
     ElMessage.warning(t("Scheduling.WorkOrderIssue.pleaseInputGroupOrder"));
     return;
   }
-  balanceDialogTitle.value = `${t("Scheduling.WorkOrderIssue.balanceDialogTitle")}: ${group_order}`;
-  balanceDialogVisible.value = true;
-  balanceDialogLoading.value = true;
-  balancePage.PageIndex = 1;
-  QueryMaterialBalanceSummary({ group_order })
-    .then((res: any) => {
-      if (res.Success && Array.isArray(res.Data)) {
-        balanceDialogData.value = res.Data;
-      } else {
-        balanceDialogData.value = [];
-        ElMessage.warning(res.Message || t("publicText.query"));
-      }
-    })
-    .catch(() => {
-      balanceDialogData.value = [];
-    })
-    .finally(() => {
-      balanceDialogLoading.value = false;
-    });
+  detailDialogTitle.value = `${t("Scheduling.WorkOrderIssue.detailTitle")}: ${group_order}`;
+  detailDialogVisible.value = true;
+  detailDialogLoading.value = true;
+  queryDetail(group_order).finally(() => {
+    detailDialogLoading.value = false;
+  });
 };
 
 const handleSizeChange = (val: number) => {
@@ -693,6 +735,10 @@ onBeforeUnmount(() => {
 :deep(.el-table .unused-row > td.el-table__cell) {
   background-color: #f56c6c !important;
   color: #fff;
+}
+
+:deep(.el-table .shortage-row > td.el-table__cell) {
+  background-color: #fef0f0 !important;
 }
 
 .call-order-link {

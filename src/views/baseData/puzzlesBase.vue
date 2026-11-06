@@ -108,18 +108,18 @@
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.pcbQty')">
                                     <template #default="scope">
-                                        <el-input v-model.number="scope.row.small_board_qty" type="number"
+                                        <el-input v-model.number="scope.row.small_board_qty" min="0" type="number"
                                             size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.moduleStart')">
+                                <el-table-column :label="t('baseData.puzzlesBase.moduleStart')" width="100">
                                     <template #default="scope">
-                                        <el-input v-model.number="scope.row.module_start" type="number" size="small" />
+                                        <el-input v-model.number="scope.row.module_start" min="0" type="number" size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.moduleEnd')">
+                                <el-table-column :label="t('baseData.puzzlesBase.moduleEnd')" width="100">
                                     <template #default="scope">
-                                        <el-input v-model.number="scope.row.module_end" type="number" size="small" />
+                                        <el-input v-model.number="scope.row.module_end" min="0" type="number" size="small" />
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.finishedCode')" width="150">
@@ -242,18 +242,18 @@
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.pcbQty')" prop="small_board_qty" width="80">
                                     <template #default="scope">
-                                        <el-input v-model.number="scope.row.small_board_qty" type="number"
+                                        <el-input v-model.number="scope.row.small_board_qty" min="0" type="number"
                                             size="small" />
                                     </template>
                                 </el-table-column>
-                                <el-table-column :label="t('baseData.puzzlesBase.moduleStart')" prop="module_start" width="100">
+                                <el-table-column :label="t('baseData.puzzlesBase.moduleStart')"  prop="module_start" width="100">
                                     <template #default="scope">
-                                        <el-input v-model.number="scope.row.module_start" type="number" size="small" />
+                                        <el-input v-model.number="scope.row.module_start" min="0" type="number" size="small" />
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.moduleEnd')" prop="module_end" width="100">
                                     <template #default="scope">
-                                        <el-input v-model.number="scope.row.module_end" type="number" size="small" />
+                                        <el-input v-model.number="scope.row.module_end" min="0" type="number" size="small" />
                                     </template>
                                 </el-table-column>
                                 <el-table-column :label="t('baseData.puzzlesBase.finishedCode')" prop="finished_code" width="150">
