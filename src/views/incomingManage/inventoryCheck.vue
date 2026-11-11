@@ -64,6 +64,11 @@
                         :placeholder="t('incomingManage.inventoryCheck.groupOrderPlaceholder')" clearable
                         @clear="searchData" @keyup.enter="searchData" style="width: 160px" />
                 </el-form-item>
+                <el-form-item :label="t('incomingManage.inventoryCheck.rack')" prop="rack" class="mb-2">
+                    <el-input v-model="getForm.rack"
+                        :placeholder="t('incomingManage.inventoryCheck.rackPlaceholder')" clearable
+                        @clear="searchData" @keyup.enter="searchData" style="width: 160px" />
+                </el-form-item>
                 <el-form-item class="mb-2">
                     <el-button type="primary" @click="searchData">{{ t('publicText.query') }}</el-button>
                     <el-button @click="handleReset">{{ t('publicText.reset') }}</el-button>
@@ -193,6 +198,7 @@ const getForm = reactive({
     out_ori: "",
     is_first: "" as string | number,
     group_order: "",
+    rack: "",
 });
 
 const total = computed(() => tableData.value.length);
@@ -223,6 +229,7 @@ const getData = () => {
         params.is_first = getForm.is_first;
     }
     if (getForm.group_order) params.group_order = getForm.group_order;
+    if (getForm.rack) params.rack = getForm.rack;
     QueryMaterialReceiveList(params).then((res: any) => {
         if (res.Success) {
             if (res.Data && Array.isArray(res.Data)) {
@@ -264,6 +271,7 @@ const handleReset = () => {
     getForm.out_ori = "";
     getForm.is_first = "";
     getForm.group_order = "";
+    getForm.rack = "";
     getForm.PageIndex = 1;
     getData();
 };

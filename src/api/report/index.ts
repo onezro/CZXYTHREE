@@ -129,6 +129,15 @@ export function XY_SMT_OrderStatus(data:any) {
   });
 }
 
+//工单工序完成状态查询
+export function QueryWorkOrderOperationStatus(data:any) {
+    return request1({
+        url: "/api/WorkOrderOperationStatus/Query",
+        method: "post",
+        data,
+    });
+}
+
 //工治具
 export function GetToolChkOutList(data:any) {
     return request1({

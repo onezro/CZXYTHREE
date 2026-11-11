@@ -270,7 +270,7 @@ const handleCurrentChange = (val: number) => {
 // 编辑弹窗相关
 const dialogVisible = ref(false);
 const dialogLoading = ref(false);
-const dialogFormRef = ref<FormInstance>();
+const dialogFormRef = ref<any>();
 const dialogForm = reactive({
     ID: "",
     OperationId: "",

@@ -590,7 +590,10 @@ const handleScrap = (row: any) => {
 const handleClearCell = () => {
   const totalRows = selectedRows.value || [];
   const validRows = totalRows.filter((r: any) => r && r.Cell);
-  if (validRows.length === 0) return;
+  if (validRows.length === 0) {
+    ElMessage.warning(t("deviceManage.fixtureEntry.clearCellBtnHint"));
+    return;
+  }
   const skipCount = totalRows.length - validRows.length;
 
   // 储位列表：超过 8 条截断

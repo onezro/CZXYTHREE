@@ -94,6 +94,15 @@ export function CancelMaterialRequest(data:any) {
     });
 }
 
+//人工完结叫料单
+export function ManualCompleteMaterialRequest(data:any) {
+    return request({
+        url: "/api/MaterialPreparation/ManualCompleteMaterialRequest",
+        method: "put",
+        params:data
+    });
+}
+
 //手动提交赛意备料计划
 export function ManualSubmitSaiYiMaterialRequest(data:any) {
     return request({

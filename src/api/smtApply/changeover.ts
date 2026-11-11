@@ -47,6 +47,14 @@ export function GetValorChangeLineWoNew(data:any) {
         data,
     });
 }
+//按线体获取工单组
+export function GetSMTChangeLineWoGroup(data: any) {
+    return request({
+        url: "/api/ChangeOver/GetSMTChangeLineWoGroup",
+        method: "post",
+        params: data,
+    });
+}
 //获取设备
 export function GetSMTValorLineEquipMent(data:any) {
     return request({

@@ -99,7 +99,7 @@
         </el-table-column>
         <el-table-column :label="t('publicText.operation')" fixed="right" width="300" align="center">
           <template #default="{ row }">
-             <el-button type="primary" size="small" :disabled="row.upload_status === 1" @click.stop="handleCalculateIssue(row)">
+             <el-button type="primary" size="small" :disabled="row.upload_status === 1 || !row.has_actual_return" @click.stop="handleCalculateIssue(row)">
               {{ t('Scheduling.WorkOrderIssue.sendIssueData') }}
             </el-button>
             <el-button type="warning" size="small"
@@ -148,16 +148,17 @@
         <el-table-column :label="t('Scheduling.WorkOrderIssue.materialDesc')" prop="pn_spec" min-width="180" show-overflow-tooltip />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.issueQty')" prop="issue_qty" min-width="100" align="right">
           <template #default="{ row }">
-            <span :style="isLessThanBom(row) ? { color: '#f56c6c', fontWeight: 'bold' } : {}">
+            <span :class="{ 'qty-warn': isLessThanBom(row) }">
               {{ row.issue_qty }}
             </span>
           </template>
         </el-table-column>
         <el-table-column :label="t('Scheduling.WorkOrderIssue.bomDemandQty')" prop="bom_demand_qty" min-width="110" align="right" />
-        <el-table-column :label="t('Scheduling.WorkOrderIssue.lossRate')" prop="loss_rate" min-width="100" align="right" />
+        
+        
         <el-table-column :label="t('Scheduling.WorkOrderIssue.issueMinusBomQty')" prop="issue_minus_bom_qty" min-width="140" align="right">
           <template #default="{ row }">
-            <span :style="{ color: Number(row.issue_minus_bom_qty) > 0 ? '#67c23a' : Number(row.issue_minus_bom_qty) < 0 ? '#f56c6c' : '' }">
+            <span :class="Number(row.issue_minus_bom_qty) > 0 ? 'qty-plus' : Number(row.issue_minus_bom_qty) < 0 ? 'qty-warn' : ''">
               {{ row.issue_minus_bom_qty }}
             </span>
           </template>
@@ -166,14 +167,28 @@
         <el-table-column :label="t('Scheduling.WorkOrderIssue.expectedReturnQty')" prop="expected_return_qty" min-width="110" align="right" />
         <el-table-column :label="t('Scheduling.WorkOrderIssue.overReturnQty')" prop="over_return_qty" min-width="110" align="right">
           <template #default="{ row }">
-            <span v-if="Number(row.over_return_qty) > 0" style="color: #e6a23c; font-weight: bold;">{{ row.over_return_qty }}</span>
+            <span v-if="Number(row.over_return_qty) > 0" class="qty-over">{{ row.over_return_qty }}</span>
             <span v-else>{{ row.over_return_qty || 0 }}</span>
           </template>
         </el-table-column>
         <el-table-column :label="t('Scheduling.WorkOrderIssue.shortReturnQty')" prop="short_return_qty" min-width="110" align="right">
           <template #default="{ row }">
-            <span v-if="Number(row.short_return_qty) > 0" style="color: #f56c6c; font-weight: bold;">{{ row.short_return_qty }}</span>
+            <span v-if="Number(row.short_return_qty) > 0" class="qty-warn">{{ row.short_return_qty }}</span>
             <span v-else>{{ row.short_return_qty || 0 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.theoreticalLossRate')" prop="theoretical_loss_rate"
+          min-width="110" align="right">
+          <template #default="{ row }">
+            {{ formatRate(getTheoreticalLossRate(row)) }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="t('Scheduling.WorkOrderIssue.actualLossRate')" prop="actual_loss_rate"
+          min-width="110" align="right">
+          <template #default="{ row }">
+            <span :style="isLossExceeded(row) ? { fontWeight: 'bold' } : {}">
+              {{ formatRate(getActualLossRate(row)) }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column :label="t('Scheduling.WorkOrderIssue.calculateTime')" prop="calculate_time" min-width="160" align="center">
@@ -326,7 +341,33 @@ const isLessThanBom = (row: any) => {
   const bom = Number(row?.bom_demand_qty);
   return !isNaN(issue) && !isNaN(bom) && issue < bom;
 };
-const balanceRowClassName = ({ row }: any) => (isLessThanBom(row) ? "shortage-row" : "");
+const balanceRowClassName = ({ row }: any) => {
+  if (isLossExceeded(row)) return "loss-exceed-row";
+  return isLessThanBom(row) ? "shortage-row" : "";
+};
+
+// 解析损耗率（兼容 "0.9375%" 字符串或数字），空值/非数字返回 null
+const parseRate = (val: any) => {
+  if (val === null || val === undefined || val === "") return null;
+  if (typeof val === "number") return Number.isNaN(val) ? null : val;
+  const num = Number(String(val).replace("%", "").trim());
+  return Number.isNaN(num) ? null : num;
+};
+
+// 理论损耗率（兼容后端旧字段 loss_rate）
+const getTheoreticalLossRate = (row: any) => row?.theoretical_loss_rate ?? row?.loss_rate;
+// 实际损耗率
+const getActualLossRate = (row: any) => row?.actual_loss_rate;
+
+// 原样展示接口返回的百分比字符串
+const formatRate = (val: any) => (val === null || val === undefined || val === "" ? "-" : val);
+
+// 实际损耗率大于理论损耗率
+const isLossExceeded = (row: any) => {
+  const actual = parseRate(getActualLossRate(row));
+  const theoretical = parseRate(getTheoreticalLossRate(row));
+  return actual !== null && theoretical !== null && actual > theoretical;
+};
 
 const getForm = reactive({
   PageIndex: 1,
@@ -739,6 +780,33 @@ onBeforeUnmount(() => {
 
 :deep(.el-table .shortage-row > td.el-table__cell) {
   background-color: #fef0f0 !important;
+}
+
+:deep(.el-table .loss-exceed-row > td.el-table__cell) {
+  background-color: #f56c6c !important;
+  color: #fff;
+}
+
+/* 数量高亮文字 */
+:deep(.qty-warn) {
+  color: #f56c6c;
+  font-weight: bold;
+}
+
+:deep(.qty-plus) {
+  color: #67c23a;
+}
+
+:deep(.qty-over) {
+  color: #e6a23c;
+  font-weight: bold;
+}
+
+/* 整行红底（损耗超标）时，高亮文字改为白色，避免与红色背景重色导致看不清 */
+:deep(.el-table .loss-exceed-row .qty-warn),
+:deep(.el-table .loss-exceed-row .qty-plus),
+:deep(.el-table .loss-exceed-row .qty-over) {
+  color: #fff;
 }
 
 .call-order-link {

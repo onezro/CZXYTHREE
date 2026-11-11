@@ -234,7 +234,8 @@ const ja = {
       overReturnQty: "超過返却数",
       shortReturnQty: "不足返却数",
       calculateTime: "計算時間",
-      lossRate: "損耗率",
+      theoreticalLossRate: "理論損耗数",
+      actualLossRate: "実損耗",
     },
   },
   deviceManage: {

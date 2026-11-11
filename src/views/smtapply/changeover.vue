@@ -16,6 +16,27 @@
                 <div class="panel-body">
                     <el-form ref="formRef" :model="form" label-width="100px" class="info-form inboundChange"
                         label-position="left" size="large">
+                        <el-form-item label="当前线体">
+                            <div class="line-info">
+                                <span class="line-name">{{ form.LineName || "未选择" }}</span>
+                                <el-button type="primary" link @click="lineChangeVisible = true" class="line-set-btn">
+                                    <el-icon>
+                                        <Setting />
+                                    </el-icon>
+                                    设置
+                                </el-button>
+                            </div>
+                        </el-form-item>
+
+                        <el-form-item label="工单组">
+                            <el-select v-model="form.GroupOrder" @change="handleGroupChange" filterable
+                                placeholder="请选择工单组" class="full-width">
+                                <el-option v-for="item in groupList" :key="item.GroupOrder"
+                                    :label="item.GroupOrder" :value="item.GroupOrder">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+
                         <el-form-item label="工单号">
                             <el-select v-model="form.Order" @change="changeOrder" filterable placeholder="请选择工单"
                                 class="full-width">
@@ -34,18 +55,6 @@
                             </el-select>
                         </el-form-item>
 
-                        <el-form-item label="当前线体">
-                            <div class="line-info">
-                                <span class="line-name">{{ form.LineName || "未选择" }}</span>
-                                <el-button type="primary" link @click="lineChangeVisible = true" class="line-set-btn">
-                                    <el-icon>
-                                        <Setting />
-                                    </el-icon>
-                                    设置
-                                </el-button>
-                            </div>
-                        </el-form-item>
-
                         <div class="info-item">
                             <label>产品名称</label>
                             <div class="info-value">{{ form.Product || "--" }}</div>
@@ -61,15 +70,10 @@
                                 <div class="info-value">{{ form.ProductVer || "--" }}</div>
                             </div>
                         </div>
-
-                        <div class="info-item info-item--group" v-if="form.WoGroup">
-                            <label>工单组</label>
-                            <div class="info-value">{{ form.WoGroup }}</div>
-                        </div>
                     </el-form>
 
                     <!-- 二维码区域 -->
-                    <div v-if="form.Code != '' || form.WoGroup != ''" class="qrcode-section">
+                    <div v-if="form.Code != '' || form.Order != '' || form.WoGroup != ''" class="qrcode-section">
                         <div class="qrcode-header">
                             <h3>
                                 <el-icon>
@@ -80,11 +84,18 @@
                         </div>
                         <div class="qrcode-list">
                             <div v-if="form.Code != ''" class="qrcode-wrapper">
-                                <div class="qrcode-label">工单</div>
+                                <div class="qrcode-label">工艺点检工单</div>
                                 <vue-qr :text="form.Code" :margin="5" colorDark="#006487" colorLight="#ffffff"
                                     :logoScale="0.25" :size="200">
                                 </vue-qr>
                                 <div class="qrcode-hint">{{ form.Code }}</div>
+                            </div>
+                            <div v-if="form.Order != ''" class="qrcode-wrapper qrcode-wrapper--order">
+                                <div class="qrcode-label">工单</div>
+                                <vue-qr :text="form.Order" :margin="5" colorDark="#4caf50" colorLight="#ffffff"
+                                    :logoScale="0.25" :size="200">
+                                </vue-qr>
+                                <div class="qrcode-hint">{{ form.Order }}</div>
                             </div>
                             <div v-if="form.WoGroup != ''" class="qrcode-wrapper qrcode-wrapper--group">
                                 <div class="qrcode-label">工单组</div>
@@ -362,6 +373,7 @@ import {
     GetSMTValorLineEquipMent,
     GetValorChangeLineWoEquipStatus,
     SMTChangeOverByOneKey,
+    GetSMTChangeLineWoGroup,
 } from "@/api/smtApply/changeover";
 // import { getToken } from "@/utils/auth";
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -376,6 +388,7 @@ const guideCarouselRef = ref(null);
 // 响应式数据
 const form = ref({
     Order: "",
+    GroupOrder: "",
     LineName: "",
     Side: "",
     Product: "",
@@ -390,6 +403,7 @@ const sideList = ref<any[]>([{ sideType: "TOP" }, { sideType: "BOT" }]);
 
 const lineList = ref<any[]>([]);
 const workOrderList = ref<any[]>([]);
+const groupList = ref<any[]>([]);
 
 const lineData = ref<any[]>([
   
@@ -446,6 +460,7 @@ onMounted(() => {
     getSMTValorLineEquipMentData();
     getOrderList();
     getLineList();
+    getWorkOrderGroups();
 });
 //获取设备
 const getSMTValorLineEquipMentData = () => {
@@ -554,7 +569,32 @@ const changeOrder = (order: any) => {
     clearAll();
     form.value.LineName = lineName.value;
     form.value.Side = "";
+    // 根据工单匹配对应的工单组
+    const group = groupList.value.find((g: any) => g.Wo === form.value.Order);
+    form.value.GroupOrder = group ? group.GroupOrder : "";
     loadOrderInfo();
+};
+
+// 根据线体获取工单组
+const getWorkOrderGroups = () => {
+    if (!form.value.LineName) {
+        groupList.value = [];
+        return;
+    }
+    GetSMTChangeLineWoGroup({ line: form.value.LineName }).then((res: any) => {
+        groupList.value = res.Data || [];
+    });
+};
+
+// 选择工单组，自动带出对应的工单
+const handleGroupChange = (groupOrder: string) => {
+    const group = groupList.value.find((g: any) => g.GroupOrder === groupOrder);
+    if (!group) return;
+    form.value.Order = group.Wo;
+    form.value.WoGroup = group.GroupOrder;
+    changeOrder(group.Wo);
+    form.value.GroupOrder = groupOrder;
+    form.value.WoGroup = group.GroupOrder;
 };
 
 // 根据工单+线体获取工单信息（含工单组 WoGroup）
@@ -570,7 +610,8 @@ const loadOrderInfo = () => {
         form.value.BomVer = data.BomVer;
         form.value.ProductVer = data.SoftVer;
         form.value.Code = data.Side == "1" ? form.value.Order : "";
-        form.value.WoGroup = data.WoGroup || "";
+        form.value.GroupOrder = data.WoGroup || form.value.GroupOrder || "";
+        form.value.WoGroup = form.value.GroupOrder;
         sideCode.value = data.Side;
         getStatus();
     });
@@ -784,7 +825,11 @@ const handleLineSetting = async () => {
     localStorage.setItem("lineName", lineName.value);
     lineChangeVisible.value = false;
     getSMTValorLineEquipMentData();
-    // 线体变化后重新获取工单信息（工单组依赖工单+线体）
+    // 线体变化后重新获取该线体的工单组，并清空工单组选择
+    form.value.GroupOrder = "";
+    form.value.WoGroup = "";
+    getWorkOrderGroups();
+    // 已选工单时保持原有逻辑，按新线体重取工单信息
     if (form.value.Order) {
         form.value.Side = "";
         loadOrderInfo();
@@ -1032,16 +1077,6 @@ const getDeviceStatus = (device: any) => {
     margin-top: 30px;
 }
 
-// 工单组信息 - 橙色主题区分
-.info-item--group {
-    margin-top: 20px;
-
-    .info-value {
-        border-left-color: #e6a23c;
-        color: #b8781f;
-    }
-}
-
 .qrcode-section {
     margin-top: 40px;
     padding-top: 30px;
@@ -1088,6 +1123,16 @@ const getDeviceStatus = (device: any) => {
             color: #7f8c8d;
             font-size: 1rem;
             word-break: break-all;
+        }
+    }
+
+    // 纯工单二维码 - 绿色主题区分
+    .qrcode-wrapper--order {
+        border-color: rgba(76, 175, 80, 0.35);
+
+        .qrcode-label,
+        .qrcode-hint {
+            color: #2e7d32;
         }
     }
 

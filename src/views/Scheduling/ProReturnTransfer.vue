@@ -120,10 +120,8 @@
                     :min-width="getDetailColumnWidth('reel_id')" show-overflow-tooltip />
                 <el-table-column :label="t('Scheduling.ProReturnTransfer.materialPn')" prop="material_pn"
                     :min-width="getDetailColumnWidth('material_pn')" show-overflow-tooltip />
-                <el-table-column :label="t('Scheduling.ProReturnTransfer.outOri')" prop="out_ori"
-                    :min-width="getDetailColumnWidth('out_ori')" align="center" />
-                <el-table-column :label="t('Scheduling.ProReturnTransfer.outWareHouse')" prop="out_ware_house"
-                    :min-width="getDetailColumnWidth('out_ware_house')" align="center" />
+                <el-table-column :label="t('Scheduling.ProReturnTransfer.transferQty')" prop="return_qty"
+                    :min-width="getDetailColumnWidth('return_qty')" align="center" />
                 <el-table-column :label="t('Scheduling.ProReturnTransfer.inOri')" prop="in_ori"
                     :min-width="getDetailColumnWidth('in_ori')" align="center" />
                 <el-table-column :label="t('Scheduling.ProReturnTransfer.inWareHouse')" prop="in_ware_house"

@@ -149,6 +149,15 @@
                 </el-table-column>
                 <el-table-column :label="t('Scheduling.CallMaterials.Reason')" prop="Reason"
                     :min-width="getColumnWidth('Reason')" show-overflow-tooltip />
+                <el-table-column :label="t('publicText.operation')" fixed="right" width="110" align="center">
+                    <template #default="{ row }">
+                        <el-button type="success" size="small"
+                            :disabled="row.MaterialRequest_Status === 3 || row.MaterialRequest_Status === 99"
+                            :loading="completingNo === row.MaterialRequest_No" @click.stop="handleManualComplete(row)">
+                            {{ t('Scheduling.CallMaterials.ManualComplete') }}
+                        </el-button>
+                    </template>
+                </el-table-column>
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
@@ -268,6 +277,7 @@ import {
     QueryMaterialRequestList,
     QueryMaterialRequestDetail,
     CancelMaterialRequest,
+    ManualCompleteMaterialRequest,
     ManualSubmitSaiYiMaterialRequest,
     ManualSubmitWorkOrderSupplementSaiYiMaterialRequest,
     OutOrderPushBySN,
@@ -313,6 +323,8 @@ const getForm = reactive({
 const selectedNo = ref('');
 const selectedRow = computed(() => tableData.value.find((r: any) => r.MaterialRequest_No === selectedNo.value));
 const btnLoading = reactive({ call: false, push: false, cancelShelter: false, cancel: false });
+// 人工完结中的叫料单号
+const completingNo = ref('');
 // 按钮可用条件
 const canCall = computed(() => { const r = selectedRow.value; return !!r && r.RequestInfo === 1 && r.MaterialRequest_Status !== 3; });
 const canPush = computed(() => { const r = selectedRow.value; return !!r && r.RequestInfo === 0 && r.MaterialRequest_Status !== 3; });
@@ -607,6 +619,23 @@ const handleCancel = () => {
             ElNotification({ title: t('publicText.tipTitle'), message: res.Message, type: res.Success ? "success" : "error" });
             if (res.Success) { selectedNo.value = ''; getData(); }
         }).finally(() => { btnLoading.cancel = false; });
+    }).catch(() => { });
+};
+
+// 发料完成（人工手动完结）
+const handleManualComplete = (row: any) => {
+    ElMessageBox.confirm(
+        t('Scheduling.CallMaterials.ManualCompleteConfirm').replace('{0}', row.MaterialRequest_No || ''),
+        t('publicText.tip'),
+        { confirmButtonText: t('publicText.confirm'), cancelButtonText: t('publicText.cancel'), type: "warning" }
+    ).then(() => {
+        completingNo.value = row.MaterialRequest_No;
+        ManualCompleteMaterialRequest({ MaterialRequestNo: row.MaterialRequest_No })
+            .then((res: any) => {
+                ElNotification({ title: t('publicText.tipTitle'), message: res.Message, type: res.Success ? "success" : "error" });
+                if (res.Success) { selectedNo.value = ''; getData(); }
+            }).catch(() => { ElMessage.error(t('Scheduling.CallMaterials.ManualCompleteFailure')); })
+            .finally(() => { completingNo.value = ''; });
     }).catch(() => { });
 };
 

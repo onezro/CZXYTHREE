@@ -21,12 +21,12 @@
                 <el-table-column prop="pn" :label="t('baseData.puzzlesBase.pn')" :min-width="getColumnWidth('pn')" fixed="left"/>
                 <el-table-column prop="name" :label="t('baseData.puzzlesBase.name')" :min-width="getColumnWidth('name')" />
                 <el-table-column prop="model" :label="t('baseData.puzzlesBase.spec')" :min-width="getColumnWidth('model')" />
-                <el-table-column :label="t('baseData.puzzlesBase.side')" width="80" align="center">
+                <el-table-column prop="side" :label="t('baseData.puzzlesBase.side')" :min-width="getColumnWidth('side')" align="center">
                     <template #default="scope">
                         <span>{{ scope.row.sideText || '--' }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('baseData.puzzlesBase.changeType')" width="100" align="center">
+                <el-table-column prop="change_type" :label="t('baseData.puzzlesBase.changeType')" :min-width="getColumnWidth('change_type')" align="center">
                     <template #default="scope">
                         <el-tag v-if="scope.row.change_type" :type="changeTypeTag(scope.row.change_type)" size="small">
                             {{ changeTypeText(scope.row.change_type) }}
@@ -34,12 +34,12 @@
                         <span v-else>--</span>
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('baseData.puzzlesBase.draftStatus')" width="110" align="center">
+                <el-table-column prop="draft_status" :label="t('baseData.puzzlesBase.draftStatus')" :min-width="getColumnWidth('draft_status')" align="center">
                     <template #default="scope">
                         <el-tag :type="draftTagType(scope.row)" size="small">{{ draftTagText(scope.row) }}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('baseData.puzzlesBase.draftVersion')" width="100" align="center">
+                <el-table-column prop="draft_version" :label="t('baseData.puzzlesBase.draftVersion')" :min-width="getColumnWidth('draft_version')" align="center">
                     <template #default="scope">
                         <span>{{ scope.row.has_draft ? scope.row.draft_version : '--' }}</span>
                     </template>
@@ -49,7 +49,7 @@
                         <span>{{ scope.row.update_user || scope.row.create_user || '--' }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column :label="t('baseData.puzzlesBase.operateTime')" :min-width="getColumnWidth('update_time')">
+                <el-table-column prop="update_time" :label="t('baseData.puzzlesBase.operateTime')" :min-width="getColumnWidth('update_time')">
                     <template #default="scope">
                         <span>{{ formatTime(scope.row.update_time) || formatTime(scope.row.create_time) || '--' }}</span>
                     </template>
@@ -332,6 +332,7 @@ const normalizeRow = (row: any) => ({
     ...row,
     pn: row.pn ?? row.PN ?? '',
     model: row.model ?? row.pn_spec ?? '',
+    side: normalizeSide(row.side ?? row.faceNumber),
     sideText: sideText(row.side ?? row.faceNumber)
 })
 

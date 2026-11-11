@@ -33,7 +33,7 @@
                             :placeholder="t('AGV.taskQuery.inputEndPoint')" />
                     </el-form-item>
                     <el-form-item :label="t('AGV.taskQuery.lineName')" prop="LineName" class="mb-2">
-                        <el-select v-model="searchForm.LineName" clearable filterable @change="handleSearch"
+                        <el-select v-model="searchForm.LineName" clearable filterable 
                             style="width: 180px" :placeholder="t('AGV.taskQuery.selectLineName')">
                             <el-option v-for="(item, idx) in lineList" :key="'ln-' + idx" :label="getLineLabel(item)"
                                 :value="getLineValue(item)" />
@@ -41,7 +41,7 @@
                     </el-form-item>
                     <el-form-item :label="t('AGV.taskQuery.returnStatus')" prop="ReturnStatusList" class="mb-2">
                         <el-select v-model="searchForm.ReturnStatusList" multiple collapse-tags collapse-tags-tooltip
-                            clearable @change="handleSearch" style="width: 180px"
+                            clearable  style="width: 180px"
                             :placeholder="t('AGV.taskQuery.selectReturnStatus')">
                             <el-option v-for="item in returnStatusOptions" :key="item.value" :label="t(item.label)"
                                 :value="item.value" />
