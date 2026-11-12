@@ -11,6 +11,12 @@
                         </el-icon>
                         工单信息
                     </h2>
+                    <el-button type="primary" link @click="refreshOrderInfo" class="refresh-btn">
+                        <el-icon>
+                            <Refresh />
+                        </el-icon>
+                        刷新
+                    </el-button>
                 </div>
 
                 <div class="panel-body">
@@ -29,21 +35,18 @@
                         </el-form-item>
 
                         <el-form-item label="工单组">
-                            <el-select v-model="form.GroupOrder" @change="handleGroupChange" filterable
+                            <el-select v-model="form.GroupOrder" @change="handleGroupChange" filterable clearable
                                 placeholder="请选择工单组" class="full-width">
-                                <el-option v-for="item in groupList" :key="item.GroupOrder"
+                                <el-option v-for="item in groupOptions" :key="item.GroupOrder"
                                     :label="item.GroupOrder" :value="item.GroupOrder">
                                 </el-option>
                             </el-select>
                         </el-form-item>
 
                         <el-form-item label="工单号">
-                            <el-select v-model="form.Order" @change="changeOrder" filterable placeholder="请选择工单"
-                                class="full-width">
-                                <el-option v-for="item in workOrderList" :key="item.WorkOrder" :label="item.WorkOrder"
-                                    :value="item.WorkOrder">
-                                </el-option>
-                            </el-select>
+                            <el-select-v2 v-model="form.Order" :options="workOrderOptions" @change="changeOrder"
+                                filterable placeholder="请选择工单" class="full-width">
+                            </el-select-v2>
                         </el-form-item>
 
                         <el-form-item label="SIDE面">
@@ -451,6 +454,33 @@ const isFormValid = computed(() => {
         checkedDevices.value.length > 0
     );
 });
+
+// 工单组下拉选项（同一工单组可能对应多个工单，按组号去重）
+const groupOptions = computed(() => {
+    const map = new Map();
+    groupList.value.forEach((g: any) => {
+        if (!map.has(g.GroupOrder)) map.set(g.GroupOrder, g);
+    });
+    return Array.from(map.values());
+});
+
+// 工单下拉选项：未选工单组时显示原来的全量工单；选中工单组后只显示该组内的工单
+const filteredWorkOrderList = computed(() => {
+    if (!form.value.GroupOrder) return workOrderList.value;
+    const groups = groupList.value.filter(
+        (g: any) => g.GroupOrder === form.value.GroupOrder,
+    );
+    const woSet = new Set(groups.map((g: any) => g.Wo));
+    return workOrderList.value.filter((item: any) => woSet.has(item.WorkOrder));
+});
+
+// el-select-v2 工单选项（虚拟列表，数据量大时不卡）
+const workOrderOptions = computed(() =>
+    filteredWorkOrderList.value.map((item: any) => ({
+        label: item.WorkOrder,
+        value: item.WorkOrder,
+    })),
+);
 onMounted(() => {
     const savedLineName = localStorage.getItem("lineName");
     if (savedLineName) {
@@ -583,18 +613,42 @@ const getWorkOrderGroups = () => {
     }
     GetSMTChangeLineWoGroup({ line: form.value.LineName }).then((res: any) => {
         groupList.value = res.Data || [];
+        // 已选工单组不在最新数据中则清空
+        if (
+            form.value.GroupOrder &&
+            !groupList.value.some((g: any) => g.GroupOrder === form.value.GroupOrder)
+        ) {
+            form.value.GroupOrder = "";
+            form.value.WoGroup = "";
+        }
     });
 };
 
 // 选择工单组，自动带出对应的工单
 const handleGroupChange = (groupOrder: string) => {
-    const group = groupList.value.find((g: any) => g.GroupOrder === groupOrder);
-    if (!group) return;
-    form.value.Order = group.Wo;
-    form.value.WoGroup = group.GroupOrder;
-    changeOrder(group.Wo);
-    form.value.GroupOrder = groupOrder;
-    form.value.WoGroup = group.GroupOrder;
+    // 清除工单组，工单列表恢复全量
+    if (!groupOrder) {
+        form.value.GroupOrder = "";
+        form.value.WoGroup = "";
+        return;
+    }
+    const groups = groupList.value.filter((g: any) => g.GroupOrder === groupOrder);
+    if (!groups.length) return;
+    if (groups.length === 1) {
+        // 组内只有一个工单，直接带出
+        form.value.Order = groups[0].Wo;
+        form.value.WoGroup = groupOrder;
+        changeOrder(groups[0].Wo);
+        form.value.GroupOrder = groupOrder;
+        form.value.WoGroup = groupOrder;
+        return;
+    }
+    // 组内有多个工单，清空工单让用户在过滤后的工单列表中选择
+    clearAll();
+    form.value.Order = "";
+    form.value.Side = "";
+    form.value.Code = "";
+    form.value.WoGroup = groupOrder;
 };
 
 // 根据工单+线体获取工单信息（含工单组 WoGroup）
@@ -836,6 +890,22 @@ const handleLineSetting = async () => {
     }
 };
 
+// 刷新工单组数据并重置工单信息（保留当前线体）
+const refreshOrderInfo = () => {
+    clearAll();
+    form.value.Order = "";
+    form.value.GroupOrder = "";
+    form.value.Side = "";
+    form.value.Product = "";
+    form.value.Program = "";
+    form.value.BomVer = "";
+    form.value.ProductVer = "";
+    form.value.Code = "";
+    form.value.WoGroup = "";
+    sideCode.value = "";
+    getWorkOrderGroups();
+};
+
 const clearAll = () => {
     checkedDevices.value = [];
     initializeStatus();
@@ -1000,6 +1070,7 @@ const getDeviceStatus = (device: any) => {
     }
 }
 
+.info-panel .panel-header,
 .status-panel .panel-header {
     display: flex;
     justify-content: space-between;
