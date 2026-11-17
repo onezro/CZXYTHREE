@@ -4,18 +4,8 @@
       <div class="flex justify-between items-center">
         <!-- 查询表单 -->
         <el-form ref="queryFormRef" :inline="true" :model="queryParams" label-width="auto" @submit.prevent>
-          <el-form-item :label="t('esd.device.workshop')" class="mb-2">
-            <el-select v-model="queryParams.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" clearable
-              style="width: 150px" size="small">
-              <el-option v-for="item in workshopOptions" :key="item.value" :label="item.label" :value="item.value" />
-            </el-select>
-          </el-form-item>
           <el-form-item :label="t('esd.device.esdType')" class="mb-2">
             <el-input v-model="queryParams.EsdType" :placeholder="t('esd.device.esdTypePlaceholder')" clearable
-              style="width: 150px" size="small" />
-          </el-form-item>
-          <el-form-item :label="t('esd.device.deviceName')" class="mb-2">
-            <el-input v-model="queryParams.DeviceName" :placeholder="t('esd.device.deviceNamePlaceholder')" clearable
               style="width: 150px" size="small" />
           </el-form-item>
           <el-form-item class="mb-2">
@@ -46,20 +36,10 @@
         </el-table-column>
 
         <el-table-column prop="Factory" :label="t('esd.device.factory')" :min-width="getColumnWidth('Factory')" />
-        <el-table-column prop="Workshop" :label="t('esd.device.workshop')" :min-width="getColumnWidth('Workshop')" />
-        <el-table-column prop="LineName" :label="t('esd.device.lineName')" :min-width="getColumnWidth('LineName')" />
-                    <el-table-column prop="WorkStation" label="工位" :min-width="getColumnWidth('WorkStation')" />
-        <el-table-column prop="DeviceCode" :label="t('esd.device.deviceCode')"
-          :min-width="getColumnWidth('DeviceCode')" />
-        <el-table-column prop="DeviceName" :label="t('esd.device.deviceName')"
-          :min-width="getColumnWidth('DeviceName')" />
-
-                    <el-table-column prop="EsdTypeCode" label="ESD类型编码" :min-width="getColumnWidth('EsdTypeCode')" />
+        <el-table-column prop="EsdTypeCode" label="ESD类型编码" :min-width="getColumnWidth('EsdTypeCode')" />
         <el-table-column prop="EsdType" :label="t('esd.device.esdType')" :min-width="getColumnWidth('EsdType')" />
         <el-table-column prop="EsdCategory" :label="t('esd.device.esdCategory')"
           :min-width="getColumnWidth('EsdCategory')" />
-        <!-- 新增字段列 -->
-      
 
         <!-- <el-table-column prop="Status" :label="t('esd.device.status')" :min-width="getColumnWidth('Status')">
           <template #default="{ row }">
@@ -100,28 +80,6 @@
         <el-form-item :label="t('esd.device.factory')" prop="Factory">
           <el-input v-model="formData.Factory" :placeholder="t('esd.device.factoryPlaceholder')" />
         </el-form-item>
-        <el-form-item :label="t('esd.device.workshop')" prop="Workshop" >
-          <el-select v-model="formData.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" clearable
-            @change="handleWorkshopChange" style="width: 100%">
-            <el-option v-for="item in workshopOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('esd.device.lineName')" prop="LineName" >
-          <el-select v-model="formData.LineName" :placeholder="t('esd.device.lineNamePlaceholder')" filterable
-            :disabled="lineList.length === 0" style="width: 100%">
-            <el-option v-for="item in lineList" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('esd.device.deviceCode')" prop="DeviceCode">
-          <el-input v-model="formData.DeviceCode" :placeholder="t('esd.device.deviceCodePlaceholder')" />
-        </el-form-item>
-        <el-form-item :label="t('esd.device.deviceName')" prop="DeviceName">
-          <el-input v-model="formData.DeviceName" :placeholder="t('esd.device.deviceNamePlaceholder')" />
-        </el-form-item>
-        <!-- 新增字段 -->
-        <el-form-item :label="t('esd.device.workStation')" prop="WorkStation">
-          <el-input v-model="formData.WorkStation" placeholder="请输入工位" />
-        </el-form-item>
         <el-form-item :label="t('esd.device.esdTypeCode')" prop="EsdTypeCode">
           <el-input v-model="formData.EsdTypeCode" :placeholder="t('esd.device.esdTypeCodePlaceholder')" />
         </el-form-item>
@@ -144,28 +102,6 @@
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="120px" size="small">
         <el-form-item :label="t('esd.device.factory')" prop="Factory">
           <el-input v-model="formData.Factory" :placeholder="t('esd.device.factoryPlaceholder')" />
-        </el-form-item>
-        <el-form-item :label="t('esd.device.workshop')" prop="Workshop" >
-          <el-select v-model="formData.Workshop" :placeholder="t('esd.device.workshopPlaceholder')" clearable
-            @change="handleWorkshopChange" style="width: 100%">
-            <el-option v-for="item in workshopOptions" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('esd.device.lineName')" prop="LineName" >
-          <el-select v-model="formData.LineName" :placeholder="t('esd.device.lineNamePlaceholder')" filterable
-            :disabled="lineList.length === 0" style="width: 100%">
-            <el-option v-for="item in lineList" :key="item.value" :label="item.label" :value="item.value" />
-          </el-select>
-        </el-form-item>
-        <el-form-item :label="t('esd.device.deviceCode')" prop="DeviceCode">
-          <el-input v-model="formData.DeviceCode" :placeholder="t('esd.device.deviceCodePlaceholder')" />
-        </el-form-item>
-        <el-form-item :label="t('esd.device.deviceName')" prop="DeviceName">
-          <el-input v-model="formData.DeviceName" :placeholder="t('esd.device.deviceNamePlaceholder')" />
-        </el-form-item>
-        <!-- 新增字段 -->
-        <el-form-item :label="t('esd.device.workStation')" prop="WorkStation">
-          <el-input v-model="formData.WorkStation" placeholder="请输入工位" />
         </el-form-item>
         <el-form-item :label="t('esd.device.esdTypeCode')" prop="EsdTypeCode">
           <el-input v-model="formData.EsdTypeCode" :placeholder="t('esd.device.esdTypeCodePlaceholder')" />
@@ -205,62 +141,10 @@ import {
   UpdateEsdObject,
   DeleteEsdObject,
 } from "@/api/esdManage/base";
-import { GetValorLineByTypes } from "@/api/smtApply/changeover";
 import dayjs from 'dayjs';
 
 const { t } = useI18n();
 const userStore = useUserStoreWithOut();
-
-// 车间选项：SMT车间/ICT车间/铣板车间 有线体，其余车间及仓库 无线体
-const workshopOptions = [
-  { label: "SMT车间", value: "SMT车间", type: "SMT" },
-  { label: "ICT车间", value: "ICT车间", type: "ICT" },
-  { label: "铣板车间", value: "铣板车间", type: "Depanel" },
-  { label: "组装车间", value: "组装车间", type: "" },
-  { label: "电子料仓库", value: "电子料仓库", type: "" },
-  { label: "半成品仓库", value: "半成品仓库", type: "" },
-  { label: "成品仓库", value: "成品仓库", type: "" },
-  { label: "不良品仓库", value: "不良品仓库", type: "" },
-  { label: "喷涂三防车间", value: "喷涂三防车间", type: "" },
-  { label: "DIP车间", value: "DIP车间", type: "" },
-  { label: "自动化车间", value: "自动化车间", type: "" },
-  { label: "老化测试车间", value: "老化测试车间", type: "" },
-  { label: "成品包装车间", value: "成品包装车间", type: "" },
-  { label: "各车间", value: "各车间", type: "" },
-];
-const workshopTypeMap: Record<string, string> = workshopOptions.reduce((acc, cur) => {
-  acc[cur.value] = cur.type;
-  return acc;
-}, {} as Record<string, string>);
-
-// 根据车间获取对应线体
-const loadLinesByWorkshop = async (workshop: string) => {
-  const type = workshopTypeMap[workshop];
-  if (!type) {
-    lineList.value = [];
-    return;
-  }
-  try {
-    const res: any = await GetValorLineByTypes({ Types: [type] });
-    if (res.Success) {
-      lineList.value = (res.Data || []).map((item: any) => ({
-        label: item.line,
-        value: item.line,
-      }));
-    } else {
-      lineList.value = [];
-    }
-  } catch (error) {
-    console.error("获取线体失败:", error);
-    lineList.value = [];
-  }
-};
-
-// 车间变更：清空已选线体并重新加载线体列表
-const handleWorkshopChange = (val: string) => {
-  formData.LineName = "";
-  loadLinesByWorkshop(val);
-};
 
 // 表格数据
 const tableData = ref<any[]>([]);
@@ -272,9 +156,7 @@ const submitLoading = ref(false);
 
 // 查询参数
 const queryParams = reactive({
-  Workshop: "",
   EsdType: "",
-  DeviceName: "",
   PageIndex: 1,
   PageSize: 20,
 });
@@ -288,47 +170,13 @@ const formRef = ref();
 const formData = reactive({
   Id: "",
   Factory: "",
-  Workshop: "",
-  LineName: "",
-  DeviceName: "",
-  DeviceCode: "",
   EsdCategory: "",
   EsdType: "",
-  WorkStation: "",      // 新增字段
-  EsdTypeCode: "",      // 新增字段
+  EsdTypeCode: "",
 });
 
-// 表单验证规则（新增字段未做必填，可根据需要添加）
-const formRules = {
-  // Workshop: [
-  //   {
-  //     required: true,
-  //     message: t("message.pleaseInput") + t("esd.device.workshop"),
-  //     trigger: "blur",
-  //   },
-  // ],
-  // LineName: [
-  //   {
-  //     required: true,
-  //     message: t("message.pleaseInput") + t("esd.device.lineName"),
-  //     trigger: "blur",
-  //   },
-  // ],
-  // EsdCategory: [
-  //   {
-  //     required: true,
-  //     message: t("message.pleaseInput") + t("esd.device.esdCategory"),
-  //     trigger: "blur",
-  //   },
-  // ],
-  // EsdType: [
-  //   {
-  //     required: true,
-  //     message: t("message.pleaseInput") + t("esd.device.esdType"),
-  //     trigger: "blur",
-  //   },
-  // ],
-};
+// 表单验证规则（可按需补充）
+const formRules = {};
 
 // 表格列宽自动计算
 const tableColumns = computed(() => {
@@ -381,9 +229,7 @@ const handleSearch = () => {
 };
 
 const resetSearch = () => {
-  queryParams.Workshop = "";
   queryParams.EsdType = "";
-  queryParams.DeviceName = "";
   queryParams.PageIndex = 1;
   getData();
 };
@@ -400,17 +246,12 @@ const handleCurrentChange = (val: number) => {
   getData();
 };
 
-// 重置表单数据（包含新增字段）
+// 重置表单数据
 const resetFormData = () => {
   formData.Id = "";
   formData.Factory = "";
-  formData.Workshop = "";
-  formData.LineName = "";
-  formData.DeviceName = "";
-  formData.DeviceCode = "";
   formData.EsdCategory = "";
   formData.EsdType = "";
-  formData.WorkStation = "";
   formData.EsdTypeCode = "";
 };
 
@@ -418,7 +259,6 @@ const resetFormData = () => {
 const openAdd = () => {
   isEdit.value = false;
   resetFormData();
-  lineList.value = [];
   addDialogVisible.value = true;
 };
 
@@ -428,17 +268,11 @@ const openEdit = (row: any) => {
   Object.assign(formData, {
     Id: row.Id,
     Factory: row.Factory,
-    Workshop: row.Workshop,
-    LineName: row.LineName,
-    DeviceName: row.DeviceName,
-    DeviceCode: row.DeviceCode,
     EsdCategory: row.EsdCategory,
     EsdType: row.EsdType,
-    WorkStation: row.WorkStation || "",
     EsdTypeCode: row.EsdTypeCode || "",
   });
   editDialogVisible.value = true;
-  loadLinesByWorkshop(row.Workshop);
 };
 
 // 提交表单（新增/编辑共用）
@@ -452,13 +286,8 @@ const submitForm = async () => {
       const updateParams = {
         Id: formData.Id,
         Factory: formData.Factory,
-        Workshop: formData.Workshop,
-        LineName: formData.LineName,
-        DeviceName: formData.DeviceName,
-        DeviceCode: formData.DeviceCode,
         EsdCategory: formData.EsdCategory,
         EsdType: formData.EsdType,
-        WorkStation: formData.WorkStation,
         EsdTypeCode: formData.EsdTypeCode,
         UserName: currentUser,
       };
@@ -467,13 +296,8 @@ const submitForm = async () => {
     } else {
       const addParams = {
         Factory: formData.Factory,
-        Workshop: formData.Workshop,
-        LineName: formData.LineName,
-        DeviceName: formData.DeviceName,
-        DeviceCode: formData.DeviceCode,
         EsdCategory: formData.EsdCategory,
         EsdType: formData.EsdType,
-        WorkStation: formData.WorkStation,
         EsdTypeCode: formData.EsdTypeCode,
         UserName: currentUser,
       };
@@ -505,7 +329,7 @@ const submitForm = async () => {
 // 删除
 const handleDelete = (row: any) => {
   ElMessageBox.confirm(
-    `${t("publicText.confirm")}${t("publicText.delete")}【${row.DeviceCode} - ${row.DeviceName}】?`,
+    `${t("publicText.confirm")}${t("publicText.delete")}【${row.EsdTypeCode} - ${row.EsdType}】?`,
     t("publicText.tip"),
     {
       confirmButtonText: t("publicText.confirm"),
@@ -541,8 +365,6 @@ const handleDialogClosed = () => {
   formRef.value?.resetFields();
   resetFormData();
 };
-
-const lineList = ref<any[]>([]);
 
 // 表格高度自适应
 const getScreenHeight = () => {

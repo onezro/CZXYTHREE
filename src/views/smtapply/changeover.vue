@@ -263,6 +263,33 @@
             </el-carousel>
         </el-dialog>
 
+        <!-- 首检确认对话框 -->
+        <el-dialog v-model="firstInspectVisible" title="首检确认" width="560px" custom-class="first-inspect-dialog"
+            :close-on-click-modal="false" :close-on-press-escape="false">
+            <div class="first-inspect-content">
+                <el-icon class="inspect-icon">
+                    <Warning />
+                </el-icon>
+                <div class="inspect-text">
+                    <h3>当前换线机型是否包含新品、变更、替代物料、新分BIN？</h3>
+                    <p>选择「是」：首检任务分派给<span>过程检验员</span>执行</p>
+                    <p>选择「否」：首检任务分派给<span>产线作业人员</span>执行</p>
+                </div>
+            </div>
+
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="firstInspectVisible = false">取消</el-button>
+                    <el-button type="warning" :loading="isCreatingInspect" @click="createFirstInspect(1)">
+                        否（产线作业人员）
+                    </el-button>
+                    <el-button type="primary" :loading="isCreatingInspect" @click="createFirstInspect(0)">
+                        是（过程检验员）
+                    </el-button>
+                </span>
+            </template>
+        </el-dialog>
+
         <!-- 确认对话框 -->
         <el-dialog v-model="confirmVisible" title="换线确认" width="500px" custom-class="confirm-dialog">
             <div class="confirm-content">
@@ -377,6 +404,7 @@ import {
     GetValorChangeLineWoEquipStatus,
     SMTChangeOverByOneKey,
     GetSMTChangeLineWoGroup,
+    CreateFirstInspect,
 } from "@/api/smtApply/changeover";
 // import { getToken } from "@/utils/auth";
 import { useUserStoreWithOut } from "@/stores/modules/user";
@@ -422,6 +450,8 @@ const confirmVisible = ref(false);
 const warningVisible = ref(false);
 const lineChangeVisible = ref(false);
 const isLoading = ref(false);
+const firstInspectVisible = ref(false);
+const isCreatingInspect = ref(false);
 const currentDevice = ref<any>(null);
 const lineName = ref("");
 const warningText = ref("");
@@ -731,8 +761,40 @@ const changeOver = () => {
         return;
     }
 
-    currentErrors.value = [];
-    confirmVisible.value = true;
+    // 换线前强制确认首检（是否包含新品、变更、替代物料、新分BIN）
+    firstInspectVisible.value = true;
+};
+
+// 创建首检任务：0 过程检验员（是），1 产线作业人员（否）
+const createFirstInspect = (executorRole: number) => {
+    if (isCreatingInspect.value) return;
+    isCreatingInspect.value = true;
+    CreateFirstInspect({
+        LineName: form.value.LineName,
+        Order: form.value.Order,
+        Product: form.value.Product,
+        BomVer: form.value.BomVer,
+        OperatorUser: userStore.getUserInfo,
+        ExecutorRole: executorRole,
+    })
+        .then((res: any) => {
+            if (!res.Success) {
+                ElMessage.error(res.Message || "首检创建失败");
+                return;
+            }
+            firstInspectVisible.value = false;
+            ElNotification.success({
+                title: "首检创建成功",
+                message: `首检单号：${res.Data}`,
+                duration: 5000,
+            });
+            // 首检创建成功后才允许执行换线
+            currentErrors.value = [];
+            confirmVisible.value = true;
+        })
+        .finally(() => {
+            isCreatingInspect.value = false;
+        });
 };
 
 const confirmChangeOver = async () => {
@@ -1576,6 +1638,7 @@ const getDeviceStatus = (device: any) => {
 :deep(.line-dialog),
 :deep(.confirm-dialog),
 :deep(.warning-dialog),
+:deep(.first-inspect-dialog),
 :deep(.guide-dialog) {
     border-radius: 16px;
 
@@ -1680,6 +1743,41 @@ const getDeviceStatus = (device: any) => {
         font-size: 1.1rem;
         line-height: 1.6;
         color: #666;
+    }
+}
+
+// 首检确认对话框内容
+.first-inspect-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+
+    .inspect-icon {
+        font-size: 3rem;
+        color: #e6a23c;
+        flex-shrink: 0;
+    }
+
+    .inspect-text {
+        flex: 1;
+
+        h3 {
+            margin: 0 0 12px 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            line-height: 1.5;
+        }
+
+        p {
+            margin: 6px 0;
+            color: #7f8c8d;
+            font-size: 1rem;
+
+            span {
+                color: #006487;
+                font-weight: 600;
+            }
+        }
     }
 }
 

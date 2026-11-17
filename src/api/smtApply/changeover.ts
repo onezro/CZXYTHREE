@@ -55,6 +55,14 @@ export function GetSMTChangeLineWoGroup(data: any) {
         params: data,
     });
 }
+//创建首检任务（ExecutorRole：0 过程检验员，1 产线作业人员）
+export function CreateFirstInspect(data: any) {
+    return request({
+        url: "/api/ChangeOver/CreateFirstInspect",
+        method: "post",
+        data,
+    });
+}
 //获取设备
 export function GetSMTValorLineEquipMent(data:any) {
     return request({

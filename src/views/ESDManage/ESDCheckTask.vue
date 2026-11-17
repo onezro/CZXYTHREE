@@ -105,7 +105,7 @@
                                 :min-width="getColumnWidth('EsdType')" />
                             <el-table-column prop="FormName" :label="t('esd.checklist.formName')"
                                 :min-width="getColumnWidth('FormName')" />
-                            <el-table-column prop="FormCode" :label="t('esd.checklist.formCode')"
+                            <el-table-column prop="FormCode" :label="t('esd.task.formCode')"
                                 :min-width="getColumnWidth('FormCode')" />
                             <el-table-column prop="ExecuteStatus" :label="t('esd.task.executeStatus')"
                                 :min-width="getColumnWidth('ExecuteStatus')" align="center">
@@ -230,7 +230,7 @@
                                 :min-width="getColumnWidth2('EsdType')" />
                             <el-table-column prop="FormName" :label="t('esd.checklist.formName')"
                                 :min-width="getColumnWidth2('FormName')" />
-                            <el-table-column prop="FormCode" :label="t('esd.checklist.formCode')"
+                            <el-table-column prop="FormCode" :label="t('esd.task.formCode')"
                                 :min-width="getColumnWidth2('FormCode')" />
                             <el-table-column prop="ExecuteStatus" :label="t('esd.task.executeStatus')"
                                 :min-width="getColumnWidth2('ExecuteStatus')" align="center">
@@ -347,7 +347,7 @@
                                 :min-width="getColumnWidth3('EsdType')" />
                             <el-table-column prop="FormName" :label="t('esd.checklist.formName')"
                                 :min-width="getColumnWidth3('FormName')" />
-                            <el-table-column prop="FormCode" :label="t('esd.checklist.formCode')"
+                            <el-table-column prop="FormCode" :label="t('esd.task.formCode')"
                                 :min-width="getColumnWidth3('FormCode')" />
                             <el-table-column prop="ExecuteStatus" :label="t('esd.task.executeStatus')"
                                 :min-width="getColumnWidth3('ExecuteStatus')" align="center">
@@ -527,19 +527,8 @@
                         <!-- 如果有分页，也可以加footer -->
                     </el-select>
                 </el-form-item>
-                <el-form-item :label="t('esd.task.esdTypeCode')" prop="EsdTypeCode">
-                    <el-select v-model="addTaskForm.EsdTypeCode" placeholder="请选择" 
-                        popper-class="esd-type-popper" v-loading="selectData.esdType.loading">
-                        <el-option v-for="item in selectData.esdType.list" :key="item.value" :label="item.value+'-'+item.label"
-                            :value="item.value" />
-                        <template #footer>
-                            <el-pagination small layout="prev, pager, next" :total="selectData.esdType.total"
-                                :page-size="selectData.esdType.pageSize"
-                                v-model:current-page="selectData.esdType.pageIndex" @current-change="loadEsdTypeData"
-                                class="pagination-wrapper" />
-                        </template>
-                    </el-select>
-                    <!-- <el-input v-model="addTaskForm.EsdTypeCode" placeholder="ESD类型编码" /> -->
+                <el-form-item :label="t('esd.task.formCode')" prop="FormCode">
+                    <el-input v-model="addTaskForm.FormCode" placeholder="选择点检表单后自动带出" disabled />
                 </el-form-item>
                 <el-form-item :label="t('esd.task.workStation')" prop="WorkStation">
                     <el-input v-model="addTaskForm.WorkStation" placeholder="工位" />
@@ -801,7 +790,7 @@ const loadCheckFrequencyData = async () => {
 };
 
 // ==================== 表单选择下拉（用于新增任务/计划） ====================
-const formOptions = ref<{ label: string; value: number; EsdTypeCode: string }[]>([]);
+const formOptions = ref<{ label: string; value: number; EsdTypeCode: string; FormCode: string }[]>([]);
 const formLoading = ref(false);
 const loadFormOptions = async (keyword = '') => {
     formLoading.value = true;
@@ -809,11 +798,16 @@ const loadFormOptions = async (keyword = '') => {
         const res: any = await QueryCheckFormList({ FormName: keyword, PageIndex: 1, PageSize: 100 });
         if (res.Success) {
             const rows = res.Data.rows || [];
-            // 去重（按FormId），保留表单对应的 ESD类型编码
-            const map = new Map<number, { label: string; value: number; EsdTypeCode: string }>();
+            // 去重（按FormId），保留表单对应的 ESD类型编码与表单号
+            const map = new Map<number, { label: string; value: number; EsdTypeCode: string; FormCode: string }>();
             rows.forEach((item: any) => {
                 if (!map.has(item.FormId)) {
-                    map.set(item.FormId, { label: item.FormName, value: item.FormId, EsdTypeCode: item.EsdTypeCode || '' });
+                    map.set(item.FormId, {
+                        label: item.FormName,
+                        value: item.FormId,
+                        EsdTypeCode: item.EsdTypeCode || '',
+                        FormCode: item.FormCode || '',
+                    });
                 }
             });
             formOptions.value = Array.from(map.values());
@@ -821,10 +815,11 @@ const loadFormOptions = async (keyword = '') => {
     } finally { formLoading.value = false; }
 };
 
-// 选择点检表单后，自动带出其 ESD类型编码
+// 选择点检表单后，自动带出其 ESD类型编码与表单号
 const handleFormChange = (formId: number) => {
     const form = formOptions.value.find((item) => item.value === formId);
     addTaskForm.EsdTypeCode = form?.EsdTypeCode || '';
+    addTaskForm.FormCode = form?.FormCode || '';
 };
 
 const employeeList = ref<any[]>([]);
@@ -1093,6 +1088,7 @@ const addTaskDialogVisible = ref(false);
 const addTaskFormRef = ref();
 const addTaskForm = reactive({
     FormId: undefined as number | undefined,
+    FormCode: '',
     EsdTypeCode: '',
     WorkStation: '',
     ResponsibleUser: '',
@@ -1105,6 +1101,7 @@ const addTaskRules = {
 };
 const openAddTask = () => {
     addTaskForm.FormId = undefined;
+    addTaskForm.FormCode = '';
     addTaskForm.EsdTypeCode = '';
     addTaskForm.WorkStation = '';
     addTaskForm.ResponsibleUser = '';

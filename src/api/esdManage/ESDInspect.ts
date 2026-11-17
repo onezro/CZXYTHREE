@@ -44,3 +44,29 @@ export function AddExecutionDetail(data: any) {
     data,
   });
 }
+
+// 完成任务（只有调用该接口任务才会变为已完成）
+export function CompleteExecutionTask(data: any) {
+  return request({
+    url: `/api/esd/CompleteExecutionTask`,
+    method: "post",
+    data,
+  });
+}
+
+// 查询车间列表
+export function QueryWorkshopList() {
+  return request({
+    url: `/api/esd/QueryWorkshopList`,
+    method: "get",
+  });
+}
+
+// 查询指定车间、线体下的设备
+export function QueryLineDeviceList(data: any) {
+  return request({
+    url: `/api/esd/QueryLineDeviceList`,
+    method: "get",
+    params: data,
+  });
+}

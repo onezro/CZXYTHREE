@@ -46,6 +46,21 @@
                             <el-option :label="t('publicText.disable')" value="N" />
                         </el-select>
                     </el-form-item>
+                    <el-form-item :label="t('AGV.plateBaseData.boxNum')" prop="BoxNum" class="mb-2">
+                        <el-input-number v-model="searchForm.BoxNum" :min="0" :controls="false"
+                            style="width: 180px" :placeholder="t('AGV.plateBaseData.inputBoxNum')" />
+                    </el-form-item>
+                    <el-form-item :label="t('AGV.plateBaseData.boxNum2')" prop="BoxNum2" class="mb-2">
+                        <el-input-number v-model="searchForm.BoxNum2" :min="0" :controls="false"
+                            style="width: 180px" :placeholder="t('AGV.plateBaseData.inputBoxNum2')" />
+                    </el-form-item>
+                    <el-form-item :label="t('AGV.plateBaseData.isNgPolling')" prop="isNgPolling" class="mb-2">
+                        <el-select v-model="searchForm.isNgPolling" clearable style="width: 180px"
+                            :placeholder="t('AGV.plateBaseData.selectNgPolling')">
+                            <el-option :label="t('publicText.yes')" value="Y" />
+                            <el-option :label="t('publicText.no')" value="N" />
+                        </el-select>
+                    </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button type="primary" @click="handleSearch">{{ t("publicText.query") }}</el-button>
                     </el-form-item>
@@ -196,6 +211,14 @@
                     :min-width="getColumnWidth('BoxNum')" align="center">
                     <template #default="{ row }">{{ cellText(row.BoxNum) }}</template>
                 </el-table-column>
+                <el-table-column prop="BoxNum2" :label="t('AGV.plateBaseData.boxNum2')"
+                    :min-width="getColumnWidth('BoxNum2')" align="center">
+                    <template #default="{ row }">{{ cellText(row.BoxNum2) }}</template>
+                </el-table-column>
+                <el-table-column prop="isNgPolling" :label="t('AGV.plateBaseData.isNgPolling')"
+                    :min-width="getColumnWidth('isNgPolling')" align="center">
+                    <template #default="{ row }">{{ yesNoText(row.isNgPolling) }}</template>
+                </el-table-column>
                 <el-table-column prop="AcceptType" :label="t('AGV.plateBaseData.acceptType')"
                     :min-width="getColumnWidth('AcceptType')" align="center">
                     <template #default="{ row }">{{ cellText(row.AcceptType) }}</template>
@@ -232,7 +255,7 @@
         <!-- 新增对话框 -->
         <el-dialog :title="t('publicText.add')" v-model="addVisible" width="75%" :close-on-click-modal="false"
             @closed="handleAddDialogClosed" align-center>
-            <el-form ref="addFormRef" :model="addForm" :rules="formRules" label-width="110px">
+            <el-form ref="addFormRef" :model="addForm" :rules="formRules" label-width="150px">
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item :label="t('AGV.plateBaseData.mcNo')" prop="agvmcid_no">
@@ -386,6 +409,20 @@
                                 style="width: 100%" :placeholder="t('AGV.plateBaseData.inputBoxNum')" />
                         </el-form-item>
                     </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.boxNum2')" prop="BoxNum2">
+                            <el-input-number v-model="addForm.BoxNum2" :min="0" controls-position="right"
+                                style="width: 100%" :placeholder="t('AGV.plateBaseData.inputBoxNum2')" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.isNgPolling')" prop="isNgPolling">
+                            <el-switch v-model="addForm.isNgPolling" active-value="Y" inactive-value="N"
+                                :active-text="t('publicText.yes')" :inactive-text="t('publicText.no')" />
+                        </el-form-item>
+                    </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="24">
@@ -409,7 +446,7 @@
         <!-- 编辑对话框 -->
         <el-dialog :title="t('publicText.edit')" v-model="editVisible" width="75%" :close-on-click-modal="false"
             @closed="handleEditDialogClosed" align-center>
-            <el-form ref="editFormRef" :model="editForm" :rules="formRules" label-width="110px">
+            <el-form ref="editFormRef" :model="editForm" :rules="formRules" label-width="150px">
                 <el-row :gutter="20">
                     <el-col :span="12">
                         <el-form-item :label="t('AGV.plateBaseData.mcNo')" prop="agvmcid_no">
@@ -561,6 +598,20 @@
                                 style="width: 100%" :placeholder="t('AGV.plateBaseData.inputBoxNum')" />
                         </el-form-item>
                     </el-col>
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.boxNum2')" prop="BoxNum2">
+                            <el-input-number v-model="editForm.BoxNum2" :min="0" controls-position="right"
+                                style="width: 100%" :placeholder="t('AGV.plateBaseData.inputBoxNum2')" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="12">
+                        <el-form-item :label="t('AGV.plateBaseData.isNgPolling')" prop="isNgPolling">
+                            <el-switch v-model="editForm.isNgPolling" active-value="Y" inactive-value="N"
+                                :active-text="t('publicText.yes')" :inactive-text="t('publicText.no')" />
+                        </el-form-item>
+                    </el-col>
                 </el-row>
                 <el-row :gutter="20">
                     <el-col :span="24">
@@ -619,6 +670,9 @@ const searchForm = reactive({
     agvmcid_Type: null as number | null,
     agvmcid_Operate: null as number | null,
     agvmcid_Stts: "",
+    BoxNum: null as number | null,
+    BoxNum2: null as number | null,
+    isNgPolling: "",
 });
 
 const pageObj = reactive({
@@ -648,6 +702,8 @@ const defaultForm = () => ({
     IsAuto: "N" as string | null,
     InStoreType2: null as string | null,
     BoxNum: null as number | null,
+    BoxNum2: null as number | null,
+    isNgPolling: "N" as string,
 });
 
 const addForm = reactive(defaultForm());
@@ -723,6 +779,13 @@ const getLineValue = (item: any) => {
 };
 const getLineLabel = (item: any) => getLineValue(item);
 
+// 后端 IsAuto 可能是 null/1/true 等，统一成 "Y"/"N"：
+// 否则 el-switch 初始化时值不在 active/inactive 内，会立刻 emit change 触发误保存
+const toYn = (value: any) => {
+    const s = String(value ?? "").toUpperCase();
+    return s === "Y" || s === "1" || s === "TRUE" ? "Y" : "N";
+};
+
 // 修改接口提交字段：原数据 + 用户修改后的数据；
 // 不含 4 个红线字段 agvmcid_taskno / agv_listen / agv_upstts / agv_listenDt
 const pickFields = (src: any) => ({
@@ -747,6 +810,8 @@ const pickFields = (src: any) => ({
     IsAuto: src.IsAuto ?? "",
     InStoreType2: src.InStoreType2 ?? null,
     BoxNum: src.BoxNum ?? null,
+    BoxNum2: src.BoxNum2 ?? null,
+    isNgPolling: toYn(src.isNgPolling ?? "N"),
 });
 
 const resetAddForm = () => {
@@ -775,13 +840,6 @@ const formatDateTime = (dt: any) => {
     return d.isValid() ? d.format("YYYY-MM-DD HH:mm:ss") : String(dt);
 };
 
-// 后端 IsAuto 可能是 null/1/true 等，统一成 "Y"/"N"：
-// 否则 el-switch 初始化时值不在 active/inactive 内，会立刻 emit change 触发误保存
-const toYn = (value: any) => {
-    const s = String(value ?? "").toUpperCase();
-    return s === "Y" || s === "1" || s === "TRUE" ? "Y" : "N";
-};
-
 const getData = () => {
     loading.value = true;
     const params = {
@@ -791,6 +849,9 @@ const getData = () => {
         agvmcid_Operate: searchForm.agvmcid_Operate ?? "",
         agvmcid_Type: searchForm.agvmcid_Type ?? "",
         agvmcid_Stts: searchForm.agvmcid_Stts || "",
+        BoxNum: searchForm.BoxNum ?? "",
+        BoxNum2: searchForm.BoxNum2 ?? "",
+        isNgPolling: searchForm.isNgPolling || "",
         pageIndex: pageObj.currentPage,
         pageSize: pageObj.pageSize,
     };

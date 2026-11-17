@@ -90,6 +90,46 @@
                         <span v-else>-</span>
                     </template>
                 </el-table-column>
+                <el-table-column prop="containerid" :label="$t('AGV.point.containerId')"
+                    :min-width="getColumnWidth('containerid')" show-overflow-tooltip>
+                    <template #default="{ row }">
+                        {{ row.containerid || '-' }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="stts" :label="$t('AGV.point.containerStatus')" align="center"
+                    :min-width="getColumnWidth('stts')">
+                    <template #default="{ row }">
+                        <el-tag v-if="containerStatusType(row.stts)" :type="containerStatusType(row.stts)"
+                            size="small">
+                            {{ containerStatusText(row.stts) }}
+                        </el-tag>
+                        <span v-else>{{ row.stts ?? '-' }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="Wo" :label="$t('AGV.point.wo')"
+                    :min-width="getColumnWidth('Wo')" show-overflow-tooltip>
+                    <template #default="{ row }">
+                        {{ row.Wo || '-' }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="Side" :label="$t('AGV.point.side')" align="center"
+                    :min-width="getColumnWidth('Side')">
+                    <template #default="{ row }">
+                        {{ row.Side || '-' }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="TransactionType" :label="$t('AGV.point.transactionType')"
+                    :min-width="getColumnWidth('TransactionType')" show-overflow-tooltip>
+                    <template #default="{ row }">
+                        {{ row.TransactionType || '-' }}
+                    </template>
+                </el-table-column>
+                <el-table-column prop="IsScrap" :label="$t('AGV.point.isScrap')" align="center"
+                    :min-width="getColumnWidth('IsScrap')">
+                    <template #default="{ row }">
+                        {{ row.IsScrap || '-' }}
+                    </template>
+                </el-table-column>
                 <el-table-column prop="status" :label="$t('AGV.point.status')" width="100" align="center" fixed="right">
                     <template #default="{ row }">
                         <el-switch :model-value="isStatusEnabled(row.status)" :loading="row._toggleLoading"
@@ -417,6 +457,22 @@ const formatDate = (dateStr: string) => {
 const isStatusEnabled = (value: any) => {
     const s = String(value ?? "0");
     return s !== "-1" && s !== "N" && s.toLowerCase() !== "disabled";
+};
+
+const containerStatusType = (value: any): "" | "danger" | "info" | "success" => {
+    const s = value === null || value === undefined ? "" : String(value);
+    if (s === "-1") return "danger";
+    if (s === "0") return "info";
+    if (s === "1") return "success";
+    return "";
+};
+
+const containerStatusText = (value: any) => {
+    const s = value === null || value === undefined ? "" : String(value);
+    if (s === "-1") return t('AGV.point.containerInvalid');
+    if (s === "0") return t('AGV.point.containerUnused');
+    if (s === "1") return t('AGV.point.containerInUse');
+    return s;
 };
 
 const getWorkstationName = (workstationID: number | string) => {

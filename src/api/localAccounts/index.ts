@@ -1,6 +1,24 @@
 import request from "@/request/permissRequest";
 
-// 查询员工列表（分页，仅用于账号页选择关联员工）
+// 查询员工基础资料（分页，新增用户时按工号搜索员工）
+export function getBaseEmployeeList(params: any) {
+  return request({
+    url: "/api/localAccounts/mysql/employees",
+    method: "get",
+    params,
+  });
+}
+
+// 新增用户（仅传员工 id，账号与名称由后端按员工信息生成）
+export function addUser(data: any) {
+  return request({
+    url: "/api/localAccounts/mysql/users",
+    method: "post",
+    data,
+  });
+}
+
+// 查询系统员工列表（分页）
 export function getEmployeeList(params: any) {
   return request({
     url: "/api/localAccounts/employees",
@@ -9,20 +27,12 @@ export function getEmployeeList(params: any) {
   });
 }
 
-// 查询账号列表（分页）
-export function getAccountList(params: any) {
+// 手动新增员工
+export function saveEmployee(data: any) {
   return request({
-    url: "/api/localAccounts/accounts",
-    method: "get",
-    params,
-  });
-}
-
-// 查询角色选项
-export function getAccountRoles() {
-  return request({
-    url: "/api/localAccounts/roles",
-    method: "get",
+    url: "/api/localAccounts/employees/save",
+    method: "post",
+    data,
   });
 }
 
