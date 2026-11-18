@@ -2261,7 +2261,6 @@ const zh = {
       submit: "提交检验",
       submitGroup: "提交检验",
       completeTask: "任务完成",
-      workshopRequired: "请先选择车间和线体",
       submitValidate: "存在不合格项未填写异常现象、问题位置或初步原因，请补充完整",
       confirmSubmit: "确认提交当前组的点检结果？",
       submitSuccess: "提交成功",

@@ -76,14 +76,14 @@
                 </div>
                 <el-row :gutter="12">
                   <el-col :span="5">
-                    <div class="field-label">{{ t('esd.inspect.workshop') }}<span class="required">*</span></div>
+                    <div class="field-label">{{ t('esd.inspect.workshop') }}</div>
                     <el-select v-model="form.Workshop" size="small" clearable style="width: 100%"
                       :placeholder="t('esd.inspect.workshopPlaceholder')" @change="onWorkshopChange">
                       <el-option v-for="w in workshopList" :key="w.Workshop" :label="w.Workshop" :value="w.Workshop" />
                     </el-select>
                   </el-col>
                   <el-col :span="5">
-                    <div class="field-label">{{ t('esd.inspect.lineName') }}<span class="required">*</span></div>
+                    <div class="field-label">{{ t('esd.inspect.lineName') }}</div>
                     <el-select v-model="form.LineName" size="small" clearable filterable style="width: 100%"
                       :disabled="!form.Workshop" :placeholder="t('esd.inspect.lineNamePlaceholder')"
                       @change="onLineChange">
@@ -249,8 +249,8 @@
               :loading="submitting" @click="submitGroup">
               {{ t('esd.inspect.submitGroup') }}
             </el-button>
-            <el-button type="primary" :disabled="isTaskCompleted || actionDisabled" :loading="completing"
-              @click="completeTask">
+            <el-button type="primary" :disabled="isTaskCompleted || actionDisabled || !submittedDetails.length"
+              :loading="completing" @click="completeTask">
               {{ t('esd.inspect.completeTask') }}
             </el-button>
           </div>
@@ -273,7 +273,6 @@ import {
   SubmitExecutionTask,
   AddExecutionDetail,
   CompleteExecutionTask,
-  QueryWorkshopList,
   QueryLineDeviceList,
 } from '@/api/esdManage/ESDInspect';
 import { GetSMTValorLine, GetICTValorLine } from '@/api/smtApply/changeover';
@@ -285,23 +284,23 @@ const userStore = useUserStoreWithOut();
 // 后端 QueryExecutionTaskList 不支持按执行状态过滤（与 PDA 一致），故一次拉全后前端筛选+分页
 const FETCH_PAGE_SIZE = 100;
 
-// 车间兜底数据（接口不可用时使用）
-const DEFAULT_WORKSHOP_LIST = [
+// 车间选项（固定数据，SMT/ICT/铣板车间有线体，其余车间及仓库无线体）
+const workshopList = ref([
   { Workshop: 'SMT车间', code: 'SMT' },
   { Workshop: 'ICT车间', code: 'ICT' },
   { Workshop: '铣板车间', code: 'MILL' },
   { Workshop: '组装车间', code: 'ASSY' },
-  { Workshop: '电子料仓库', code: 'ELEC' },
-  { Workshop: '半成品仓库', code: 'SEMI' },
-  { Workshop: '成品仓库', code: 'FINISHED' },
-  { Workshop: '不良品仓库', code: 'DEFECT' },
-  { Workshop: '喷涂三防车间', code: 'SPRAY' },
-  { Workshop: 'DIP车间', code: 'DIP' },
-  { Workshop: '自动化车间', code: 'AUTO' },
-  { Workshop: '老化测试车间', code: 'AGING' },
-  { Workshop: '成品包装车间', code: 'PACK' },
+  { Workshop: '电子料仓库', code: '' },
+  { Workshop: '半成品仓库', code: '' },
+  { Workshop: '成品仓库', code: '' },
+  { Workshop: '不良品仓库', code: '' },
+  { Workshop: '喷涂三防车间', code: '' },
+  { Workshop: 'DIP车间', code: '' },
+  { Workshop: '自动化车间', code: '' },
+  { Workshop: '老化测试车间', code: '' },
+  { Workshop: '成品包装车间', code: '' },
   { Workshop: '各车间', code: 'ALL' },
-];
+]);
 
 // ==================== 任务列表 ====================
 const activeTab = ref('all');
@@ -389,7 +388,6 @@ const detailTab = ref('pending');
 const templateDetails = ref<any[]>([]); // 当前待填写、待提交的模板明细
 const submittedDetails = ref<any[]>([]); // 已提交的点检记录
 const currentGroupKey = ref('');
-const workshopList = ref<{ Workshop: string; code: string }[]>([]);
 const lineList = ref<{ name: string }[]>([]);
 const deviceList = ref<any[]>([]);
 const deviceQueried = ref(false);
@@ -453,31 +451,7 @@ const openInspect = (row: any) => {
   detailTab.value = 'pending';
   resetLocationForm();
   drawerVisible.value = true;
-  fetchWorkshopList();
   fetchDetail();
-};
-
-// 按表单号查询车间
-const normalizeWorkshopList = (list: any[]) =>
-  list
-    .map((v: any) => {
-      if (typeof v === 'string') return { Workshop: v, code: '' };
-      return {
-        Workshop: v.Workshop || v.WorkshopName || v.Name || '',
-        code: v.WorkshopCode || v.Code || '',
-      };
-    })
-    .filter((v) => v.Workshop);
-
-const fetchWorkshopList = async () => {
-  try {
-    const res: any = await QueryWorkshopList();
-    const list = res?.Success ? res.Data || [] : [];
-    workshopList.value = list.length ? normalizeWorkshopList(list) : DEFAULT_WORKSHOP_LIST;
-  } catch (error) {
-    console.error('查询车间失败:', error);
-    workshopList.value = DEFAULT_WORKSHOP_LIST;
-  }
 };
 
 // 车间编码匹配线体接口
@@ -723,10 +697,6 @@ const handleAppend = async () => {
 
 // 提交当前一组点检明细（仅暂存，任务仍为执行中）
 const submitGroup = () => {
-  if (!form.Workshop || !form.LineName) {
-    ElMessage.warning(t('esd.inspect.workshopRequired'));
-    return;
-  }
   const items = currentGroupItems.value;
   if (!items.length) {
     ElMessage.warning(t('esd.inspect.noPendingDetails'));
@@ -962,11 +932,6 @@ onBeforeUnmount(() => window.removeEventListener('resize', getScreenHeight));
   font-size: 12px;
   color: #606266;
   margin-bottom: 4px;
-}
-
-.required {
-  color: #f56c6c;
-  margin-left: 2px;
 }
 
 .device-tip {

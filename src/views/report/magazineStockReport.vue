@@ -136,7 +136,7 @@
                     </template>
                 </el-table-column>
                 <el-table-column prop="WorkOrderNo" :label="t('report.magazineStockReport.workOrderNo')"
-                    :min-width="getColumnWidth('WorkOrderNo')" show-overflow-tooltip />
+                    :min-width="getColumnWidth('WorkOrderNo')" show-overflow-tooltip fixed="left" />
                 <el-table-column prop="Side" align="center" :label="t('report.magazineStockReport.side')"
                     :min-width="getColumnWidth('Side')" show-overflow-tooltip />
                 <el-table-column prop="WorkOrderQuantity" align="center"
@@ -180,6 +180,10 @@
                 <el-table-column prop="PanelQuantity" align="center"
                     :label="t('report.magazineStockReport.panelQuantity')"
                     :min-width="getColumnWidth('PanelQuantity')" show-overflow-tooltip />
+                <el-table-column prop="Warehouse" :label="t('report.magazineStockReport.warehouse')"
+                    :min-width="getColumnWidth('Warehouse')" show-overflow-tooltip />
+                <el-table-column prop="StorageLocation" :label="t('report.magazineStockReport.storageLocation')"
+                    :min-width="getColumnWidth('StorageLocation')" show-overflow-tooltip fixed="right" />
                 <template #empty>
                     <div class="flex items-center justify-center h-100%">
                         <el-empty />
