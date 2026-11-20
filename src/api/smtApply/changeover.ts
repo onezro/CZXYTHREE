@@ -107,6 +107,15 @@ export function UpdateMcAndConveyorSetting(data:any) {
     });
 }
 
+//获取全部线体信息
+export function GetAllValorLine(data: any) {
+    return request({
+        url: "/api/ChangeOver/GetAllValorLine",
+        method: "post",
+        data,
+    });
+}
+
 //分页查询一键换线操作记录
 export function GetChangeOverHistory(data:any) {
     return request({

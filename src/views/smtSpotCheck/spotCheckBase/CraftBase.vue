@@ -2,28 +2,31 @@
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <!-- 查询区域 -->
-            <div class="flex justify-between">
-                <el-form ref="formRef" :model="queryForm" label-width="auto" :inline="true" size="small"
-                    @submit.native.prevent>
-                    <el-form-item :label="t('smtSpotCheck.CraftBase.product')" class="mb-2">
-                        <el-input v-model="queryForm.product"
-                            :placeholder="t('smtSpotCheck.CraftBase.productPlaceholder')" clearable @clear="searchData"
-                            @keyup.enter.native="searchData" style="width: 200px" />
-                    </el-form-item>
-                    <el-form-item class="mb-2">
-                        <el-button type="primary" @click="searchData">{{ t('publicText.query') }}</el-button>
-                    </el-form-item>
-                </el-form>
-                <div>
-                    <el-button type="warning" size="small" @click="openAddStep()">
+            <el-form ref="formRef" :model="queryForm" label-width="auto" :inline="true" size="small"
+                @submit.native.prevent>
+                <el-form-item :label="t('smtSpotCheck.CraftBase.product')" class="mb-2">
+                    <el-input v-model="queryForm.product"
+                        :placeholder="t('smtSpotCheck.CraftBase.productPlaceholder')" clearable @clear="searchData"
+                        @keyup.enter.native="searchData" style="width: 200px" />
+                </el-form-item>
+                <el-form-item class="mb-2">
+                    <el-button type="primary" @click="searchData">{{ t('publicText.query') }}</el-button>
+                    <el-button @click="downloadTemplate">
+                        {{ t('publicText.downloadTemplate') }}
+                    </el-button>
+                    <el-upload class="mx-3" :before-upload="handleImportFile" action="#" :show-file-list="false"
+                        accept=".xlsx,.xls">
+                        <el-button type="success" size="small">{{ t('publicText.import') }}</el-button>
+                    </el-upload>
+                    <el-button type="warning" @click="openAddStep()">
                         {{ t('smtSpotCheck.CraftBase.addStep') }}
                     </el-button>
-                </div>
-            </div>
+                </el-form-item>
+            </el-form>
 
-            <el-row :gutter="10">
+            <split-pane>
                 <!-- 左侧树形表格 -->
-                <el-col :span="10">
+                <template #left>
                     <el-table ref="treeTableRef" size="small" :data="displayTreeData" stripe border fit
                         :height="tableHeight" row-key="id"
                         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }" highlight-current-row
@@ -35,7 +38,7 @@
                                 {{ $index + 1 + (currentPage - 1) * pageSize }}
                             </template>
                         </el-table-column>
-                        <el-table-column prop="label" :label="t('smtSpotCheck.CraftBase.name')"
+                        <el-table-column prop="label" :label="t('smtSpotCheck.CraftBase.product')"
                             :min-width="getColumnWidth1('label')" />
                         <el-table-column prop="inspectContent" :label="t('smtSpotCheck.CraftBase.inspectContent')"
                             :min-width="getColumnWidth1('inspectContent')">
@@ -87,10 +90,10 @@
                             :page-sizes="[5, 10, 20, 50, 100]" layout="total,sizes, prev, pager, next"
                             :total="filteredTreeData.length" />
                     </div>
-                </el-col>
+                </template>
 
                 <!-- 右侧明细区域（显示选中工序的子检测项） -->
-                <el-col :span="14">
+                <template #right>
                     <div class="detail-header" v-if="currentStepNode">
                         <span>{{ t('smtSpotCheck.CraftBase.subItemList') }}: {{ currentStepNode.product }} - {{
                             currentStepNode.label
@@ -126,8 +129,8 @@
                             <el-empty :description="t('smtSpotCheck.CraftBase.noSubItem')" />
                         </template>
                     </el-table>
-                </el-col>
-            </el-row>
+                </template>
+            </split-pane>
         </el-card>
 
         <!-- 新增工序弹窗 -->
@@ -290,7 +293,11 @@ import {
     InserCraftInspectData,
     UpdateCraftInspectData,
     DeleteCraftInspectData,
+    ImportCraftInspectData,
+    DownloadCraftInspectTemplate,
 } from '@/api/smtSpotCheck/base/index'
+import { fileToBase64, saveTemplateFile } from '@/utils/excelFile'
+import SplitPane from '@/components/splitPane/index.vue'
 
 const { t } = useI18n()
 
@@ -456,6 +463,38 @@ const getData = () => {
     }).catch(() => {
         ElMessage.error(t('publicText.queryFailed'))
     })
+}
+
+// 下载导入模板
+const downloadTemplate = async () => {
+    try {
+        const res: any = await DownloadCraftInspectTemplate({})
+        await saveTemplateFile(res, '工艺点检数据导入模板.xlsx', t('publicText.downloadTemplateFailed'))
+    } catch (error) {
+        console.error('模板下载失败:', error)
+        ElMessage.error(t('publicText.downloadTemplateFailed'))
+    }
+}
+
+// 导入
+const handleImportFile = async (file: File) => {
+    try {
+        const fileConent = await fileToBase64(file)
+        const res: any = await ImportCraftInspectData({
+            FileName: file.name,
+            FileConent: fileConent,
+        })
+        if (res.Success) {
+            ElMessage.success(res.Msg || t('message.importSuccess'))
+            getData()
+        } else {
+            ElMessage.error(res.Msg || t('message.importFailure'))
+        }
+    } catch (error) {
+        console.error('导入失败:', error)
+        ElMessage.error(t('message.importFailure'))
+    }
+    return false
 }
 
 // 在树中查找工序节点

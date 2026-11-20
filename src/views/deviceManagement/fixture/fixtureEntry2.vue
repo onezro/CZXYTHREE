@@ -21,6 +21,11 @@
               @click="handleClearCell">
               {{ $t("deviceManage.fixtureEntry.clearCell") }}
             </el-button>
+            <el-button type="success" size="small" @click="downloadTemplate">{{ $t("publicText.downloadTemplate") }}</el-button>
+            <el-upload class="ml-2" :before-upload="handleImportFile" action="#" :show-file-list="false"
+              accept=".xlsx,.xls">
+              <el-button type="warning" size="small">{{ $t("publicText.import") }}</el-button>
+            </el-upload>
           </el-form-item>
         </el-form>
       </div>
@@ -204,10 +209,11 @@ import { ref, reactive, computed, onBeforeMount, onMounted, onBeforeUnmount, nex
 // computed 仍用于 tableColumns 和 columnWidths
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useI18n } from "vue-i18n";
-import { queryToolsMold, queryToolsID, insertToolsID, updateToolsID, deleteToolsID, scrapToolsID, queryAssetToolsID, CancelRackTask } from "@/api/deviceManage/fixture";
+import { queryToolsMold, queryToolsID, insertToolsID, updateToolsID, deleteToolsID, scrapToolsID, queryAssetToolsID, CancelRackTask, importToolsID, downloadToolsIDTemplate } from "@/api/deviceManage/fixture";
 import dayjs from "dayjs";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import { useUserStoreWithOut } from "@/stores/modules/user";
+import { fileToBase64, saveTemplateFile } from "@/utils/excelFile";
 
 const { t } = useI18n();
 const userStore = useUserStoreWithOut();
@@ -695,6 +701,40 @@ const isExpired = (dateStr: string) => {
   const now = new Date();
   const target = new Date(dateStr + "T00:00:00");
   return now >= target;
+};
+
+// 下载导入模板
+const downloadTemplate = async () => {
+  try {
+    const res: any = await downloadToolsIDTemplate({});
+    await saveTemplateFile(res, "治具录入模板.xlsx", t("publicText.downloadTemplateFailed"));
+  } catch (error) {
+    console.error("模板下载失败:", error);
+    ElMessage.error(t("publicText.downloadTemplateFailed"));
+  }
+};
+
+// 导入
+const handleImportFile = async (file: File) => {
+  try {
+    const fileConent = await fileToBase64(file);
+    const res: any = await importToolsID({
+      FileName: file.name,
+      FileConent: fileConent,
+      UserNo: userStore.getUserInfo || "",
+    });
+    if (res.Success) {
+      ElMessage.success(res.Msg || t("message.importSuccess"));
+      currentPage.value = 1;
+      getIDData();
+    } else {
+      ElMessage.error(res.Msg || t("message.importFailure"));
+    }
+  } catch (error) {
+    console.error("导入失败:", error);
+    ElMessage.error(t("message.importFailure"));
+  }
+  return false;
 };
 
 // 分页

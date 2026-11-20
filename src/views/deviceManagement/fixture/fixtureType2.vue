@@ -2,9 +2,20 @@
     <div class="p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <div class="flex justify-between items-center mb-2">
-                <el-button type="primary" size="small" @click="addOpen">
-                    {{ $t("publicText.add") }}
-                </el-button>
+                <div class="flex">
+                    <el-button type="primary" size="small" @click="addOpen">
+                        {{ $t("publicText.add") }}
+                    </el-button>
+                    <el-button type="success" size="small" @click="downloadTemplate">
+                        {{ $t("publicText.downloadTemplate") }}
+                    </el-button>
+                    <el-upload class="ml-2" :before-upload="handleImportFile" action="#" :show-file-list="false"
+                        accept=".xlsx,.xls">
+                        <el-button type="warning" size="small">
+                            {{ $t("publicText.import") }}
+                        </el-button>
+                    </el-upload>
+                </div>
                 <div class="input_box">
                     <el-input v-model="searchName" style="width: 350px" clearable
                         :placeholder="$t('deviceManage.fixtureType.searchPlaceholder')" @keyup.enter.native="searchData"
@@ -229,10 +240,13 @@ import { ref, reactive, computed, onBeforeMount, onMounted, onBeforeUnmount, nex
 import { ElMessage, ElMessageBox } from "element-plus";
 import { Search, Edit, Delete } from "@element-plus/icons-vue";
 import { useI18n } from "vue-i18n";
-import { queryToolsMold, insertToolsMold, updateToolsMold, deleteToolsMold } from "@/api/deviceManage/fixture";
+import { queryToolsMold, insertToolsMold, updateToolsMold, deleteToolsMold, importToolsMold, downloadToolsMoldTemplate } from "@/api/deviceManage/fixture";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
+import { useUserStoreWithOut } from "@/stores/modules/user";
+import { fileToBase64, saveTemplateFile } from "@/utils/excelFile";
 
 const { t } = useI18n();
+const userStore = useUserStoreWithOut();
 
 // ---------- 表格数据 ----------
 const tableRef = ref();
@@ -353,6 +367,39 @@ const clearData = () => {
     searchName.value = "";
     filteredData.value = [...tableData.value];
     currentPage.value = 1;
+};
+
+// 下载导入模板
+const downloadTemplate = async () => {
+    try {
+        const res: any = await downloadToolsMoldTemplate({});
+        await saveTemplateFile(res, "治具类型模板.xlsx", t("publicText.downloadTemplateFailed"));
+    } catch (error) {
+        console.error("模板下载失败:", error);
+        ElMessage.error(t("publicText.downloadTemplateFailed"));
+    }
+};
+
+// 导入
+const handleImportFile = async (file: File) => {
+    try {
+        const fileConent = await fileToBase64(file);
+        const res: any = await importToolsMold({
+            FileName: file.name,
+            FileConent: fileConent,
+            UserNo: userStore.getUserInfo || "",
+        });
+        if (res.Success) {
+            ElMessage.success(res.Msg || t("message.importSuccess"));
+            getData();
+        } else {
+            ElMessage.error(res.Msg || t("message.importFailure"));
+        }
+    } catch (error) {
+        console.error("导入失败:", error);
+        ElMessage.error(t("message.importFailure"));
+    }
+    return false;
 };
 
 // 新增

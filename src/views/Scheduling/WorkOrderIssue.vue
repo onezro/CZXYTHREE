@@ -1,5 +1,5 @@
 <template>
-  <div class="p-2">
+  <div class="p-2 fill-page">
     <el-card shadow="always" :body-style="{ padding: '8px' }">
       <el-form ref="formRef" :inline="true" size="small"  @submit.prevent>
         <el-form-item :label="t('Scheduling.WorkOrderIssue.groupOrder')" prop="groupOrder" class="mb-2">
@@ -39,11 +39,15 @@
         </el-form-item>
       </el-form>
 
-      <!-- 上表格：工单组列表 -->
-      <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="masterTableHeight"
-        :tooltip-effect="'dark'" border fit ref="tableRef"
-        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }" highlight-current-row
-        @row-click="handleRowClick">
+      <!-- 上下可拖拽：工单组列表 / 明细（物料平衡汇总） -->
+      <split-pane-vertical ref="splitRef" :style="{ height: contentHeight + 'px' }" :min-size="150">
+        <template #top>
+          <div class="pane-body">
+            <div class="pane-table">
+              <el-table :data="tableData" size="small" :style="{ width: '100%' }" height="100%"
+                :tooltip-effect="'dark'" border fit ref="tableRef"
+                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }" highlight-current-row
+                @row-click="handleRowClick">
         <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
           <template #default="scope">
             <span>{{ (getForm.PageIndex - 1) * getForm.PageSize + scope.$index + 1 }}</span>
@@ -121,23 +125,29 @@
             <el-empty />
           </div>
         </template>
-      </el-table>
-      <div class="mt-2">
-        <el-pagination :size="'small'" background @size-change="handleSizeChange" @current-change="handleCurrentChange"
-          :pager-count="5" :current-page="getForm.PageIndex" :page-size="getForm.PageSize"
-          :page-sizes="[30, 50, 100, 200, 300]" layout="total,sizes, prev, pager, next" :total="total">
-        </el-pagination>
-      </div>
+              </el-table>
+            </div>
+            <div class="pane-pagination">
+              <el-pagination :size="'small'" background @size-change="handleSizeChange" @current-change="handleCurrentChange"
+                :pager-count="5" :current-page="getForm.PageIndex" :page-size="getForm.PageSize"
+                :page-sizes="[30, 50, 100, 200, 300]" layout="total,sizes, prev, pager, next" :total="total">
+              </el-pagination>
+            </div>
+          </div>
+        </template>
 
-      <!-- 下表格：详情（物料平衡汇总） -->
-      <div class="detail-header">
-        <span>{{ t('Scheduling.WorkOrderIssue.balanceDialogTitle') }}
-          <template v-if="currentRow.group_order">: {{ currentRow.group_order }}</template>
-        </span>
-      </div>
-      <el-table v-loading="balanceLoading" :data="balancePaged" size="small" :style="{ width: '100%' }"
-        :height="detailTableHeight" :tooltip-effect="'dark'" border fit :row-class-name="balanceRowClassName"
-        :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+        <template #bottom>
+          <div class="pane-body">
+            <!-- 下表格：详情（物料平衡汇总） -->
+            <div class="detail-header">
+              <span>{{ t('Scheduling.WorkOrderIssue.balanceDialogTitle') }}
+                <template v-if="currentRow.group_order">: {{ currentRow.group_order }}</template>
+              </span>
+            </div>
+            <div class="pane-table">
+              <el-table v-loading="balanceLoading" :data="balancePaged" size="small" :style="{ width: '100%' }"
+                height="100%" :tooltip-effect="'dark'" border fit :row-class-name="balanceRowClassName"
+                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
         <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
           <template #default="scope">
             {{ scope.$index + (balancePage.PageIndex - 1) * balancePage.PageSize + 1 }}
@@ -201,13 +211,17 @@
             <el-empty />
           </div>
         </template>
-      </el-table>
-      <div class="mt-2">
-        <el-pagination :size="'small'" background @size-change="handleBalanceSizeChange"
-          @current-change="handleBalanceCurrentChange" :pager-count="5" :current-page="balancePage.PageIndex"
-          :page-size="balancePage.PageSize" :page-sizes="[20, 50, 100, 200]" layout="total,sizes, prev, pager, next"
-          :total="balanceData.length" />
-      </div>
+              </el-table>
+            </div>
+            <div class="pane-pagination">
+              <el-pagination :size="'small'" background @size-change="handleBalanceSizeChange"
+                @current-change="handleBalanceCurrentChange" :pager-count="5" :current-page="balancePage.PageIndex"
+                :page-size="balancePage.PageSize" :page-sizes="[20, 50, 100, 200]" layout="total,sizes, prev, pager, next"
+                :total="balanceData.length" />
+            </div>
+          </div>
+        </template>
+      </split-pane-vertical>
     </el-card>
 
     <!-- 下发明细弹窗 -->
@@ -281,7 +295,9 @@
 <script setup lang="ts">
 import { QueryReturnMaterials, QueryReturnMaterialDetails, IssueMaterials, ResetIssueData, SendIssueData, ConfirmIssueData, QueryMaterialBalanceSummary } from "@/api/Scheduling/WorkOrderIssue";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
-import { ref, reactive, nextTick, onMounted, onBeforeUnmount, watch, computed } from "vue";
+import { useFillHeight } from "@/hooks/useFillHeight";
+import SplitPaneVertical from "@/components/splitPaneVertical/index.vue";
+import { ref, reactive, onMounted, watch, computed } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import dayjs from "dayjs";
@@ -291,8 +307,8 @@ const userStore = useUserStoreWithOut();
 const { t } = useI18n();
 const tableRef = ref();
 const detailTableRef = ref();
-const masterTableHeight = ref(0);
-const detailTableHeight = ref(0);
+const splitRef = ref();
+const { height: contentHeight } = useFillHeight(splitRef);
 const tableData = ref<any[]>([]);
 const detailData = ref<any[]>([]);
 const detailPage = reactive({
@@ -723,14 +739,6 @@ const handleCurrentChange = (val: number) => {
   queryReturnMaterials();
 };
 
-const getScreenHeight = () => {
-  nextTick(() => {
-    const availableHeight = window.innerHeight - 180;
-    masterTableHeight.value = Math.max(Math.floor(availableHeight * 0.4), 180);
-    detailTableHeight.value = Math.max(availableHeight - masterTableHeight.value - 80, 200);
-  });
-};
-
 watch(
   () => queryTime.value,
   (newVal: any[]) => {
@@ -739,20 +747,59 @@ watch(
 );
 
 onMounted(() => {
-  getScreenHeight();
-  window.addEventListener("resize", getScreenHeight);
   queryTime.value = getDefaultDateRange();
   queryReturnMaterials();
 });
 
-onBeforeUnmount(() => {
-  window.removeEventListener("resize", getScreenHeight);
-});
 </script>
 
 <style scoped>
 .el-pagination {
   justify-content: center;
+}
+
+.fill-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.fill-page :deep(.el-card) {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.fill-page :deep(.el-card__body) {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.fill-page :deep(.v-split) {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+.pane-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.pane-table {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.pane-pagination {
+  flex: 0 0 auto;
+  padding-top: 8px;
 }
 
 .mt-2 {

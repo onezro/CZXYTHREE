@@ -150,6 +150,23 @@ export function DeleteCraftInspectData(data:any) {
         data
     });
 }
+//导入工艺点检
+export function ImportCraftInspectData(data:any) {
+    return request({
+        url: "/api/Repair/WI/Import",
+        method: "post",
+        data
+    });
+}
+//下载工艺点检导入模板
+export function DownloadCraftInspectTemplate(data:any) {
+    return request({
+        url: "/api/Repair/WI/Template",
+        method: "post",
+        data,
+        responseType: "blob",
+    });
+}
 //查询结果
 export function QueryInspection(data:any) {
     return request({

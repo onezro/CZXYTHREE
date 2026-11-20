@@ -1,5 +1,5 @@
 <template>
-    <div class="p-2">
+    <div class="prepare-page p-2">
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <!-- 搜索栏 -->
             <el-form ref="formRef" :inline="true" size="small"  @submit.native.prevent>
@@ -62,10 +62,14 @@
                 </el-form-item>
             </el-form>
 
-            <!-- 备料单列表 -->
-            <el-table ref="tableMasterRef" :data="tableData" size="small" :style="{ width: '100%' }"
-                :height="tableHeight" :tooltip-effect="'dark'" border fit @row-click="fetchDetail"
-                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+            <!-- 备料单列表 + 备料单明细（上下可拖动） -->
+            <split-pane-vertical ref="splitRef" :style="{ height: contentHeight + 'px' }" :min-size="150">
+                <template #top>
+                    <div class="pane-body">
+                        <div class="pane-table">
+                            <el-table ref="tableMasterRef" :data="tableData" size="small" :style="{ width: '100%' }"
+                                height="100%" :tooltip-effect="'dark'" border fit @row-click="fetchDetail"
+                                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column width="45" align="center" fixed>
                     <template #default="{ row }">
                         <el-radio v-model="selectedNo" :value="row.MaterialPreparationNo"><span /></el-radio>
@@ -116,24 +120,28 @@
                         <el-empty />
                     </div>
                 </template>
-            </el-table>
+                            </el-table>
+                        </div>
+                        <div class="pane-pagination">
+                            <el-pagination :size="'small'" background @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange" :pager-count="5" :current-page="getForm.PageIndex"
+                                :page-size="getForm.PageSize" :page-sizes="[30, 50, 100, 200, 300]"
+                                layout="total,sizes, prev, pager, next" :total="total">
+                            </el-pagination>
+                        </div>
+                    </div>
+                </template>
 
-            <!-- 分页 -->
-            <div class="mt-2 mb-1">
-                <el-pagination :size="'small'" background @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange" :pager-count="5" :current-page="getForm.PageIndex"
-                    :page-size="getForm.PageSize" :page-sizes="[30, 50, 100, 200, 300]"
-                    layout="total,sizes, prev, pager, next" :total="total">
-                </el-pagination>
-            </div>
-
-            <!-- 备料单明细 -->
-            <el-table :data="tableData2.slice(
-                (pageObj.currentPage - 1) * pageObj.pageSize,
-                pageObj.currentPage * pageObj.pageSize,
-            )
-                " size="small" :style="{ width: '100%' }" :height="tableHeight2" :tooltip-effect="'dark'" border fit
-                ref="tableDetailRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                <!-- 备料单明细 -->
+                <template #bottom>
+                    <div class="pane-body">
+                        <div class="pane-table">
+                            <el-table :data="tableData2.slice(
+                                (pageObj.currentPage - 1) * pageObj.pageSize,
+                                pageObj.currentPage * pageObj.pageSize,
+                            )
+                                " size="small" :style="{ width: '100%' }" height="100%" :tooltip-effect="'dark'" border fit
+                                ref="tableDetailRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" fixed :label="$t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{
@@ -174,14 +182,18 @@
                         <el-empty />
                     </div>
                 </template>
-            </el-table>
-            <div class="mt-2">
-                <el-pagination :size="'small'" background @size-change="handleSizeChange1"
-                    @current-change="handleCurrentChange1" :pager-count="5" :current-page="pageObj.currentPage"
-                    :page-size="pageObj.pageSize" :page-sizes="[30, 50, 100, 200, 300]"
-                    layout="total,sizes, prev, pager, next" :total="tableData2.length">
-                </el-pagination>
-            </div>
+                            </el-table>
+                        </div>
+                        <div class="pane-pagination">
+                            <el-pagination :size="'small'" background @size-change="handleSizeChange1"
+                                @current-change="handleCurrentChange1" :pager-count="5" :current-page="pageObj.currentPage"
+                                :page-size="pageObj.pageSize" :page-sizes="[30, 50, 100, 200, 300]"
+                                layout="total,sizes, prev, pager, next" :total="tableData2.length">
+                            </el-pagination>
+                        </div>
+                    </div>
+                </template>
+            </split-pane-vertical>
         </el-card>
         <el-dialog v-model="addVisible" :title="t('Scheduling.PrepareMaterials.AddSupplement')" width="700px"
             @closed="handleAddDialogClosed" align-center :close-on-click-modal="false">
@@ -298,14 +310,13 @@ import {
     GetSMTValorLine
 } from "@/api/smtApply/changeover";
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
+import { useFillHeight } from '@/hooks/useFillHeight';
 import {
     ref,
     reactive,
     computed,
     nextTick,
     onMounted,
-    onBeforeMount,
-    onBeforeUnmount,
 } from "vue";
 import { ElNotification, ElMessage, ElMessageBox } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
@@ -313,6 +324,7 @@ import { Warning } from "@element-plus/icons-vue";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 const userStore = useUserStoreWithOut();
 import { useI18n } from "vue-i18n";
+import SplitPaneVertical from "@/components/splitPaneVertical/index.vue";
 const { t } = useI18n();
 
 // ---------- 非首套叫料弹窗相关 ----------
@@ -364,12 +376,6 @@ const submitNonFirst = async () => {
         });
     });
 };
-
-// ---------- 高度自适应 ----------
-const tableHeight = ref(0);
-const tableHeight2 = ref(0);
-
-
 
 // ---------- 表格数据 ----------
 const tableData = ref<any[]>([]); // 备料单列表
@@ -763,45 +769,62 @@ const { getColumnWidth: getColumnWidth2 } = useTableColumnWidth(tableDetailRef, 
     excludeLabels: [t('publicText.index'), t('publicText.operation')]
 });
 const formRef = ref();
-let formResizeObserver: ResizeObserver | null = null;
+const splitRef = ref();
+const { height: contentHeight } = useFillHeight(splitRef);
 
-const calcTableHeight = () => {
-    nextTick(() => {
-        const formEl = formRef.value?.$el;
-        const formHeight = formEl ? formEl.offsetHeight : 48;
-        const cardPadding = 16;
-        const tableGap = 10;
-        const paginationHeight = 36;
-        const detailHeaderHeight = 0;
-        const available = window.innerHeight - formHeight - cardPadding - tableGap - paginationHeight - detailHeaderHeight - 20-100;
-        tableHeight.value = Math.floor(available * 0.45);
-        tableHeight2.value = available - tableHeight.value;
-    });
-};
-
-onBeforeMount(() => {
-    calcTableHeight();
-});
 onMounted(() => {
-    window.addEventListener("resize", calcTableHeight);
-    if (formRef.value?.$el) {
-        formResizeObserver = new ResizeObserver(() => {
-            calcTableHeight();
-        });
-        formResizeObserver.observe(formRef.value.$el);
-    }
     getLineList();
     getData();
-});
-onBeforeUnmount(() => {
-    window.removeEventListener("resize", calcTableHeight);
-    formResizeObserver?.disconnect();
 });
 </script>
 
 <style scoped>
 .el-pagination {
     justify-content: center;
+}
+
+.prepare-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.prepare-page :deep(.el-card) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.prepare-page :deep(.el-card__body) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.prepare-page :deep(.v-split) {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+
+.pane-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.pane-table {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.pane-pagination {
+    flex: 0 0 auto;
+    padding-top: 8px;
 }
 
 .error-content {

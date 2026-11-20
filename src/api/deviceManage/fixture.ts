@@ -33,6 +33,23 @@ export function deleteToolsMold(data:any) {
     data
   });
 }
+//导入工治具类型
+export function importToolsMold(data:any) {
+  return request({
+    url: "/api/Fixture/ToolsMold/Import",
+    method: "post",
+    data
+  });
+}
+//下载工治具类型导入模板
+export function downloadToolsMoldTemplate(data:any) {
+  return request({
+    url: "/api/Fixture/ToolsMold/Template",
+    method: "post",
+    data,
+    responseType: "blob",
+  });
+}
 
 // ==================== 工治具台账（ToolsID）====================
 //查询工治具台账
@@ -81,6 +98,23 @@ export function scrapToolsID(data:any) {
     url: "/api/Fixture/ToolsID/Scrap",
     method: "post",
     data,
+  });
+}
+//导入工治具台账
+export function importToolsID(data:any) {
+  return request({
+    url: "/api/Fixture/ToolsID/Import",
+    method: "post",
+    data,
+  });
+}
+//下载工治具台账导入模板
+export function downloadToolsIDTemplate(data:any) {
+  return request({
+    url: "/api/Fixture/ToolsID/Template",
+    method: "post",
+    data,
+    responseType: "blob",
   });
 }
 
@@ -133,6 +167,15 @@ export function importToolsSpec(data:any) {
     url: "/api/Fixture/ToolsSpec/Import",
     method: "post",
     data,
+  });
+}
+//下载产品消耗导入模板
+export function downloadToolsSpecTemplate(data:any) {
+  return request({
+    url: "/api/Fixture/ToolsSpec/Template",
+    method: "post",
+    data,
+    responseType: "blob",
   });
 }
 

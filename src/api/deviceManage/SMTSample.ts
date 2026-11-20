@@ -52,3 +52,13 @@ export const ImportSMTSample = (data: any) => {
     data
   })
 }
+
+// 下载SMT样本导入模板
+export const DownloadSMTSampleTemplate = (data: any) => {
+  return request({
+    url: '/api/SMTSample/Template',
+    method: 'post',
+    data,
+    responseType: 'blob'
+  })
+}

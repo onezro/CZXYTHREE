@@ -17,8 +17,8 @@
                 </div>
             </div>
 
-            <el-row :gutter="10">
-                <el-col :span="8">
+            <split-pane>
+                <template #left>
                     <el-table ref="eltableRef" size="small" :data="displayData" stripe border fit :height="tableHeight"
                         highlight-current-row @row-click="handleRowClick"
                         :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
@@ -57,10 +57,10 @@
                             :total="filteredData.length">
                         </el-pagination>
                     </div>
-                </el-col>
+                </template>
 
                 <!-- 右侧明细区域 -->
-                <el-col :span="16">
+                <template #right>
 
                     <div class="detail-header" v-if="currentSelectedRow">
                         <span>{{ t('smtSpotCheck.firstBase.subItemList') }} - {{ currentSelectedRow.Name }}</span>
@@ -105,8 +105,8 @@
                             <el-empty :description="t('smtSpotCheck.firstBase.noSubItem')" />
                         </template>
                     </el-table>
-                </el-col>
-            </el-row>
+                </template>
+            </split-pane>
         </el-card>
 
         <!-- 新增工序弹窗（支持动态增删子项） -->
@@ -276,6 +276,7 @@ import {
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import { useI18n } from "vue-i18n";
+import SplitPane from "@/components/splitPane/index.vue";
 
 const userStore = useUserStoreWithOut();
 const { t } = useI18n();

@@ -1,5 +1,5 @@
 <template>
-    <div class="p-2">
+    <div class="p-2 fill-page">
         <!-- 主表区域 -->
         <el-card shadow="always" :body-style="{ padding: '8px' }">
             <el-form ref="formRef" :inline="true" size="small" label-width="auto" @submit.prevent>
@@ -11,10 +11,15 @@
                     <el-button type="primary" @click="searchData">{{ t('publicText.query') }}</el-button>
                 </el-form-item>
             </el-form>
-            <el-table :data="tableData" size="small" :style="{ width: '100%' }" :height="masterTableHeight"
-                :tooltip-effect="'dark'" border fit ref="masterTableRef" highlight-current-row
-                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }"
-                @row-click="handleRowClick">
+            <!-- 上下可拖拽：主表 / 明细 -->
+            <split-pane-vertical ref="splitRef" :style="{ height: contentHeight + 'px' }" :min-size="150">
+                <template #top>
+                    <div class="pane-body">
+                        <div class="pane-table">
+                            <el-table :data="tableData" size="small" :style="{ width: '100%' }" height="100%"
+                                :tooltip-effect="'dark'" border fit ref="masterTableRef" highlight-current-row
+                                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }"
+                                @row-click="handleRowClick">
                 <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{ scope.$index + getForm.PageSize * (getForm.PageIndex - 1) + 1 }}</span>
@@ -95,22 +100,29 @@
                         <el-empty />
                     </div>
                 </template>
-            </el-table>
-            <div class="mt-1">
-                <el-pagination :size="'small'" background @size-change="handleSizeChange"
-                    @current-change="handleCurrentChange" :pager-count="5" :current-page="getForm.PageIndex"
-                    :page-size="getForm.PageSize" :page-sizes="[30, 50, 100, 200, 300]"
-                    layout="total,sizes, prev, pager, next" :total="total">
-                </el-pagination>
-            </div>
-             <div class="mb-2 font-bold">
-                {{ currentReturnNo
-                    ? t('Scheduling.ProReturnTransfer.detailTitle') + ' - ' + currentReturnNo
-                    : t('Scheduling.ProReturnTransfer.selectMasterTip') }}
-            </div>
-            <el-table :data="detailData" size="small" :style="{ width: '100%' }" :height="detailTableHeight"
-                :tooltip-effect="'dark'" border fit ref="detailTableRef"
-                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+                            </el-table>
+                        </div>
+                        <div class="pane-pagination">
+                            <el-pagination :size="'small'" background @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange" :pager-count="5" :current-page="getForm.PageIndex"
+                                :page-size="getForm.PageSize" :page-sizes="[30, 50, 100, 200, 300]"
+                                layout="total,sizes, prev, pager, next" :total="total">
+                            </el-pagination>
+                        </div>
+                    </div>
+                </template>
+
+                <template #bottom>
+                    <div class="pane-body">
+                        <div class="mb-2 font-bold">
+                            {{ currentReturnNo
+                                ? t('Scheduling.ProReturnTransfer.detailTitle') + ' - ' + currentReturnNo
+                                : t('Scheduling.ProReturnTransfer.selectMasterTip') }}
+                        </div>
+                        <div class="pane-table">
+                            <el-table :data="detailData" size="small" :style="{ width: '100%' }" height="100%"
+                                :tooltip-effect="'dark'" border fit ref="detailTableRef"
+                                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                 <el-table-column type="index" align="center" :label="t('publicText.index')" width="50">
                     <template #default="scope">
                         <span>{{ scope.$index + detailForm.PageSize * (detailForm.PageIndex - 1) + 1 }}</span>
@@ -163,14 +175,19 @@
                         <el-empty />
                     </div>
                 </template>
-            </el-table>
-            <div class="mt-1">
-                <el-pagination :size="'small'" background @size-change="handleDetailSizeChange"
-                    @current-change="handleDetailCurrentChange" :pager-count="5" :current-page="detailForm.PageIndex"
-                    :page-size="detailForm.PageSize" :page-sizes="[10, 20, 30, 50, 100]"
-                    layout="total,sizes, prev, pager, next" :total="detailTotal">
-                </el-pagination>
-            </div>
+                            </el-table>
+                        </div>
+                        <div class="pane-pagination">
+                            <el-pagination :size="'small'" background @size-change="handleDetailSizeChange"
+                                @current-change="handleDetailCurrentChange" :pager-count="5"
+                                :current-page="detailForm.PageIndex" :page-size="detailForm.PageSize"
+                                :page-sizes="[10, 20, 30, 50, 100]" layout="total,sizes, prev, pager, next"
+                                :total="detailTotal">
+                            </el-pagination>
+                        </div>
+                    </div>
+                </template>
+            </split-pane-vertical>
         </el-card>
 
         <!-- 明细表区域 -->
@@ -188,7 +205,9 @@ import {
     LockSaiYiAllocation
 } from "@/api/Scheduling/index";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
-import { ref, reactive, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { useFillHeight } from "@/hooks/useFillHeight";
+import SplitPaneVertical from "@/components/splitPaneVertical/index.vue";
+import { ref, reactive, onMounted } from "vue";
 import { ElNotification, ElMessageBox } from "element-plus";
 import { useUserStoreWithOut } from "@/stores/modules/user";
 import dayjs from "dayjs";
@@ -198,8 +217,8 @@ const userStore = useUserStoreWithOut();
 const { t } = useI18n();
 const masterTableRef = ref();
 const detailTableRef = ref();
-const masterTableHeight = ref(0);
-const detailTableHeight = ref(0);
+const splitRef = ref();
+const { height: contentHeight } = useFillHeight(splitRef);
 const tableData = ref<any[]>([]);
 const total = ref(0);
 
@@ -421,28 +440,58 @@ const handleDetailCurrentChange = (val: number) => {
     getDetailData();
 };
 
-const getScreenHeight = () => {
-    nextTick(() => {
-        const availableHeight = window.innerHeight - 240;
-        masterTableHeight.value = Math.floor(availableHeight*0.6);
-        detailTableHeight.value = Math.ceil(availableHeight*0.4);
-    });
-};
-
 onMounted(() => {
-    getScreenHeight();
-    window.addEventListener("resize", getScreenHeight);
     getData();
-});
-
-onBeforeUnmount(() => {
-    window.removeEventListener("resize", getScreenHeight);
 });
 </script>
 
 <style scoped>
 .el-pagination {
     justify-content: center;
+}
+
+.fill-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.fill-page :deep(.el-card) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.fill-page :deep(.el-card__body) {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.fill-page :deep(.v-split) {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 0;
+}
+
+.pane-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.pane-table {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.pane-pagination {
+    flex: 0 0 auto;
+    padding-top: 8px;
 }
 
 .mt-2 {

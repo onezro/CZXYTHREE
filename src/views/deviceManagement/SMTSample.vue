@@ -43,6 +43,8 @@
                         <el-button type="warning" size="small" @click="openAdd">{{ t("publicText.add") }}</el-button>
                         <el-button type="success" size="small" @click="importDialogVisible = true">{{
                             t("publicText.import") }}</el-button>
+                        <el-button size="small" :loading="templateLoading" @click="handleDownloadTemplate">{{
+                            t("publicText.downloadTemplate") }}</el-button>
                         <el-button type="info" size="small" :disabled="selectedRows.length === 0"
                             @click="handleClearCell">
                             {{ t("deviceManage.smtSample.clearCell") }}
@@ -334,8 +336,10 @@ import {
     DeleteSMTSample,
     QuerySMTSampleList,
     ImportSMTSample,
+    DownloadSMTSampleTemplate,
 } from "@/api/deviceManage/SMTSample";
 import { CancelRackTask } from "@/api/deviceManage/fixture";
+import { saveTemplateFile } from "@/utils/excelFile";
 import { ref, reactive, nextTick, onMounted, onBeforeUnmount } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useI18n } from "vue-i18n";
@@ -500,6 +504,21 @@ const importForm = reactive({
     file_content: "",
 });
 const fileList = ref<any[]>([]);
+const templateLoading = ref(false);
+
+// 下载导入模板
+const handleDownloadTemplate = async () => {
+    templateLoading.value = true;
+    try {
+        const res: any = await DownloadSMTSampleTemplate({});
+        await saveTemplateFile(res, "样件管理导入模板.xlsx", t("publicText.downloadTemplateFailed"));
+    } catch (error) {
+        console.error("模板下载失败:", error);
+        ElMessage.error(t("publicText.downloadTemplateFailed"));
+    } finally {
+        templateLoading.value = false;
+    }
+};
 
 const handleImportDialogClosed = () => {
     importForm.file_name = "";

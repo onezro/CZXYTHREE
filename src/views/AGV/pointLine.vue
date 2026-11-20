@@ -5,11 +5,9 @@
                 <el-form ref="formRef" :model="searchForm" label-width="auto" :inline="true" :size="'small'"
                     @submit.prevent>
                     <el-form-item :label="t('AGV.pointLine.startPoint')" prop="point" class="mb-2">
-                        <el-select v-model="searchForm.point" clearable filterable style="width: 260px"
-                            :placeholder="t('AGV.pointLine.searchPointPlaceholder')" @change="handleSearch">
-                            <el-option v-for="item in pointData" :key="'qs-' + item.pointID"
-                                :label="`${item.pointID} ${item.pointName ?? ''}`" :value="item.pointID" />
-                        </el-select>
+                        <el-input v-model="searchForm.point" clearable style="width: 260px"
+                            :placeholder="t('AGV.pointLine.searchPointPlaceholder')" @clear="handleSearch"
+                            @keyup.enter="handleSearch" />
                     </el-form-item>
                     <el-form-item class="mb-2">
                         <el-button :type="'primary'" @click="handleSearch">{{ t("publicText.query") }}</el-button>

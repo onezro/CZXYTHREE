@@ -194,12 +194,15 @@ import {
   updateToolsSpec,
   deleteToolsSpec,
   importToolsSpec,
+  downloadToolsSpecTemplate,
   queryEquipmentLineBinding,
 } from "@/api/deviceManage/fixture";
-import { importExcelToJSON } from "@/utils/exportExcel/fixture";
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
+import { useUserStoreWithOut } from "@/stores/modules/user";
+import { fileToBase64, saveTemplateFile } from "@/utils/excelFile";
 
 const { t } = useI18n();
+const userStore = useUserStoreWithOut();
 
 // ---------- 表格数据 ----------
 const tableRef = ref();
@@ -495,32 +498,14 @@ const handleDialogClose = () => {
 // ---------- 导入/导出 ----------
 const handleFileChange = async (file: File) => {
   try {
-    const data = await importExcelToJSON(file, {
-      hasHeader: true,
-      headerMapping: {
-        产品编码: "ProductName",
-        版本: "Version",
-        面别: "Side",
-        治具类型: "ToolsMold",
-        设备类型: "EquipType",
-        消耗数量: "Useage",
-        描述: "Remark",
-        状态: "Stts",
-      },
-      typeMapping: {
-        Useage: "int",
-        ProductName: "string",
-        Version: "string",
-        Side: "string",
-        ToolsMold: "string",
-        EquipType: "string",
-        Remark: "string",
-        Stts: "string",
-      },
+    const fileConent = await fileToBase64(file);
+    const res: any = await importToolsSpec({
+      FileName: file.name,
+      FileConent: fileConent,
+      UserNo: userStore.getUserInfo || "",
     });
-    const res: any = await importToolsSpec(data);
     if (res.Success) {
-      ElMessage.success(t("deviceManage.fixtureProduct.importSuccess"));
+      ElMessage.success(res.Msg || t("deviceManage.fixtureProduct.importSuccess"));
       await getProductList();
     } else {
       ElMessage.error(res.Msg || t("deviceManage.fixtureProduct.importFailure"));
@@ -532,8 +517,14 @@ const handleFileChange = async (file: File) => {
   return false;
 };
 
-const downloadFile = () => {
-  window.open("http://172.20.99.21:5998/temp/产品消耗-导入模板.xlsx", "_blank");
+const downloadFile = async () => {
+  try {
+    const res: any = await downloadToolsSpecTemplate({});
+    await saveTemplateFile(res, "产品消耗-导入模板.xlsx", t("publicText.downloadTemplateFailed"));
+  } catch (error) {
+    console.error("模板下载失败:", error);
+    ElMessage.error(t("publicText.downloadTemplateFailed"));
+  }
 };
 
 // ---------- 分页 ----------

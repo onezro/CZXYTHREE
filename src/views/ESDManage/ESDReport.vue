@@ -20,10 +20,14 @@
                                 <el-date-picker v-model="recordTime" type="datetimerange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD HH:mm:ss" :shortcuts="shortcuts" :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]" :clearable="false" @change="handleDateRangeChange" />
                             </el-form-item>
                             <el-form-item :label="t('esd.task.workshop')" class="mb-2">
-                                <el-input v-model="recordQuery.Workshop" placeholder="车间" clearable style="width:160px" />
+                                <el-select v-model="recordQuery.Workshop" placeholder="车间" clearable filterable style="width:160px" @change="handleWorkshopChange">
+                                    <el-option v-for="item in workshopOptions" :key="item" :label="item" :value="item" />
+                                </el-select>
                             </el-form-item>
                             <el-form-item :label="t('esd.task.lineName')" class="mb-2">
-                                <el-input v-model="recordQuery.LineName" placeholder="线体" clearable style="width:160px" />
+                                <el-select v-model="recordQuery.LineName" placeholder="线体" clearable filterable :disabled="!recordQuery.Workshop" :loading="lineLoading" style="width:160px">
+                                    <el-option v-for="item in lineOptions" :key="item" :label="item" :value="item" />
+                                </el-select>
                             </el-form-item>
                             <el-form-item :label="t('esd.task.workStation')" class="mb-2">
                                 <el-input v-model="recordQuery.WorkStation" placeholder="工位" clearable style="width:160px" />
@@ -35,12 +39,6 @@
                                         <el-pagination small layout="prev, pager, next" :total="selectData.esdType.total" :page-size="selectData.esdType.pageSize" v-model:current-page="selectData.esdType.pageIndex" @current-change="loadEsdTypeData" class="pagination-wrapper" />
                                     </template>
                                 </el-select>
-                            </el-form-item>
-                            <el-form-item :label="t('esd.task.esdTypeCode')" class="mb-2">
-                                <el-input v-model="recordQuery.EsdTypeCode" placeholder="ESD类型编码" clearable style="width:160px" />
-                            </el-form-item>
-                            <el-form-item :label="t('esd.report.esdCategory')" class="mb-2">
-                                <el-input v-model="recordQuery.EsdCategory" placeholder="ESD品类" clearable style="width:160px" />
                             </el-form-item>
                             <el-form-item :label="t('esd.checklist.checkFrequency')" class="mb-2">
                                 <el-select v-model="recordQuery.CheckFrequency" placeholder="请选择" clearable style="width:160px" popper-class="frequency-popper" v-loading="selectData.checkFrequency.loading">
@@ -94,7 +92,6 @@
                             <el-table-column prop="FormName" :label="t('esd.checklist.formName')" :min-width="getColumnWidth('FormName')" fixed="left" />
                             <el-table-column prop="FormCode" :label="t('esd.checklist.formCode')" :min-width="getColumnWidth('FormCode')" />
                             <el-table-column prop="EsdType" :label="t('esd.checklist.esdType')" :min-width="getColumnWidth('EsdType')" />
-                            <el-table-column prop="EsdTypeCode" :label="t('esd.task.esdTypeCode')" :min-width="getColumnWidth('EsdTypeCode')" />
                             <el-table-column prop="EsdCategory" :label="t('esd.report.esdCategory')" :min-width="getColumnWidth('EsdCategory')" />
                             <el-table-column prop="CheckFrequency" :label="t('esd.checklist.checkFrequency')" :min-width="getColumnWidth('CheckFrequency')" />
                             <el-table-column prop="Workshop" :label="t('esd.task.workshop')" :min-width="getColumnWidth('Workshop')" />
@@ -339,6 +336,7 @@ import {
     QueryEsdObjectList,
     QueryCheckFrequencyList,
 } from '@/api/esdManage/base';
+import { QueryLineDeviceList } from '@/api/esdManage/ESDInspect';
 import { shortcuts } from '@/utils/dataMenu'
 import { useTableColumnWidth } from '@/hooks/useTableColumnWidth';
 import { exportTableByRef } from "@/utils/exportExcel/generalExportExcel";
@@ -353,6 +351,32 @@ const selectData = reactive({
     esdType: { list: [] as { label: string; value: string }[], total: 0, pageIndex: 1, pageSize: 10, loading: false },
     checkFrequency: { list: [] as { label: string; value: string }[], total: 0, pageIndex: 1, pageSize: 10, loading: false },
 });
+
+// 车间选项（与点检执行页保持一致）
+const workshopOptions = [
+    'SMT车间', 'ICT车间', '铣板车间', '组装车间', '电子料仓库', '半成品仓库', '成品仓库',
+    '不良品仓库', '喷涂三防车间', 'DIP车间', '自动化车间', '老化测试车间', '成品包装车间', '各车间'
+];
+const lineOptions = ref<string[]>([]);
+const lineLoading = ref(false);
+
+// 车间变化时按车间加载线体
+const loadLineOptions = async (workshop: string) => {
+    lineOptions.value = [];
+    if (!workshop) return;
+    lineLoading.value = true;
+    try {
+        const res: any = await QueryLineDeviceList({ Workshop: workshop, LineName: '', EsdType: '' });
+        if (res.Success && Array.isArray(res.Data)) {
+            lineOptions.value = Array.from(new Set(res.Data.map((item: any) => item.LineName).filter(Boolean)));
+        }
+    } finally { lineLoading.value = false; }
+};
+
+const handleWorkshopChange = () => {
+    recordQuery.LineName = '';
+    loadLineOptions(recordQuery.Workshop);
+};
 
 const loadEsdTypeData = async () => {
     const state = selectData.esdType;
@@ -399,8 +423,6 @@ const recordQuery = reactive({
     LineName: '',
     WorkStation: '',
     EsdType: '',
-    EsdTypeCode: '',
-    EsdCategory: '',
     CheckFrequency: '',
     TaskCode: '',
     FormName: '',
@@ -467,9 +489,8 @@ const resetRecordSearch = () => {
     recordQuery.LineName = '';
     recordQuery.WorkStation = '';
     recordQuery.EsdType = '';
-    recordQuery.EsdTypeCode = '';
-    recordQuery.EsdCategory = '';
     recordQuery.CheckFrequency = '';
+    lineOptions.value = [];
     recordQuery.TaskCode = '';
     recordQuery.FormName = '';
     recordQuery.DeviceName = '';

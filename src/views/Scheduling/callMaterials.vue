@@ -176,9 +176,13 @@
         <!-- 详情弹窗 -->
         <el-dialog :title="t('Scheduling.CallMaterials.ListTitle')" v-model="detailVisible" width="90%" align-center
             @close="closeDetail" :close-on-click-modal="false">
-            <!-- <div class="mb-2 font-bold">{{ t('Scheduling.CallMaterials.ListTitle')t('Scheduling.CallMaterials.Detail') }}</div> -->
-            <el-table :data="detailData.list" size="small" border fit style="width: 100%" height="250"
-                ref="detailListRef" :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
+            <split-pane-vertical :style="{ height: '80vh' }" :min-size="120">
+                <template #top>
+                    <div class="pane-body">
+                        <div class="pane-table">
+                            <el-table :data="detailData.list" size="small" border fit style="width: 100%"
+                                height="100%" ref="detailListRef"
+                                :header-cell-style="{ backgroundColor: '#006487', color: '#fff' }">
                
                 <el-table-column fixed prop="MaterialRequestList_No" :label="t('Scheduling.CallMaterials.CallOrder')"
                     :min-width="getListColumnWidth('MaterialRequestList_No')" show-overflow-tooltip />
@@ -215,16 +219,23 @@
                         </el-tag>
                     </template>
                 </el-table-column> -->
-            </el-table>
-            <div class="mt-2 text-sm flex justify-end items-center">
-                {{ t('Scheduling.CallMaterials.Statistics') }}：
-                {{ t('Scheduling.CallMaterials.TotalRows') }} {{ listStatistics.total }} {{ t('Scheduling.CallMaterials.Rows') }}，
-                <el-tag type="success" size="small" effect="plain">{{ t('Scheduling.CallMaterials.Satisfied') }} {{ listStatistics.satisfied }} {{ t('Scheduling.CallMaterials.Rows') }}</el-tag>，
-                <el-tag type="danger" size="small" effect="plain">{{ t('Scheduling.CallMaterials.NotSatisfied') }} {{ listStatistics.notSatisfied }} {{ t('Scheduling.CallMaterials.Rows') }}</el-tag>
-            </div>
-            <div class="mt-1 mb-1 font-bold">{{ t('Scheduling.CallMaterials.DetailTitle') }}</div>
-            <el-table :data="pagedDetailData" size="small" border fit style="width: 100%" height="270"
-                 ref="detailDetailRef">
+                            </el-table>
+                        </div>
+                        <div class="mt-2 text-sm flex justify-end items-center">
+                            {{ t('Scheduling.CallMaterials.Statistics') }}：
+                            {{ t('Scheduling.CallMaterials.TotalRows') }} {{ listStatistics.total }} {{ t('Scheduling.CallMaterials.Rows') }}，
+                            <el-tag type="success" size="small" effect="plain">{{ t('Scheduling.CallMaterials.Satisfied') }} {{ listStatistics.satisfied }} {{ t('Scheduling.CallMaterials.Rows') }}</el-tag>，
+                            <el-tag type="danger" size="small" effect="plain">{{ t('Scheduling.CallMaterials.NotSatisfied') }} {{ listStatistics.notSatisfied }} {{ t('Scheduling.CallMaterials.Rows') }}</el-tag>
+                        </div>
+                    </div>
+                </template>
+
+                <template #bottom>
+                    <div class="pane-body">
+                        <div class="mt-1 mb-1 font-bold">{{ t('Scheduling.CallMaterials.DetailTitle') }}</div>
+                        <div class="pane-table">
+                            <el-table :data="pagedDetailData" size="small" border fit style="width: 100%"
+                                height="100%" ref="detailDetailRef">
                  <el-table-column type="index" align="center" fixed :label="t('publicText.index')" width="50">
                 </el-table-column>
                 <!-- <el-table-column prop="MaterialRequestDetail_No" :label="t('Scheduling.CallMaterials.CallOrder')"
@@ -257,14 +268,18 @@
                         </el-tag>
                     </template>
                 </el-table-column>
-            </el-table>
-            <div class="mt-2">
-                <el-pagination :size="'small'" background @size-change="handleDetailSizeChange"
-                    @current-change="handleDetailCurrentChange" :current-page="detailPage.PageIndex"
-                    :page-size="detailPage.PageSize" :page-sizes="[50, 100, 200, 300]"
-                    layout="total,sizes, prev, pager, next" :total="detailTotal">
-                </el-pagination>
-            </div>
+                            </el-table>
+                        </div>
+                        <div class="pane-pagination">
+                            <el-pagination :size="'small'" background @size-change="handleDetailSizeChange"
+                                @current-change="handleDetailCurrentChange" :current-page="detailPage.PageIndex"
+                                :page-size="detailPage.PageSize" :page-sizes="[50, 100, 200, 300]"
+                                layout="total,sizes, prev, pager, next" :total="detailTotal">
+                            </el-pagination>
+                        </div>
+                    </div>
+                </template>
+            </split-pane-vertical>
             <template #footer>
                 <el-button @click="detailVisible = false">{{ t("publicText.close") }}</el-button>
             </template>
@@ -285,6 +300,7 @@ import {
 } from "@/api/Scheduling/index"
 import { useTableColumnWidth } from "@/hooks/useTableColumnWidth";
 import { useTableHeight } from "@/hooks/useTableHeight";
+import SplitPaneVertical from "@/components/splitPaneVertical/index.vue";
 import {
     ref,
     reactive,
@@ -657,6 +673,23 @@ onMounted(() => {
 <style scoped>
 .el-pagination {
     justify-content: center;
+}
+
+.pane-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.pane-table {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.pane-pagination {
+    flex: 0 0 auto;
+    padding-top: 8px;
 }
 
 .mt-4 {
