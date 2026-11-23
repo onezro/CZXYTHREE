@@ -743,10 +743,10 @@ const submitGroup = () => {
         if (res?.Success) {
           ElMessage.success(res.Message || t('esd.inspect.submitSuccess'));
           detailTab.value = 'pending';
-          // 本次地点已随提交保存，重置后可选择其他地点继续提交
-          resetLocationForm();
           await fetchDetail();
           fetchTasks();
+          // 本次地点已随提交保存，重新初始化地点，下一组可选择其他车间、线体和设备
+          resetLocationForm();
         } else {
           ElMessage.error(res?.Message || res?.msg || t('esd.inspect.submitFailure'));
         }

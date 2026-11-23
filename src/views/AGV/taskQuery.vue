@@ -631,14 +631,28 @@ onMounted(() => {
 
 .info-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 6px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .info-label {
     font-size: 13px;
     color: #606266;
     font-weight: 500;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.info-item .el-tag {
+    height: auto;
+    max-width: 100%;
+    white-space: normal;
+    word-break: break-all;
+    line-height: 1.5;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
 
 .json-header {
